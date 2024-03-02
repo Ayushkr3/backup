@@ -3,18 +3,18 @@ struct DS_OUTPUT
 	float4 vPosition  : SV_POSITION;
 	// TODO: change/add other stuff
 };
-//cbuffer Test: register (b0) {
-//	row_major matrix Rotation;
-//	row_major matrix Translation;
-//	row_major matrix Scale;
-//}
-//cbuffer PerFrameBuffer : register (b1) {
-//	matrix viewXprojection;
-//}
-// Output control point
+cbuffer Test: register (b0) {
+	row_major matrix Rotation;
+	row_major matrix Translation;
+	row_major matrix Scale;
+}
+cbuffer PerFrameBuffer : register (b1) {
+	matrix viewXprojection;
+}
+ //Output control point
 struct HS_CONTROL_POINT_OUTPUT
 {
-	float4 pos : SV_POSITION;
+	float3 pos : Position1;
 };
 
 // Output patch constant data.
@@ -33,14 +33,11 @@ DS_OUTPUT main(HS_CONSTANT_DATA_OUTPUT input,
 	const OutputPatch<HS_CONTROL_POINT_OUTPUT, NUM_CONTROL_POINTS> patch)
 {
 	DS_OUTPUT Output;
-	float4 position = 
-		patch[0].pos*domain.x + patch[1].pos*domain.y + patch[2].pos*domain.z;
-	//float4x4 transformationMatrix = mul(Scale,mul(Rotation,Translation));
-	//float4 TransformedMat = mul(float4(position, 1.0f), transformationMatrix);
-	//vso.pos = mul(TransformedMat, viewXprojection).xyz;
+	float4 vPosition = float4(
+		patch[0].pos*domain.x + patch[1].pos*domain.y + patch[2].pos*domain.z, 1);
+	float4x4 transformationMatrix = mul(Scale, mul(Rotation, Translation));
+	float4 TransformedMat = mul(vPosition, transformationMatrix);
+	Output.vPosition = mul(TransformedMat, viewXprojection);
 
-	
-	//Output.vPosition = mul(TransformedMat, viewXprojection);
-	Output.vPosition = position;
 	return Output;
 }

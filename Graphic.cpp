@@ -54,7 +54,7 @@ Graphic::Graphic(HWND hwnd){
 	rasDesc.AntialiasedLineEnable = FALSE;
 	CHECK_ERROR(pDevice->CreateRasterizerState(&rasDesc, &WireFrame));
 
-	//pContext->RSSetState(WireFrame.Get());
+	pContext->RSSetState(WireFrame.Get());
 
 	D3D11_DEPTH_STENCIL_DESC dsDesc = {};
 	dsDesc.DepthEnable = TRUE;

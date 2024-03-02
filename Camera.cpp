@@ -25,7 +25,7 @@ Camera::Camera(Microsoft::WRL::ComPtr<ID3D11Device> pDevice)
 }
 void Camera::calculateProjection(Microsoft::WRL::ComPtr<ID3D11DeviceContext> pContext, PerFrameData* ViewMatrix) {
 	pContext->UpdateSubresource(pFrameConstantBuffer.Get(), 0, nullptr,ViewMatrix,0,0 );
-	pContext->VSSetConstantBuffers(1, 1, pFrameConstantBuffer.GetAddressOf());
+	pContext->DSSetConstantBuffers(1, 1, pFrameConstantBuffer.GetAddressOf());
 }
 PerFrameData Camera::GetViewMatrix() {
 	//////////////////////////

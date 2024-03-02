@@ -35,7 +35,7 @@ XMFLOAT4X4 ConstantBuffer::ConvertMatrixToFloat4x4(XMMATRIX mat) {
 	return result;
 }
 void ConstantBuffer::BindToVSshader(Microsoft::WRL::ComPtr<ID3D11DeviceContext> pContext) {
-	pContext->VSSetConstantBuffers(0, 1, pObjectConstantBuffer.GetAddressOf());
+	pContext->DSSetConstantBuffers(0, 1, pObjectConstantBuffer.GetAddressOf());
 }
 void ConstantBuffer::UpdateBuffer(Microsoft::WRL::ComPtr<ID3D11DeviceContext> pContext,PerObjectData* obj) {
 	D3D11_MAPPED_SUBRESOURCE mappedResource;

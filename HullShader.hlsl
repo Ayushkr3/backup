@@ -1,9 +1,9 @@
 
 struct HS_CONTROL_POINT_INPUT {
-	float4 pos : SV_POSITION;
+	float3 pos : Position1;
 };
 struct HS_CONTROL_POINT_OUTPUT {
-	float4 pos : SV_POSITION;
+	float3 pos : Position1;
 };
 struct HS_CONSTANT_DATA {
 	float EdgeTessFactor[3] : SV_TessFactor;
@@ -12,15 +12,15 @@ struct HS_CONSTANT_DATA {
 
 HS_CONSTANT_DATA HullConstantDataOutput(InputPatch<HS_CONTROL_POINT_INPUT, 3> Ip,uint PatchID : SV_PrimitiveID) {
 	HS_CONSTANT_DATA Cons;
-	Cons.EdgeTessFactor[0] = 1;
-	Cons.EdgeTessFactor[1] = 1;
-	Cons.EdgeTessFactor[2] = 1;
-	Cons.InsideTessFactor = 0;
+	Cons.EdgeTessFactor[0] = 2;
+	Cons.EdgeTessFactor[1] = 2;
+	Cons.EdgeTessFactor[2] = 2;
+	Cons.InsideTessFactor = 1;
 	return Cons;
 }
 [domain("tri")]
-[partitioning("fractional_odd")]
-[outputtopology("triangle_cw")]
+[partitioning("integer")]
+[outputtopology("triangle_ccw")]
 [outputcontrolpoints(3)]
 [patchconstantfunc("HullConstantDataOutput")]
 
