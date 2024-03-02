@@ -51,16 +51,15 @@ private:
 	Microsoft::WRL::ComPtr<ID3D11DomainShader> pDSS;
 	
 public:
-	float rotation[3] = { 0,0,45 };
+	float rotation[3] = { 0,0,0 };
 	float position[3] = { 0,0,0 };
 	float Scale[3] = { 1,1,1 };
-	//std::unique_ptr<PixelShader_> pPshader;
+	std::unique_ptr<PixelShader_> pPshader;
 	//std::unique_ptr<HullShader_> pHull;
 	//std::unique_ptr<DomainShader_> pDomain;
 	std::unique_ptr<VertexShader_> pVshader;
 	std::vector<Vertex> vertices; // = { {0.0f,0.0f, 255, 0, 0, 0 }, { 0.5f,-0.5f,0,255,0,0 }, { -0.5f,-0.5f,0,0,255,0 } };
-	std::vector<unsigned int> index = { 0,2,1 ,2,3,1,
-										/*4,6,5,6,7,4*/};
+	std::vector<unsigned int> index;
 };
 
 

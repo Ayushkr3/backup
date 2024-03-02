@@ -6,13 +6,14 @@ Triangle::Triangle(Microsoft::WRL::ComPtr<ID3D11Device> pDevice, Microsoft::WRL:
 	{-1.0f, -1.0f, -1.0f, 1,1, 0.0f,0.0f,-1.0f},
 	{1.0f,  -1.0f, -1.0f,0,1, 0.0f,0.0f,-1.0f},
 	{-1.0f,  1.0f, -1.0f,1,0, 0.0f,0.0f,-1.0f },
-	{1.0f,   1.0f, -1.0f,0,0, 0.0f,0.0f,-1.0f}
+	{1.0f,   1.0f, -1.0f,0,0, 0.0f,0.0f,-1.0f},
 
-//	{-1.0f,  1.0f, -1.0f,/*0,1, 0.0f,1.0f,0.0f*/},
-//	{1.0f,  1.0f, 1.0f,/*1,0,  0.0f,1.0f,0.0f*/},
-//	{-1.0f,  1.0f, 1.0f,/*1,1, 0.0f,1.0f,0.0f*/},
-//	{1.0f,  1.0f, -1.0f,/*0,0, 0.0f,1.0f,0.0f*/},
-}
+	{-1.0f,  1.0f, -1.0f,0,1, 0.0f,1.0f,0.0f},
+	{1.0f,  1.0f, 1.0f,1,0,  0.0f,1.0f,0.0f},
+	{-1.0f,  1.0f, 1.0f,1,1, 0.0f,1.0f,0.0f},
+	{1.0f,  1.0f, -1.0f,0,0, 0.0f,1.0f,0.0f},
+},index{ 0,2,1,2,3,1,
+		/*4,6,5,4,5,7*/ }
 {
 	VertexBuffer.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	VertexBuffer.Usage = D3D11_USAGE_IMMUTABLE;
@@ -62,7 +63,7 @@ Triangle::Triangle(Microsoft::WRL::ComPtr<ID3D11Device> pDevice, Microsoft::WRL:
 	desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
 
 	CHECK_ERROR(pDevice->CreateTexture2D(&desc, nullptr, pTexture.GetAddressOf()));
-	pContext->UpdateSubresource(pTexture.Get(), 0, nullptr,pR.Get(), 0, 0);
+	//pContext->UpdateSubresource(pTexture.Get(), 0, nullptr,pR.Get(), 0, 0);
 
 	
 	D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
@@ -93,14 +94,14 @@ Triangle::Triangle(Microsoft::WRL::ComPtr<ID3D11Device> pDevice, Microsoft::WRL:
 	//pHull = std::make_unique<HullShader_>(pDevice, pContext);
 	//pDomain = std::make_unique<DomainShader_>(pDevice, pContext);
 	std::unique_ptr<PixelShader_>pPshader = std::make_unique<PixelShader_>(pDevice, pContext);
-	//Microsoft::WRL::ComPtr<ID3D10Blob> pHullBlob;
-	//CHECK_ERROR(D3DReadFileToBlob(L"HullShader.cso",&pHullBlob));
-	//pDevice->CreateHullShader(pHullBlob->GetBufferPointer(), pHullBlob->GetBufferSize(), nullptr, &pHull);
-	//pContext->HSSetShader(pHull.Get(), nullptr, 0);
-	//Microsoft::WRL::ComPtr<ID3D10Blob> pDSBlob;
-	//CHECK_ERROR(D3DReadFileToBlob(L"DomainShader.cso", &pDSBlob));
-	//pDevice->CreateDomainShader(pDSBlob->GetBufferPointer(), pDSBlob->GetBufferSize(), nullptr, &pDSS);
-	//pContext->DSSetShader(pDSS.Get(), nullptr, 0);
+	Microsoft::WRL::ComPtr<ID3D10Blob> pHullBlob;
+	CHECK_ERROR(D3DReadFileToBlob(L"HullShader.cso",&pHullBlob));
+	pDevice->CreateHullShader(pHullBlob->GetBufferPointer(), pHullBlob->GetBufferSize(), nullptr,&pHull);
+	pContext->HSSetShader(pHull.Get(), nullptr, 0);
+	Microsoft::WRL::ComPtr<ID3D10Blob> pDSBlob;
+	CHECK_ERROR(D3DReadFileToBlob(L"DomainShader.cso", &pDSBlob));
+	pDevice->CreateDomainShader(pDSBlob->GetBufferPointer(), pDSBlob->GetBufferSize(), nullptr, &pDSS);
+	pContext->DSSetShader(pDSS.Get(), nullptr, 0);
 	//pHull->bind();
 	//pDomain->bind();
 	pPshader->bind(pSRV,pSmpler);
@@ -114,7 +115,7 @@ Triangle::Triangle(Microsoft::WRL::ComPtr<ID3D11Device> pDevice, Microsoft::WRL:
 	};
 	pDevice->CreateInputLayout(IL, std::size(IL), pVshader->rBlob()->GetBufferPointer(), pVshader->rBlob()->GetBufferSize(), &pIL);
 	pContext->IASetInputLayout(pIL.Get());
-	pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
 	
 }
 void Triangle::Draw() {
@@ -125,8 +126,8 @@ void Triangle::Draw() {
 
 	//Have to bind other wise it will not be rendered ,before every draw call
 	pCB->BindToVSshader(pContext);
-	//pContext->HSSetShader(pHull.Get(), nullptr, 0);
-	//pContext->DSSetShader(pDSS.Get(), nullptr, 0);
+	pContext->HSSetShader(pHull.Get(), nullptr, 0);
+	pContext->DSSetShader(pDSS.Get(), nullptr, 0);
 	pContext->DrawIndexed(index.size(), 0, 0);
 }
 void Triangle::UpdateBuffers() {
