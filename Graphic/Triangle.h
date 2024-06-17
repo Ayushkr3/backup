@@ -10,44 +10,57 @@
 #include "timer.h"
 #include "ConstantBuff.h"
 #include "Mouse.h"
+#include "WIC.h"
+#include "HullShader.h"
+#include "DomainShader.h"
+#include "Physics.h"
+#include "Collider.h"
+#include "Global.h"
+#include "GeometryShader.h"
 #define CHECK_ERROR(hr) if(FAILED(hr)) throw error::error(hr,__LINE__)
 
 class Triangle
 {
 public:
-	Triangle(Microsoft::WRL::ComPtr<ID3D11Device> pDevice, Microsoft::WRL::ComPtr<ID3D11DeviceContext> pContext);
+	short id;
+	Triangle(Microsoft::WRL::ComPtr<ID3D11Device> pDevice, Microsoft::WRL::ComPtr<ID3D11DeviceContext> pContext,std::vector<Vertex> vertice,std::vector<unsigned int> indi, short id);
+	Physics_Body Phys;
+	bool isMoving;
 	void Draw();
 	void UpdateBuffers();
+	Microsoft::WRL::ComPtr<ID3D11Texture2D> objectTex;
+	PerObjectData Transformation;
+	bool operator<(const Triangle& secondObj)const;
+	bool operator==(const Triangle& secondObj)const;
+	std::unique_ptr<ConstantBuffer> pCB;
+	std::vector<Vertex> GetVertices();
+private:
+	UINT strides = sizeof(Vertex);
+	UINT offset = 0u;
+	D3D11_BUFFER_DESC IndexBufferDesc;
+	D3D11_BUFFER_DESC VertexBuffer;
+	Microsoft::WRL::ComPtr<ID3D11Buffer> pVertexBuffer;
+	Microsoft::WRL::ComPtr<ID3D11Buffer> pIndexBuffer;
+	//TODO: Move Shader to SCENE class
+	Microsoft::WRL::ComPtr<ID3D11DeviceContext> pContext;
+	Microsoft::WRL::ComPtr<ID3D11Device> pDevice;
+	Microsoft::WRL::ComPtr<ID3D11HullShader> pHull;
+	Microsoft::WRL::ComPtr<ID3D11DomainShader> pDSS;
+	
+public:
 	float rotation[3] = { 0,0,0 };
 	float position[3] = { 0,0,0 };
 	float Scale[3] = { 1,1,1 };
-private:
-	struct Vertex {
-		float x;
-		float y;
-		float z;
-		unsigned char r;
-		unsigned char g;
-		unsigned char b;
-		unsigned char a;
-	};
-
-	Microsoft::WRL::ComPtr<ID3D11Buffer> pVertexBuffer;
-	Microsoft::WRL::ComPtr<ID3D11Buffer> pIndexBuffer;
-	Microsoft::WRL::ComPtr<ID3D11Buffer> pConstBuffer;
-	std::unique_ptr<ConstantBuffer> pCB;
-	PerObjectData Transformation;
-	Microsoft::WRL::ComPtr<ID3D11DeviceContext> pContext;
-	
-public:
+	std::unique_ptr<PixelShader_> pPshader;
+	//std::unique_ptr<HullShader_> pHull;
+	//std::unique_ptr<DomainShader_> pDomain;
+	std::unique_ptr<GeometryShader_> pGeo;
+	std::unique_ptr<VertexShader_> pVshader;
 	std::vector<Vertex> vertices; // = { {0.0f,0.0f, 255, 0, 0, 0 }, { 0.5f,-0.5f,0,255,0,0 }, { -0.5f,-0.5f,0,0,255,0 } };
-	std::vector<unsigned int> index = {
-		0,2,1, 2,3,1,
-		1,3,5, 3,7,5,
-		2,6,3, 3,6,7,
-		4,5,7, 4,7,6,
-		0,4,2, 2,4,6,
-		0,1,4, 1,5,4 };
+	std::vector<unsigned int> index;
+public:
+	void UpdateCollider();
+	BoxCollider coll;
 };
 
 

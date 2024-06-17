@@ -1,10 +1,17 @@
 #include"WindowsClass.h"
-extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+#ifdef ImGUI_ENABLED
+#include "Metrices.h"
+#include <string>
 
+extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+#endif
 window::window():
 	hint(GetModuleHandle(nullptr))
 {
-	ImGui::CreateContext();
+	std::string className = "Engine";
+#ifdef ImGUI_ENABLED
+
+#endif
 	wndClass.hIcon = nullptr;
 	wndClass.hIconSm = nullptr;
 	wndClass.lpszMenuName = nullptr;
@@ -16,28 +23,47 @@ window::window():
 	wndClass.cbSize = sizeof(wndClass);
 	wndClass.hInstance = hint;
 	wndClass.lpfnWndProc = HandleMsgSetup;
-	wndClass.lpszClassName = "OI";
+	wndClass.lpszClassName = className.c_str();
 	wndClass.style = CS_OWNDC;
 	RegisterClassEx(&wndClass);
-	
 
-
+#ifdef ImGUI_ENABLED
 	hwnd = CreateWindowEx(
 		0,                          // Optional window styles.
-		"OI",                     // Window class
-		"Start",				  // Window text
+		className.c_str(),                     // Window class
+		"Engine",				  // Window text
 		WS_OVERLAPPEDWINDOW,     // Window style
 
 							   // Size and position
-		CW_USEDEFAULT, CW_USEDEFAULT, 1200, 700,
+		0, 0, 1280, 670,
 
 		NULL,				// Parent window    
 		NULL,			   // Menu
 		hint,			  // Instance handle
 		NULL			 // Additional application data
 	);
-	ImGui_ImplWin32_Init(hwnd);
-	pGfx = std::make_unique<Graphic>(hwnd);
+#else 
+	hwnd = CreateWindowEx(
+		0,                          // Optional window styles.
+		className.c_str(),                     // Window class
+		"Start",				  // Window text
+		WS_OVERLAPPEDWINDOW,     // Window style
+
+							   // Size and position
+		CW_USEDEFAULT, CW_USEDEFAULT, 800, 600,
+
+		NULL,				// Parent window    
+		NULL,			   // Menu
+		hint,			  // Instance handle
+		NULL			 // Additional application data
+	);
+#endif // ImGUI_ENABLED
+
+	File = std::make_unique<Files>(className, hwnd, hint, 0.0f, 335.0f, 300.0f, 335.0f, 3);
+	RenderTargetWindows = std::make_unique<UIWindows>(className, hwnd, hint,300.0f,0.0f,800.0f,600.0f,4);
+	pGfx = std::make_unique<Graphic>(RenderTargetWindows.get()->cHwnd);
+	Properties = std::make_unique<PropertiesWindow>(className, hwnd, hint, 1100.0f, 0.0f, 180.0f, 670.0f, 2);
+	Scene = std::make_unique<SceneManager>(className, hwnd, hint, 0.0f, 0.0f, 300.0f, 335.0f, 5,pGfx->GetCurrentScene());
 	ShowWindow(hwnd, SW_SHOWDEFAULT);
 }
 std::optional<int> window::ProcessMessage() {
@@ -65,7 +91,7 @@ LRESULT CALLBACK window::HandleMsgSetup(HWND hWnd, UINT msg, WPARAM wParam, LPAR
 	{
 		// extract ptr to window class from creation data
 		const CREATESTRUCTW* const pCreate = reinterpret_cast<CREATESTRUCTW*>(lParam);
-		window* const pWnd = static_cast<window*>(pCreate->lpCreateParams);
+		window* const pWnd = (window*)pCreate->lpCreateParams;
 		// set WinAPI-managed user data to store ptr to window instance
 		SetWindowLongPtr(hWnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(pWnd));
 		// set message proc to normal (non-setup) handler now that setup is finished
@@ -85,40 +111,113 @@ LRESULT CALLBACK window::HandleMsgThunk(HWND hWnd, UINT msg, WPARAM wParam, LPAR
 	return pWnd->HandleMsg(hWnd, msg, wParam, lParam);
 }
 LRESULT window::HandleMsg(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) noexcept{
-	if (ImGui_ImplWin32_WndProcHandler(hWnd, msg, wParam, lParam)) {
-		return true;
-	}
-	ImGuiIO& io = ImGui::GetIO();
+//	if (ImGui_ImplWin32_WndProcHandler(hWnd, msg, wParam, lParam)) {
+//		return true;
+//}
 	switch (msg)
 	{
 	case WM_CLOSE:
 		PostQuitMessage(0);
 		return 0;
+	case WM_INPUT:
+#ifdef ImGUI_ENABLED
+		/*if (io.WantCaptureMouse) {
+			Mouse::deltaMouseX = 0;
+			Mouse::deltaMouseY = 0;*/
+			break;
+	//}
+#endif // ImGUI_ENABLED
 
+		// x = mouse_cont.GetRawData(&raw, &lParam);
+		// y = mouse_cont.GetRawData(&raw, &lParam)[1];
+		
+		return 0;
 	case WM_KEYDOWN:
 	case WM_SYSKEYDOWN:
-		if (!io.WantCaptureKeyboard){
+#ifdef ImGUI_ENABLED
+		/*if (!io.WantCaptureKeyboard){
+			if (wParam == VK_UP) {
+				Keyboard::isPressedUP = true;
+				break;
+			}
+			if (wParam == VK_DOWN) {
+				Keyboard::isPressedDown = true;
+				break;
+			}
+			if (wParam == VK_LEFT) {
+				Keyboard::isPressedLeft = true;
+				break;
+			}
+			if (wParam == VK_RIGHT) {
+				Keyboard::isPressedRight = true;
+				break;
+			}*/
 			if (wParam == VK_SPACE) {
 				PostQuitMessage(0);
+			}/* 
+			if (wParam == VK_SHIFT) {
+				Keyboard::isPressedYPositive = true;
 			}
-		}
+			if (wParam == VK_CONTROL) {
+				Keyboard::isPressedYNegative = true;
+			}
+			if (wParam == VK_RETURN) {
+				if (!Keyboard::WantCamControl) {
+					Keyboard::WantCamControl = true;
+					break;
+				}
+				else {
+					Keyboard::WantCamControl = false;
+					break;
+				}
+			}
+		}*/
+#endif
 		return 0;
 	case WM_KEYUP:
 	case WM_SYSKEYUP:
-		if (!io.WantCaptureKeyboard) {
-			break;
-		}
+#ifdef ImGUI_ENABLED
+		/*if (!io.WantCaptureKeyboard) {
+			if (wParam == VK_UP) {
+				Keyboard::isPressedUP = false;
+				break;
+			}
+			if (wParam == VK_DOWN) {
+				Keyboard::isPressedDown = false;
+				break;
+			}
+			if (wParam == VK_LEFT) {
+				Keyboard::isPressedLeft = false;
+				break;
+			}
+			if (wParam == VK_RIGHT) {
+				Keyboard::isPressedRight = false;
+				break;
+			}
+			if (wParam == VK_SHIFT) {
+				Keyboard::isPressedYPositive = false;
+			}
+			if (wParam == VK_CONTROL) {
+				Keyboard::isPressedYNegative = false;
+			}
+			if (wParam == VK_RETURN) {
+				Keyboard::WantCamControl = false;
+			}
+		}*/
+#endif
 		return 0;
 	case WM_CHAR:
-		if (!io.WantCaptureKeyboard) {
+#ifdef ImGUI_ENABLED
+		/*if (!io.WantCaptureKeyboard) {
 			break;
-		}
+		}*/
+#endif
 		return 0;
-	case WM_MOUSEMOVE:
+	/*case WM_MOUSEMOVE:
 			Mouse::mouse_xpos = GET_X_LPARAM(lParam);
 			Mouse::mouse_ypos = GET_Y_LPARAM(lParam);
 		
-		return 0;
+		return 0;*/
 	case WM_LBUTTONDOWN:
 		Mouse::mouse_button[0] = true;
 		return 0;
@@ -136,8 +235,12 @@ LRESULT window::HandleMsg(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) noe
 }
 
 window::~window() {
-	ImGui_ImplWin32_Shutdown();
-	//pGfx->~Graphic();
+#ifdef ImGUI_ENABLED
+	//ImGui_ImplWin32_Shutdown();
+	//Metrice::shutdown = 1;
+	//Metrice::Destruct();
+#endif // ImGUI_ENABLED
 	DestroyWindow(hwnd);
 	UnregisterClass("OI",hint);
+	//mouse_cont.DestroyRawInput();
 }

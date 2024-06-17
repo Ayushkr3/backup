@@ -1,10 +1,13 @@
 #include"errors.h"
 #pragma comment(lib,"legacy_stdio_definitions.lib")
 error::error(HRESULT hr,int line_number) {
-
+		std::string templine = std::to_string(line_number);
+		MessageBox(nullptr, GeterrorDescription(hr).c_str(), (GeterrorName(hr) + " at " + templine).c_str(), MB_OK);
+}
+error::error(std::string str, int line_number) {
 	std::string templine = std::to_string(line_number);
-	MessageBox(nullptr, GeterrorDescription(hr).c_str(), (GeterrorName(hr) + " at " + templine).c_str(), MB_OK);
-	
+	MessageBox(nullptr,(str).c_str(), ("Error at " + templine).c_str(), MB_OK);
+	exit(9);
 }
 std::string error::GeterrorDescription(HRESULT hr) {
 	wchar_t* errorDescription = nullptr;
