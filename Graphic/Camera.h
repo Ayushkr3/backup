@@ -4,7 +4,7 @@
 class Camera {
 public:
 	Camera(Microsoft::WRL::ComPtr<ID3D11Device> pDevice);
-	float postion[3] = { 0,0,0 };
+	float postion[3] = { 0,0,-5.0f };
 	float focus[3] = { 0,0,1 };
 	float rotation[2] = { 0,0 };
 	void calculateProjection(Microsoft::WRL::ComPtr<ID3D11DeviceContext> pContext, PerFrameData* ViewMatrix);

@@ -7,8 +7,15 @@ PixelShader_::PixelShader_(Microsoft::WRL::ComPtr<ID3D11Device> pDevice, Microso
 
 }
 
-void PixelShader_::bind() {
+void PixelShader_::bind(){
 	D3DReadFileToBlob(L"PixelShader.cso",&pBlob);
 	pDevice->CreatePixelShader(pBlob->GetBufferPointer(), pBlob->GetBufferSize(), nullptr, &pPixelShader);
 	pContext->PSSetShader(pPixelShader.Get(), nullptr, 0);
+}
+void PixelShader_::bind(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> pSRV, Microsoft::WRL::ComPtr<ID3D11SamplerState> psmpl) {
+	D3DReadFileToBlob(L"PixelShader.cso",&pBlob);
+	pDevice->CreatePixelShader(pBlob->GetBufferPointer(), pBlob->GetBufferSize(), nullptr, &pPixelShader);
+	pContext->PSSetShader(pPixelShader.Get(), nullptr, 0);
+	pContext->PSSetShaderResources(0, 1, pSRV.GetAddressOf());
+	pContext->PSSetSamplers(0, 1, psmpl.GetAddressOf());
 }

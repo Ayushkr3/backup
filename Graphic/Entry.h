@@ -3,28 +3,31 @@
 #include"Graphic.h"
 #include "timer.h"
 #include "Mouse.h"
+#include <string>
+#include "Metrices.h"
 
-void DoFrame(window* wg) {
-	float color[4] = {0.0,0.0,0.0,1.0 };
-	wg->pGfx->ClearBuffer(color);
-	ImGui_ImplDX11_NewFrame();
-	ImGui_ImplWin32_NewFrame();
-	ImGui::NewFrame();
-	Mouse::ncd_calc();
-	//ImGui::ShowDemoWindow();
-	wg->pGfx->TestFrames();
-	ImGui::Render();
-	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
-	wg->pGfx->EndFrame();
+void DoFrame(window* Skeleton) {
+	Metrice::MetriceTimeMark();
+	float color[4] = {1.0,0.0,0.0,1.0 };
+	Skeleton->pGfx->ClearBuffer(color);
+#ifdef ImGUI_ENABLED
+#endif // ImGUI_ENABLED
+	Skeleton->pGfx->TestFrames();
+#ifdef ImGUI_ENABLED
+#endif
+	Skeleton->pGfx->EndFrame();
 
 }
 
-int ApplicationGo(window* wg) {
+int ApplicationGo(window* Skeleton) {
+#ifdef ImGUI_ENABLED
+	//Metrice::GetWindows();
 	
+#endif
 	while (true) {
 		if (const auto ecode = window::ProcessMessage()) {
 			return *ecode;
 		}
-		DoFrame(wg);
+		DoFrame(Skeleton);
 	}
 }

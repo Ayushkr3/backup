@@ -4,23 +4,16 @@
 #include <array>
 #include "Scene.h"
 #include "errors.h"
+#ifdef ImGUI_ENABLED
 #include "ImGui/imgui_impl_dx11.h"
 #include "ImGui/imgui.h"
-
+#endif
+#include "WIC.h"
 
 #define CHECK_ERROR(hr) if(FAILED(hr)) throw error::error(hr,__LINE__)
 
 class Graphic {
 private:
-	struct Vertex {
-		float x;
-		float y;
-		unsigned char r;
-		unsigned char g;
-		unsigned char b;
-		unsigned char a;
-	};
-	
 	Microsoft::WRL::ComPtr<IDXGISwapChain> pSwap;
 	Microsoft::WRL::ComPtr<ID3D11RenderTargetView> pTarget;
 public:
@@ -38,9 +31,12 @@ public:
 	void TestFrames();
 
 public:
-
-	bool showvalue = false;
+	Scene* GetCurrentScene();
+	bool showvalue = true;
 	int t = 0;
+#ifdef ImGUI_ENABLED
 	void UpdateImGui();
+#endif // ImGUI_ENABLED
+
 	//Test public code //
 };

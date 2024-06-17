@@ -7,6 +7,7 @@ VertexShader_::VertexShader_(Microsoft::WRL::ComPtr<ID3D11Device> pDevice, Micro
 }
 void VertexShader_::bind()
 {
+//	D3DReadFileToBlob(L"VertexShader.cso", &privatepBlob);
 	D3DReadFileToBlob(L"VertexShader.cso", &pBlob);
 	Microsoft::WRL::ComPtr<ID3D11VertexShader> pvShader;
 	pDevice->CreateVertexShader(pBlob->GetBufferPointer(), pBlob->GetBufferSize(), nullptr, &pvShader);

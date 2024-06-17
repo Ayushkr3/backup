@@ -3,16 +3,21 @@
 #include <wrl.h>
 #include "Triangle.h"
 #include "Camera.h"
+#include "Light.h"
+#include "ColliderController.h"
 class Scene {
 public:
+	std::unique_ptr<ColliderController> CContoller;
 	Scene(Microsoft::WRL::ComPtr<ID3D11Device> pDevice, Microsoft::WRL::ComPtr<ID3D11DeviceContext> pContext);
 	void Render();
 private:
-	 Microsoft::WRL::ComPtr<ID3D11Device> pDevice;
-	 Microsoft::WRL::ComPtr<ID3D11DeviceContext> pContext;
+	Microsoft::WRL::ComPtr<ID3D11Device> pDevice;
+	Microsoft::WRL::ComPtr<ID3D11DeviceContext> pContext;
 public:
 	Camera cam;
+	Light light;
 	//
+	bool check_collision;
 	//
-	std::vector<Triangle> Triangles;
+	std::vector<Triangle>Triangles;
 };

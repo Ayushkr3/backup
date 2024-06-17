@@ -7,8 +7,12 @@ Camera::Camera(Microsoft::WRL::ComPtr<ID3D11Device> pDevice)
 		XMVectorSet(postion[0], postion[1], postion[2],1.0f),
 		XMVectorSet(focus[0],focus[1],focus[2],1.0f),
 		XMVectorSet(0.0f,1.0f,0.0f,0.0f));
+#ifdef ImGUI_ENABLED
+	projection = XMMatrixPerspectiveFovLH(XMConvertToRadians(60.0f), 1.791225416036309f, 0.1f, 100.0f);
+#else
+	projection = XMMatrixPerspectiveFovLH(XMConvertToRadians(60.0f), 1.33333333f, 0.1f, 100.0f);
+#endif // ImGUI_ENABLED
 
-	projection = XMMatrixPerspectiveFovLH(XMConvertToRadians(60.0f),1.33333333f,0.1f,100.0f);
 	viewXprojection.viewMat = ConstantBuffer::ConvertMatrixToFloat4x4(viewmatrix * projection);
 
 	D3D11_BUFFER_DESC CbuffDesc;
@@ -25,9 +29,23 @@ Camera::Camera(Microsoft::WRL::ComPtr<ID3D11Device> pDevice)
 }
 void Camera::calculateProjection(Microsoft::WRL::ComPtr<ID3D11DeviceContext> pContext, PerFrameData* ViewMatrix) {
 	pContext->UpdateSubresource(pFrameConstantBuffer.Get(), 0, nullptr,ViewMatrix,0,0 );
-	pContext->VSSetConstantBuffers(1, 1, pFrameConstantBuffer.GetAddressOf());
+	pContext->GSSetConstantBuffers(1, 1, pFrameConstantBuffer.GetAddressOf());
 }
 PerFrameData Camera::GetViewMatrix() {
+	//////////////////////////
+	if (rotation[0] > 90) {
+		rotation[0] = 89;
+	}
+	if (rotation[0] <-90) {
+		rotation[0] = -89;
+	}
+	if (rotation[1] > 360) {
+		rotation[1] = 0;
+	}
+	if (rotation[1] < 0) {
+		rotation[1] = 359;
+	}
+	//////////////////////////
 	XMVECTOR pos = XMVectorSet(postion[0], postion[1], postion[2], 1.0f);
 	XMMATRIX Rotation = XMMatrixRotationRollPitchYaw(XMConvertToRadians(rotation[0]), XMConvertToRadians(rotation[1]), 0.0f);
 	XMVECTOR forwardDirection = XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f);
@@ -40,7 +58,6 @@ PerFrameData Camera::GetViewMatrix() {
 
 	XMMATRIX projection = XMMatrixTranspose(XMMatrixPerspectiveFovLH(XMConvertToRadians(60.0f), 1.33333333f, 0.1f, 100.0f));
 
-	//test.viewMat = ConstantBuffer::ConvertMatrixToFloat4x4(projection*viewmatrix);
 	viewXprojection.viewMat = ConstantBuffer::ConvertMatrixToFloat4x4(projection*viewmatrix );
 	return viewXprojection;
 	

@@ -9,6 +9,7 @@ public:
 	virtual void bind();
 	Microsoft::WRL::ComPtr<ID3D10Blob> rBlob();
 	virtual ~VertexShader_() = default;
+	Microsoft::WRL::ComPtr<ID3D10Blob> privatepBlob;
 protected:
 	Microsoft::WRL::ComPtr<ID3D10Blob> pBlob;
 	Microsoft::WRL::ComPtr<ID3D11Device> pDevice;
