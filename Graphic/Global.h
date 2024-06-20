@@ -1,4 +1,9 @@
 #pragma once
+struct TransformStruct {
+	float rotation[3] = { 0,0,0 };
+	float position[3] = { 0,0,0 };
+	float Scale[3] = { 1,1,1 };
+};
 class Globals {
 public:
 	static float* dT;
