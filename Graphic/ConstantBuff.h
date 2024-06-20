@@ -30,7 +30,7 @@ public:
 	 void UpdateBuffer(Microsoft::WRL::ComPtr<ID3D11DeviceContext> pContext, Microsoft::WRL::ComPtr<ID3D11Buffer> pBuffer);
 	 static XMFLOAT4X4 ConvertMatrixToFloat4x4(XMMATRIX mat);
 public:
-	void Transform(float position[3],float rotation[3],float Scale[3]);
+	void Transform(TransformStruct* t);
 	XMFLOAT4X4 viewmat;
 	void GetData(std::vector<Vertex> vertices);
 	std::vector<Vertex> vertice_m;

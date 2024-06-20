@@ -7,6 +7,8 @@ Triangle::Triangle(Microsoft::WRL::ComPtr<ID3D11Device> pDevice, Microsoft::WRL:
 	), index(indi
 	), id(id), coll(vertice)
 {
+	Trans = new TransformStruct;
+	ObjProperties.push_back(Trans);
 	VertexBuffer.BindFlags = D3D11_BIND_VERTEX_BUFFER ;
 	VertexBuffer.Usage = D3D11_USAGE_DYNAMIC;
 	VertexBuffer.ByteWidth = (vertices.size() * sizeof(Vertex));
@@ -30,11 +32,11 @@ Triangle::Triangle(Microsoft::WRL::ComPtr<ID3D11Device> pDevice, Microsoft::WRL:
 	pContext->IASetVertexBuffers(0, 1, pVertexBuffer.GetAddressOf(), &strides, &offset);
 	pContext->IASetIndexBuffer(pIndexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
 
-	Transformation.Rotation = ConstantBuffer::ConvertMatrixToFloat4x4(XMMatrixRotationRollPitchYaw(XMConvertToRadians(rotation[0]), XMConvertToRadians(rotation[1]), XMConvertToRadians(rotation[2])));
-	Transformation.Translation = ConstantBuffer::ConvertMatrixToFloat4x4(XMMatrixTranslation(position[0], position[1], position[2]));
-	Transformation.Scale = ConstantBuffer::ConvertMatrixToFloat4x4(XMMatrixScaling(Scale[0], Scale[1], Scale[2]));
+	Transformation.Rotation = ConstantBuffer::ConvertMatrixToFloat4x4(XMMatrixRotationRollPitchYaw(XMConvertToRadians(Trans->rotation[0]), XMConvertToRadians(Trans->rotation[1]), XMConvertToRadians(Trans->rotation[2])));
+	Transformation.Translation = ConstantBuffer::ConvertMatrixToFloat4x4(XMMatrixTranslation(Trans->position[0], Trans->position[1], Trans->position[2]));
+	Transformation.Scale = ConstantBuffer::ConvertMatrixToFloat4x4(XMMatrixScaling(Trans->Scale[0], Trans->Scale[1], Trans->Scale[2]));
 	pCB = std::make_unique<ConstantBuffer>(&Transformation, pDevice);
-	pCB->Transform(position, rotation, Scale);
+	pCB->Transform(Trans);
 
 	pContext->IASetVertexBuffers(0, 1, pVertexBuffer.GetAddressOf(), &strides, &offset);
 
@@ -98,12 +100,8 @@ Triangle::Triangle(Microsoft::WRL::ComPtr<ID3D11Device> pDevice, Microsoft::WRL:
 	CHECK_ERROR(D3DReadFileToBlob(L"DomainShader.cso", &pDSBlob));
 	pDevice->CreateDomainShader(pDSBlob->GetBufferPointer(), pDSBlob->GetBufferSize(), nullptr, &pDSS);
 	pContext->DSSetShader(pDSS.Get(), nullptr, 0);
-	//pHull->bind();
-	//pDomain->bind();
 	pPshader->bind(pSRV,pSmpler);
 	pVshader->bind();
-
-
 
 	pGeo->bind();
 	
@@ -116,7 +114,6 @@ Triangle::Triangle(Microsoft::WRL::ComPtr<ID3D11Device> pDevice, Microsoft::WRL:
 	pDevice->CreateInputLayout(IL, std::size(IL), pVshader->rBlob()->GetBufferPointer(), pVshader->rBlob()->GetBufferSize(), &pIL);
 	pContext->IASetInputLayout(pIL.Get());
 	pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
-	
 }
 void Triangle::Draw() {
 	pContext->IASetVertexBuffers(0, 1, pVertexBuffer.GetAddressOf(), &strides, &offset);
@@ -124,21 +121,18 @@ void Triangle::Draw() {
 
 	//Have to bind other wise it will not be rendered ,before every draw call
 	pCB->BindToVSshader(pContext);
-	pContext->HSSetShader(pHull.Get(), nullptr, 0);
-	pContext->DSSetShader(pDSS.Get(), nullptr, 0);
 	pContext->DrawIndexed(index.size(), 0, 0);
-	//pContext->DrawAuto();
 	//----------------------------------------
 	isMoving = Phys.isMoving();
 	//----------------------------------------
 }
 void Triangle::UpdateBuffers() {
-	Transformation.Rotation = ConstantBuffer::ConvertMatrixToFloat4x4(XMMatrixRotationRollPitchYaw(XMConvertToRadians(rotation[0]), XMConvertToRadians(rotation[1]), XMConvertToRadians(rotation[2])));
-	Transformation.Translation = ConstantBuffer::ConvertMatrixToFloat4x4(XMMatrixTranslation(position[0],position[1],position[2]));
-	Transformation.Scale = ConstantBuffer::ConvertMatrixToFloat4x4(XMMatrixScaling(Scale[0], Scale[1], Scale[2]));
+	Transformation.Rotation = ConstantBuffer::ConvertMatrixToFloat4x4(XMMatrixRotationRollPitchYaw(XMConvertToRadians(Trans->rotation[0]), XMConvertToRadians(Trans->rotation[1]), XMConvertToRadians(Trans->rotation[2])));
+	Transformation.Translation = ConstantBuffer::ConvertMatrixToFloat4x4(XMMatrixTranslation(Trans->position[0], Trans->position[1], Trans->position[2]));
+	Transformation.Scale = ConstantBuffer::ConvertMatrixToFloat4x4(XMMatrixScaling(Trans->Scale[0], Trans->Scale[1], Trans->Scale[2]));
 	// is there even any point to update if i have to bind it every frame ?
 	pCB->UpdateBuffer(pContext, &Transformation);
-	Phys.Update(&position[0],&position[1],&position[2]);
+	Phys.Update(&Trans->position[0],&Trans->position[1],&Trans->position[2]);
 }
 void Triangle::UpdateCollider() {
 	coll.UpdateBuffer(vertices);
