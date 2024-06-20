@@ -31,9 +31,10 @@ class SceneManager {
 	int posY;
 	int widthX;
 	int widthY;
+	Scene* currentScene;
 public:
 	void SetSizenWidth();
-	SceneManager(int posX,int posY,int widthX,int widthY);
+	SceneManager(int posX,int posY,int widthX,int widthY,Scene* InitalScene);
 	void Content();
 };
 class PropertiesWindow  {
@@ -42,6 +43,7 @@ class PropertiesWindow  {
 	int widthX;
 	int widthY;
 public:
+	static Triangle* Obj;
 	void SetSizenWidth();
 	PropertiesWindow(int posX, int posY, int widthX, int widthY);
 	void Content();

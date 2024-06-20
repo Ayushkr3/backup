@@ -62,7 +62,7 @@ window::window():
 	RenderTargetWindows = std::make_unique<UIWindows>(className, hwnd, hint,300,0, 1024, 576,2);
 	pGfx = std::make_unique<Graphic>(RenderTargetWindows.get()->cHwnd);
 	UIwindow = std::make_unique<UIElements>(className, hwnd, hint, 0, 0, 1600, 900, 1);
-	Scene = std::make_unique<SceneManager>(0, 0, 300, 900);
+	Scene = std::make_unique<SceneManager>(0, 0, 300, 900,pGfx->GetCurrentScene());
 	Properties = std::make_unique<PropertiesWindow>(1324, 0, 276, 900);
 	UIwindow->UpdateUI();
 	Scene->SetSizenWidth();

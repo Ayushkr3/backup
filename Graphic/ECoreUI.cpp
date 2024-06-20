@@ -80,7 +80,7 @@ void UIElements::Swap() {
 	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 	pUISwapChain->Present(1u, 0);
 }
-SceneManager::SceneManager(int posX, int posY, int widthX, int widthY):posX(posX),posY(posY),widthX(widthX),widthY(widthY)
+SceneManager::SceneManager(int posX, int posY, int widthX, int widthY,Scene* InitalScene):posX(posX),posY(posY),widthX(widthX),widthY(widthY),currentScene(InitalScene)
 {
 }
 void SceneManager::SetSizenWidth() {
@@ -90,9 +90,17 @@ void SceneManager::SetSizenWidth() {
 	ImGui::End();
 }
 void SceneManager::Content() {
+	static int selected = -1;
 	ImGui::Begin("Scene Objects");
+	for (auto& Tri : currentScene->Triangles) {
+		if (ImGui::Selectable(("Test" + std::to_string(Tri.id)).c_str(), selected == Tri.id)) {
+			selected = Tri.id;
+			PropertiesWindow::Obj = &Tri;
+		}
+	}
 	ImGui::End();
 }
+Triangle* PropertiesWindow::Obj = nullptr;
 PropertiesWindow::PropertiesWindow(int posX, int posY, int widthX, int widthY) :posX(posX), posY(posY), widthX(widthX), widthY(widthY)
 {
 }
@@ -104,6 +112,11 @@ void PropertiesWindow::SetSizenWidth() {
 }
 void PropertiesWindow::Content() {
 	ImGui::Begin("Properties");
+	if (PropertiesWindow::Obj != nullptr) {
+		for (auto& obj : PropertiesWindow::Obj->ObjProperties) {
+			obj->show();
+		}
+	}
 	ImGui::End();
 }
 
