@@ -11,14 +11,10 @@ void DoFrame(window* Skeleton) {
 	float color[4] = {1.0,0.0,0.0,1.0 };
 	Skeleton->pGfx->ClearBuffer(color);
 #ifdef ImGUI_ENABLED
-	Skeleton->UIwindow->UpdateUI();
-	Skeleton->Scene->Content();
-	Skeleton->Properties->Content();
 #endif // ImGUI_ENABLED
 	Skeleton->pGfx->TestFrames();
 #ifdef ImGUI_ENABLED
 #endif
-	Skeleton->UIwindow->Swap();
 	Skeleton->pGfx->EndFrame();
 
 }

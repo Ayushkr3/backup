@@ -35,11 +35,11 @@ XMFLOAT4X4 ConstantBuffer::ConvertMatrixToFloat4x4(XMMATRIX mat) {
 	return result;
 }
 ////////////////////Provisional code//////////////////////////
-void ConstantBuffer::Transform(TransformStruct* t)
+void ConstantBuffer::Transform(float position[3], float rotation[3], float Scale[3])
 {
-	XMMATRIX ro = XMMatrixTranspose(XMMatrixRotationRollPitchYaw(XMConvertToRadians(t->rotation[0]), XMConvertToRadians(t->rotation[1]), XMConvertToRadians(t->rotation[2])));
-	XMMATRIX po = XMMatrixTranspose(XMMatrixTranslation(t->position[0], t->position[1], t->position[2]));
-	XMMATRIX so = XMMatrixTranspose(XMMatrixScaling(t->Scale[0], t->Scale[1], t->Scale[2]));
+	XMMATRIX ro = XMMatrixTranspose(XMMatrixRotationRollPitchYaw(XMConvertToRadians(rotation[0]), XMConvertToRadians(rotation[1]), XMConvertToRadians(rotation[2])));
+	XMMATRIX po = XMMatrixTranspose(XMMatrixTranslation(position[0], position[1], position[2]));
+	XMMATRIX so = XMMatrixTranspose(XMMatrixScaling(Scale[0], Scale[1], Scale[2]));
 	XMMATRIX view = (XMLoadFloat4x4(&viewmat));
 	XMMATRIX fina = XMMatrixMultiply(XMMatrixMultiply(ro, po),so);
 	XMFLOAT4X4 mat;
@@ -55,9 +55,9 @@ void ConstantBuffer::Transform(TransformStruct* t)
 		XMFLOAT4 returnnor;
 		XMStoreFloat4(&returnpos, vec);
 		XMStoreFloat4(&returnnor, normal_rota);
-		vertice_f[i].position.x = returnpos.x+t->position[0];
-		vertice_f[i].position.y = returnpos.y+ t->position[1];
-		vertice_f[i].position.z = returnpos.z+t->position[2];
+		vertice_f[i].position.x = returnpos.x+position[0];
+		vertice_f[i].position.y = returnpos.y+ position[1];
+		vertice_f[i].position.z = returnpos.z+position[2];
 		vertice_f[i].Normal.x = returnnor.x;
 		vertice_f[i].Normal.y = returnnor.y;
 		vertice_f[i].Normal.z = returnnor.z;

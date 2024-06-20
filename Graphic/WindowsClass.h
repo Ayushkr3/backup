@@ -6,7 +6,8 @@
 #include"Graphic.h"
 #include "Mouse.h"
 #include "Keyboard.h"
-
+#include <CommCtrl.h>
+#pragma comment(lib,"Comctl32.lib")
 #ifdef ImGUI_ENABLED
 #include "ECoreUI.h"
 #include "ImGui/imgui.h"
@@ -25,9 +26,9 @@ public:
 	Mouse mouse_cont;
 	static std::optional<int> ProcessMessage();
 	std::unique_ptr<Graphic> pGfx;
-	std::unique_ptr<UIElements> UIwindow;
-	std::unique_ptr<SceneManager> Scene;
 	std::unique_ptr<PropertiesWindow> Properties;
+	std::unique_ptr<SceneManager> Scene;
+	std::unique_ptr<Files> File;
 	std::unique_ptr<UIWindows> RenderTargetWindows;
 	window();
 	HWND hwnd;
