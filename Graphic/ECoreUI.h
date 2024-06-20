@@ -9,45 +9,62 @@
 class UIWindows {
 public:
 	HWND cHwnd;
-	UIWindows(std::string className, HWND Phwnd, HINSTANCE hint, short x, short y, short w, short b, int windowN);
+	UIWindows(std::string className, HWND Phwnd, HINSTANCE hint, float x, float y, float w, float b, int windowN);
 	
 };
-class UIElements{
-protected:
-	static Microsoft::WRL::ComPtr<ID3D11Device> pUIDevice;
-	static Microsoft::WRL::ComPtr<ID3D11DeviceContext> pUIContext;
-	static Microsoft::WRL::ComPtr<IDXGISwapChain>      pUISwapChain;
-	static Microsoft::WRL::ComPtr<ID3D11RenderTargetView>  pUIRenderTarget;
-	static DXGI_SWAP_CHAIN_DESC UIscd;
+class ImGuiUIWindow:public UIWindows{
 public:
-	HWND cHwnd;
-	UIElements(std::string className, HWND Phwnd, HINSTANCE hint, short x, short y, short w, short b, int windowsN);
-	void UpdateUI();
-	~UIElements();
-	void Swap();
+	ImGuiUIWindow(std::string className, HWND Phwnd, HINSTANCE hint, float x, float y, float w, float b, int windowN) :UIWindows(className, Phwnd, hint,x,y,w,b,windowN) {}
+	virtual ImGuiContext* GetCtx() = 0;
+	virtual void ClearRenderTarget() = 0;
 };
-class SceneManager {
-	int posX;
-	int posY;
-	int widthX;
-	int widthY;
+class SceneManager:public ImGuiUIWindow {
+private:
+	Microsoft::WRL::ComPtr<ID3D11Device> pUIDevice;
+	Microsoft::WRL::ComPtr<ID3D11DeviceContext> pUIContext;
+	Microsoft::WRL::ComPtr<IDXGISwapChain>      pUISwapChain;
+	Microsoft::WRL::ComPtr<ID3D11RenderTargetView>  pUIRenderTarget;
+	DXGI_SWAP_CHAIN_DESC UIscd;
+	float sizeX;
+	float sizeY;
+	ImGuiContext* ctx;
+public:
+	static LRESULT CALLBACK SceneProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubclass, DWORD_PTR dwRefData);
 	Scene* currentScene;
-public:
-	void SetSizenWidth();
-	SceneManager(int posX,int posY,int widthX,int widthY,Scene* InitalScene);
-	void Content();
+	void ClearRenderTarget();
+	~SceneManager();
+	SceneManager(std::string className, HWND Phwnd, HINSTANCE hint, float x, float y, float w, float b, int windowN, Scene* InitalScene);
+	ImGuiContext* GetCtx();
 };
-class PropertiesWindow  {
-	int posX;
-	int posY;
-	int widthX;
-	int widthY;
+class PropertiesWindow :public ImGuiUIWindow {
+	Microsoft::WRL::ComPtr<ID3D11Device> pUIDevice;
+	Microsoft::WRL::ComPtr<ID3D11DeviceContext> pUIContext;
+	Microsoft::WRL::ComPtr<IDXGISwapChain>      pUISwapChain;
+	Microsoft::WRL::ComPtr<ID3D11RenderTargetView>  pUIRenderTarget;
+	DXGI_SWAP_CHAIN_DESC UIscd;
+	float sizeX;
+	float sizeY;
+	ImGuiContext* ctx;
 public:
-	static Triangle* Obj;
-	void SetSizenWidth();
-	PropertiesWindow(int posX, int posY, int widthX, int widthY);
-	void Content();
+	static LRESULT CALLBACK ProperProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubclass, DWORD_PTR dwRefData);
+	~PropertiesWindow();
+	void ClearRenderTarget();
+	PropertiesWindow(std::string className, HWND Phwnd, HINSTANCE hint, float x, float y, float w, float b, int windowN);
+	ImGuiContext* GetCtx();
 };
-class Files{
-	
+class Files:public ImGuiUIWindow {
+	Microsoft::WRL::ComPtr<ID3D11Device> pUIDevice;
+	Microsoft::WRL::ComPtr<ID3D11DeviceContext> pUIContext;
+	Microsoft::WRL::ComPtr<IDXGISwapChain>      pUISwapChain;
+	Microsoft::WRL::ComPtr<ID3D11RenderTargetView>  pUIRenderTarget;
+	DXGI_SWAP_CHAIN_DESC UIscd;
+	float sizeX;
+	float sizeY;
+	ImGuiContext* ctx;
+public:
+	static LRESULT CALLBACK FileProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubclass, DWORD_PTR dwRefData);
+	~Files();
+	void ClearRenderTarget();
+	Files(std::string className, HWND Phwnd, HINSTANCE hint, float x, float y, float w, float b, int windowN);
+	ImGuiContext* GetCtx();
 };

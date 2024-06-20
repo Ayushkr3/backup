@@ -36,9 +36,9 @@ Collision::AABBProjection ColliderController::calcAABB(Triangle& tri) {
 	for (unsigned int s = 0; s < tri.GetVertices().size(); s++) {
 		XMFLOAT3 pos = XMFLOAT3(tri.GetVertices()[s].position.x,tri.GetVertices()[s].position.y,tri.GetVertices()[s].position.z);
 		XMVECTOR posvec = XMLoadFloat3(&pos);
-		float proji = XMVectorGetX(XMVector3Dot(posvec, i)) + tri.Trans->position[0];
-		float projj = XMVectorGetX(XMVector3Dot(posvec, j)) + tri.Trans->position[1];
-		float projk = XMVectorGetX(XMVector3Dot(posvec, k)) + tri.Trans->position[2];
+		float proji = XMVectorGetX(XMVector3Dot(posvec, i)) + tri.position[0];
+		float projj = XMVectorGetX(XMVector3Dot(posvec, j)) + tri.position[1];
+		float projk = XMVectorGetX(XMVector3Dot(posvec, k)) + tri.position[2];
 		proj.maxI = max(proji, proj.maxI);
 		proj.minI = min(proji, proj.minI);
 		proj.maxJ = max(projj, proj.maxJ);
