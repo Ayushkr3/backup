@@ -94,8 +94,8 @@ Scene::Scene(Microsoft::WRL::ComPtr<ID3D11Device> pDevice, Microsoft::WRL::ComPt
 	}
 	//-------------------dummy--------------//
 	Triangles[1].Phys.isAffectedByGravity = false;
-	Triangles[0].position[1] = 4.0f;
-	Triangles[1].position[1] = -1.0f;
+	Triangles[0].Trans.position[1] = 4.0f;
+	Triangles[1].Trans.position[1] = -1.0f;
 	//-------------------------------------//
 	for (auto& Triangle : Triangles) {
 		CContoller->AddTriangle(&Triangle);

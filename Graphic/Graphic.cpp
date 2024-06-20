@@ -33,8 +33,8 @@ Graphic::Graphic(HWND hwnd){
 	pSc = std::make_unique<Scene>(pDevice,pContext);
 
 	D3D11_VIEWPORT vp;
-	vp.Width = 798;
-	vp.Height = 578;
+	vp.Width = 1024;
+	vp.Height = 576;
 	vp.MinDepth = 0;
 	vp.MaxDepth = 1;
 	vp.TopLeftX = 0;
@@ -70,8 +70,8 @@ Graphic::Graphic(HWND hwnd){
 	Microsoft::WRL::ComPtr<ID3D11Texture2D> pDepthStencil;
 	D3D11_TEXTURE2D_DESC descDepth = {};
 #ifdef ImGUI_ENABLED
-	descDepth.Width = 798;
-	descDepth.Height = 598;
+	descDepth.Width = 1022;
+	descDepth.Height = 574;
 #else
 	descDepth.Width = 784;
 	descDepth.Height = 561;
@@ -119,36 +119,36 @@ void Graphic::TestFrames() {
 
 }
 #ifdef ImGUI_ENABLED
-void Graphic::UpdateImGui() {
-	ImGui::Begin("Scene", nullptr, ImGuiWindowFlags_NoMove);
-	for (size_t i = 0; i < pSc->Triangles.size(); i++) {
-		if (ImGui::Selectable(("Test " + std::to_string(i)).c_str())) {
-			//showvalue = !showvalue;
-			showvalue = true;
-			t = i;
-		};
-	}
-	ImGui::End();
-	ImGui::Begin("Inspector", nullptr, ImGuiWindowFlags_NoMove);
-	if (ImGui::CollapsingHeader("Object")) {
-		if (showvalue) {
-			/*pSc->Triangles[t].UpdateBuffers();*/
-			ImGui::DragFloat3("Rotation", pSc->Triangles[t].rotation, 0.2f);
-			ImGui::DragFloat3("Position", pSc->Triangles[t].position, 0.2f);
-			//ImGui::Text(("Coll " + (std::to_string((pSc->check_collision)))).c_str());
-			ImGui::DragFloat3("Scale", pSc->Triangles[t].Scale, 0.2f);
-			ImGui::Text(("Moving" + (std::to_string((pSc->CContoller->GlobalCollide)))).c_str());
-		}
-	}
-	if (ImGui::CollapsingHeader("Camera")==false) {
-		ImGui::DragFloat2("Camera Rotation", pSc->cam.rotation, 0.1f);
-		ImGui::DragFloat3("Camera Position", pSc->cam.postion, 0.1f);
-	}
-	ImGui::End();
-	
-	ImGui::EndFrame();
-	
-}
+//void Graphic::UpdateImGui() {
+//	ImGui::Begin("Scene", nullptr, ImGuiWindowFlags_NoMove);
+//	for (size_t i = 0; i < pSc->Triangles.size(); i++) {
+//		if (ImGui::Selectable(("Test " + std::to_string(i)).c_str())) {
+//			//showvalue = !showvalue;
+//			showvalue = true;
+//			t = i;
+//		};
+//	}
+//	ImGui::End();
+//	ImGui::Begin("Inspector", nullptr, ImGuiWindowFlags_NoMove);
+//	if (ImGui::CollapsingHeader("Object")) {
+//		if (showvalue) {
+//			/*pSc->Triangles[t].UpdateBuffers();*/
+//			ImGui::DragFloat3("Rotation", pSc->Triangles[t].rotation, 0.2f);
+//			ImGui::DragFloat3("Position", pSc->Triangles[t].position, 0.2f);
+//			//ImGui::Text(("Coll " + (std::to_string((pSc->check_collision)))).c_str());
+//			ImGui::DragFloat3("Scale", pSc->Triangles[t].Scale, 0.2f);
+//			ImGui::Text(("Moving" + (std::to_string((pSc->CContoller->GlobalCollide)))).c_str());
+//		}
+//	}
+//	if (ImGui::CollapsingHeader("Camera")==false) {
+//		ImGui::DragFloat2("Camera Rotation", pSc->cam.rotation, 0.1f);
+//		ImGui::DragFloat3("Camera Position", pSc->cam.postion, 0.1f);
+//	}
+//	ImGui::End();
+//	
+//	ImGui::EndFrame();
+//	
+//}
 #endif
 Scene* Graphic::GetCurrentScene() {
 	return pSc.get();

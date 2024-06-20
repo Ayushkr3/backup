@@ -35,7 +35,7 @@ window::window():
 		WS_OVERLAPPEDWINDOW,     // Window style
 
 							   // Size and position
-		0, 0, 1280, 670,
+		0, 0, 1600, 900,
 
 		NULL,				// Parent window    
 		NULL,			   // Menu
@@ -59,11 +59,18 @@ window::window():
 	);
 #endif // ImGUI_ENABLED
 
-	File = std::make_unique<Files>(className, hwnd, hint, 0.0f, 335.0f, 300.0f, 335.0f, 3);
-	RenderTargetWindows = std::make_unique<UIWindows>(className, hwnd, hint,300.0f,0.0f,800.0f,600.0f,4);
+	RenderTargetWindows = std::make_unique<UIWindows>(className, hwnd, hint,300,0, 1024, 576,2);
 	pGfx = std::make_unique<Graphic>(RenderTargetWindows.get()->cHwnd);
-	Properties = std::make_unique<PropertiesWindow>(className, hwnd, hint, 1100.0f, 0.0f, 180.0f, 670.0f, 2);
-	Scene = std::make_unique<SceneManager>(className, hwnd, hint, 0.0f, 0.0f, 300.0f, 335.0f, 5,pGfx->GetCurrentScene());
+	UIwindow = std::make_unique<UIElements>(className, hwnd, hint, 0, 0, 1600, 900, 1);
+	Scene = std::make_unique<SceneManager>(0, 0, 300, 900);
+	Properties = std::make_unique<PropertiesWindow>(1324, 0, 276, 900);
+	UIwindow->UpdateUI();
+	Scene->SetSizenWidth();
+	Properties->SetSizenWidth();
+	UIwindow->Swap();
+	SetWindowPos(UIwindow->cHwnd, HWND_BOTTOM, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+	SetWindowPos(RenderTargetWindows->cHwnd, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+
 	ShowWindow(hwnd, SW_SHOWDEFAULT);
 }
 std::optional<int> window::ProcessMessage() {
@@ -111,9 +118,9 @@ LRESULT CALLBACK window::HandleMsgThunk(HWND hWnd, UINT msg, WPARAM wParam, LPAR
 	return pWnd->HandleMsg(hWnd, msg, wParam, lParam);
 }
 LRESULT window::HandleMsg(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) noexcept{
-//	if (ImGui_ImplWin32_WndProcHandler(hWnd, msg, wParam, lParam)) {
-//		return true;
-//}
+	if (ImGui_ImplWin32_WndProcHandler(hWnd, msg, wParam, lParam)) {
+		return true;
+}
 	switch (msg)
 	{
 	case WM_CLOSE:
