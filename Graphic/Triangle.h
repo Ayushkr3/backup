@@ -48,10 +48,8 @@ private:
 	Microsoft::WRL::ComPtr<ID3D11DomainShader> pDSS;
 	
 public:
-	/*float rotation[3] = { 0,0,0 };
-	float position[3] = { 0,0,0 };
-	float Scale[3] = { 1,1,1 };*/
-	TransformStruct Trans;
+	TransformStruct* Trans;
+	std::vector<ObjectProperties*> ObjProperties;
 	std::unique_ptr<PixelShader_> pPshader;
 	//std::unique_ptr<HullShader_> pHull;
 	//std::unique_ptr<DomainShader_> pDomain;
