@@ -5,6 +5,9 @@ Microsoft::WRL::ComPtr<ID3D11DeviceContext> UIElements::pUIContext= nullptr;
 Microsoft::WRL::ComPtr<IDXGISwapChain>      UIElements::pUISwapChain= nullptr;
 Microsoft::WRL::ComPtr<ID3D11RenderTargetView>  UIElements::pUIRenderTarget= nullptr;
 DXGI_SWAP_CHAIN_DESC UIElements::UIscd;
+ImGuiIO* UIElements::io = nullptr;
+namespace  fs=std::filesystem ;
+Scene* SceneManager::currentScene = nullptr;
 UIWindows::UIWindows(std::string className, HWND Phwnd, HINSTANCE hint,short x ,short y,short w,short b,int windowsN) {
 	cHwnd = CreateWindowEx(
 		0,                          // Optional window styles.
@@ -24,6 +27,18 @@ UIWindows::UIWindows(std::string className, HWND Phwnd, HINSTANCE hint,short x ,
 UIElements::UIElements(std::string className, HWND Phwnd, HINSTANCE hint, short x, short y, short w, short b, int windowsN) {
 	if (pUIDevice == nullptr) {
 		ImGui::CreateContext();
+		UIElements::io = &ImGui::GetIO();
+		io->FontGlobalScale = 1.4f;
+		io->WantCaptureMouse = true;
+		io->WantCaptureKeyboard = true;
+		io->WantTextInput = true;
+		io->Fonts->AddFontDefault();
+		static const ImWchar icon_ranges[] = { ICON_MIN_FA, ICON_MAX_FA, 0 };
+		ImFontConfig config;
+		config.MergeMode = true;
+		config.GlyphMinAdvanceX = 13.0f;
+		io->Fonts->AddFontFromFileTTF("D:/program/vs/graphic/Graphic/font/fontawesome-webfont.ttf",13.0f,&config, icon_ranges);
+		io->ConfigFlags = ImGuiConfigFlags_NavEnableSetMousePos;
 		cHwnd = CreateWindowEx(
 			0,                          // Optional window styles.
 			className.c_str(),                     // Window class
@@ -80,7 +95,7 @@ void UIElements::Swap() {
 	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 	pUISwapChain->Present(1u, 0);
 }
-SceneManager::SceneManager(int posX, int posY, int widthX, int widthY,Scene* InitalScene):posX(posX),posY(posY),widthX(widthX),widthY(widthY),currentScene(InitalScene)
+SceneManager::SceneManager(int posX, int posY, int widthX, int widthY):posX(posX),posY(posY),widthX(widthX),widthY(widthY)
 {
 }
 void SceneManager::SetSizenWidth() {
@@ -89,18 +104,60 @@ void SceneManager::SetSizenWidth() {
 	ImGui::SetWindowPos(ImVec2((float)posX, (float)posY));
 	ImGui::End();
 }
+std::vector<Objects*>::iterator SceneManager::LookUp(short id, std::vector<Objects*>& vec ) {
+	for (auto it = currentScene->AllObject.begin();it!= currentScene->AllObject.end(); it++) {
+		if ((*it)->Id == id)
+			return it;
+	}
+	return currentScene->AllObject.end();
+}
+std::vector<Triangle*>::iterator SceneManager::LookUp(Triangle* Tri, std::vector<Triangle*>& vec) {
+	for (auto it = currentScene->Triangles.begin(); it != currentScene->Triangles.end(); it++) {
+		if ((*it)->id == Tri->id)
+			return it;
+	}
+	return currentScene->Triangles.end();
+}
 void SceneManager::Content() {
 	static int selected = -1;
-	ImGui::Begin("Scene Objects");
-	for (auto& Tri : currentScene->Triangles) {
-		if (ImGui::Selectable(("Test" + std::to_string(Tri.id)).c_str(), selected == Tri.id)) {
-			selected = Tri.id;
-			PropertiesWindow::Obj = &Tri;
+	ImGui::Begin("Scene Objects",nullptr,ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoResize);
+	if (ImGui::BeginPopupContextItem("Scene Menu")) {
+		if (ImGui::Button("Add Object")) {
+			/*Triangle* newTriangle = new Triangle();
+			currentScene->AllObject.push_back(newTriangle);
+			currentScene->Triangles.push_back(newTriangle);
+			currentScene->CContoller->AddTriangle(newTriangle);
+			currentScene->CContoller->InitalizePosition();*/
+			ImGui::CloseCurrentPopup();
+		}
+		ImGui::EndPopup();
+	}
+	for (auto& Tri : currentScene->AllObject) {
+		if (ImGui::Selectable((Tri->ObjName + std::to_string(Tri->Id)).c_str(), selected == Tri->Id)) {
+			PropertiesWindow::Obj = Tri;
+			selected = Tri->Id;
+		}
+		if (ImGui::BeginPopupContextItem(std::to_string(Tri->Id).c_str())) {
+			if (ImGui::Button("Delete")) {
+				Triangle* t = dynamic_cast<Triangle*>(Tri);
+				currentScene->CContoller->deleteObject(t);
+				Scene::globalCurrentOBJID.push_back(t->id);
+				Objects::GlobalIdPool.push_back(t->Id);
+				currentScene->AllObject.erase(LookUp(Tri->Id,currentScene->AllObject));
+				currentScene->Triangles.erase(LookUp(t, currentScene->Triangles));
+				delete t;
+				t = nullptr;
+				ImGui::CloseCurrentPopup();
+				PropertiesWindow::Obj = nullptr;
+			}
+			ImGui::EndPopup();
 		}
 	}
+	if (ImGui::IsMouseDown(ImGuiMouseButton_Right) && ImGui::IsWindowHovered() && !ImGui::IsAnyItemHovered())
+		ImGui::OpenPopup("Scene Menu");
 	ImGui::End();
 }
-Triangle* PropertiesWindow::Obj = nullptr;
+Objects* PropertiesWindow::Obj = nullptr;
 PropertiesWindow::PropertiesWindow(int posX, int posY, int widthX, int widthY) :posX(posX), posY(posY), widthX(widthX), widthY(widthY)
 {
 }
@@ -111,13 +168,90 @@ void PropertiesWindow::SetSizenWidth() {
 	ImGui::End();
 }
 void PropertiesWindow::Content() {
-	ImGui::Begin("Properties");
+	ImGui::Begin("Properties", nullptr, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize);
 	if (PropertiesWindow::Obj != nullptr) {
-		for (auto& obj : PropertiesWindow::Obj->ObjProperties) {
+		for (auto& obj : PropertiesWindow::Obj->GetProperties()) {
 			obj->show();
 		}
 	}
 	ImGui::End();
 }
 
+void Files::SetSizenWidth()
+{
+	ImGui::Begin("Files");
+	ImGui::SetWindowSize(ImVec2((float)widthX, (float)widthY));
+	ImGui::SetWindowPos(ImVec2((float)posX, (float)posY));
+	ImGui::End();
+}
 
+Files::Files(int posX, int posY, int widthX, int widthY, Microsoft::WRL::ComPtr<ID3D11Device> pDevice, Microsoft::WRL::ComPtr<ID3D11DeviceContext> pContext): posX(posX), posY(posY), widthX(widthX), widthY(widthY),pDevice(pDevice),pContext(pContext)
+{
+	
+}
+
+void Files::Content()
+{
+	ImGui::Begin("Files",nullptr,ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize);
+	static fs::directory_entry fileSelected;
+	if (working != WorkingDirectory && ImGui::Selectable(ICON_FA_FOLDER_O " ../")) {
+		working = working.parent_path();
+	}
+	for (auto& it : fs::directory_iterator(working)) {
+		if (it.is_directory()) {
+			if (ImGui::Selectable((ICON_FA_FOLDER_O" "+ it.path().filename().string()).c_str(), fileSelected == it)) {
+				fileSelected = it;
+			}
+		}
+		else if (it.is_regular_file()) {
+			if (ImGui::Selectable((ICON_FA_FILE_O" " + it.path().filename().string()).c_str(), fileSelected == it)) {
+				fileSelected = it;
+			}
+			if (ImGui::BeginPopupContextItem(it.path().string().c_str())) {
+				if (ImGui::Button("Add to scene")) {
+					GetFile(it.path().string());
+					std::vector<Vertex> newVert;
+					std::vector<unsigned int> indi;
+					std::vector<NormalPerObject> n;
+					for (unsigned int i = 0; i < Vertexformated.size(); i++) {
+						newVert.emplace_back(Vertexformated[i]);
+						indi.push_back(i);
+						if (i < ObjNormals.size())
+							n.emplace_back(ObjNormals[i][0], ObjNormals[i][1], ObjNormals[i][2]);
+					}
+					float rgba[3] = {1.0f,0.0f,0.0f};
+					Triangle* newTriangle; 
+					short globalID;
+					short ObjectID;
+					if (!Objects::GlobalIdPool.empty()) {
+						globalID = Objects::GlobalIdPool[0];
+						Objects::GlobalIdPool.erase(Objects::GlobalIdPool.begin());
+					}
+					else {
+						globalID = ++Objects::count;
+					}
+					if (!Scene::globalCurrentOBJID.empty()) {
+						ObjectID = Scene::globalCurrentOBJID[0];
+						Scene::globalCurrentOBJID.erase(Scene::globalCurrentOBJID.begin());
+					}
+					else {
+						ObjectID = SceneManager::currentScene->currentOBJID++;
+					}
+					newTriangle = new Triangle(pDevice, pContext, newVert, indi, ObjectID, rgba,globalID,n);
+					SceneManager::currentScene->AllObject.push_back(newTriangle);
+					SceneManager::currentScene->Triangles.push_back(newTriangle);
+					SceneManager::currentScene->CContoller->AddTriangle(newTriangle);
+					SceneManager::currentScene->CContoller->InitalizePosition();
+					ImGui::CloseCurrentPopup();
+				}
+				ImGui::EndPopup();
+			}
+		}
+	}
+	if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
+		if (fileSelected.is_directory()) {
+			working = fileSelected;
+		}
+	}
+	ImGui::End();
+}

@@ -4,6 +4,7 @@
 #include "Global.h"
 #include <DirectXMath.h>
 #include <algorithm>
+#include <set>
 namespace Collision {
 	struct Projection {
 		float maxi = -FLT_MAX;
@@ -28,21 +29,23 @@ namespace Collision {
 }
 class BoxCollider {
 private:
-
+	std::vector<NormalPerObject> ObjectsNormals;
+	bool Comp(DirectX::XMFLOAT3& v1, DirectX::XMFLOAT3& v2);
+	std::vector<Vertex> vert;
 	struct axis {
 		std::vector<DirectX::XMFLOAT3> normals;
 	};
 	std::vector<Collision::Projection> CalcProjection(std::vector<DirectX::XMFLOAT3> normals);
 public:
-	BoxCollider(std::vector<Vertex> vertices);
+	BoxCollider(std::vector<Vertex>& vertices,std::vector<NormalPerObject> Normals);
 	std::vector<Collision::Projection> p1;
 	std::vector<Collision::Projection> p2;
 	axis axis1;
-	std::vector <std::vector<Vertex>> faces;
-	void CalcAxis(std::vector<Vertex>& vertices);
+	void CalcAxis(std::vector<NormalPerObject>&Nor);
 	bool CheckCollision(BoxCollider secondObj);
-	void UpdateBuffer(std::vector<Vertex>& vertices);
+	void UpdateBuffer(std::vector<Vertex>& vertices, std::vector<NormalPerObject>& n);
 private:
+
 	bool CheckCollisionSAT(const std::vector<Collision::Projection>& cubeProjections, const std::vector<Collision::Projection>& planeProjections);
 	bool isColliding ;
 	bool isMoving;

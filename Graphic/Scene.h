@@ -7,10 +7,13 @@
 #include "ColliderController.h"
 class Scene {
 public:
+	static short currentOBJID;
+	static std::vector<short> globalCurrentOBJID;
 	std::unique_ptr<ColliderController> CContoller;
 	Scene(Microsoft::WRL::ComPtr<ID3D11Device> pDevice, Microsoft::WRL::ComPtr<ID3D11DeviceContext> pContext);
 	void Render();
-private:
+	void RenderWireFrame();
+public:
 	Microsoft::WRL::ComPtr<ID3D11Device> pDevice;
 	Microsoft::WRL::ComPtr<ID3D11DeviceContext> pContext;
 public:
@@ -19,5 +22,6 @@ public:
 	//
 	bool check_collision;
 	//
-	std::vector<Triangle>Triangles;
+	std::vector<Triangle*>Triangles;
+	std::vector<Objects*>AllObject; 
 };

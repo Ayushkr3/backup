@@ -44,7 +44,7 @@ private:
 	};
 	//--------------------------------------------//
 	class OcTree {
-		std::vector<Triangle*>Triglist;
+		std::vector<Triangle*>& Triglist;
 		std::map<short, Collision::AABBProjection>& collList;
 	public:
 		struct OcNode {
@@ -73,8 +73,12 @@ private:
 		OcNode* QnD(Triangle* tri,OcNode* Node);
 		void ReShuffle(OcNode* Node);
 		void MoveUp(OcNode* Node);
-		OcTree(std::vector<Triangle*>triglist, std::map<short, Collision::AABBProjection>& AABBList);
+		OcTree(std::vector<Triangle*>& triglist, std::map<short, Collision::AABBProjection>& AABBList);
 		void ConstructOcTree();
+	private:
+		std::vector<Triangle*>::iterator getIterator(Triangle* tri);
+	public:
+		void deleteObject(Triangle* tri);
 	};
 private:
 	std::vector<Triangle*> ObjectToCheckWith;
@@ -86,11 +90,19 @@ private:
 	std::vector<Triangle*> Triglist;
 	std::map<short, Collision::AABBProjection> collList;
 public:
+	//
+	//-Constrcutor for tree
+	//-Creates new tree object
 	void ConstructTree();
-	//ColliderController();
+	//
+	//-Push Tree in tree
+	//-Should be called with InitalizePosition
 	void AddTriangle(Triangle* tri);
+	//
+	//-Add projection to object maps
 	void InitalizePosition();
 	void Update(Triangle* tri);
+	void deleteObject(Triangle* tri);
 	Collision::AABBProjection calcAABB(Triangle& tri);
 	bool GlobalCollide = false;
 	~ColliderController();

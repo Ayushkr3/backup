@@ -35,7 +35,10 @@ public:
 	bool showvalue = true;
 	int t = 0;
 #ifdef ImGUI_ENABLED
-	void UpdateImGui();
+	Microsoft::WRL::ComPtr<ID3D11RasterizerState> WireFrame;
+	Microsoft::WRL::ComPtr<ID3D11RasterizerState> Solid;
+	Microsoft::WRL::ComPtr<ID3D11PixelShader> pWireFrameSolid;
+	Microsoft::WRL::ComPtr<ID3D11PixelShader> pLastShader;
 #endif // ImGUI_ENABLED
 
 	//Test public code //

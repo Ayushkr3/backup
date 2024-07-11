@@ -1,10 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Source Files">
-      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
-      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
-    </Filter>
     <Filter Include="Header Files">
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hh;hpp;hxx;hm;inl;inc;ipp;xsd</Extensions>
@@ -21,6 +17,16 @@
     </Filter>
     <Filter Include="Wic">
       <UniqueIdentifier>{56386b33-47ce-4718-a6cc-5f1256394d86}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ObjParser">
+      <UniqueIdentifier>{588b4712-fc8c-44fc-9257-444f18609111}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="fonts">
+      <UniqueIdentifier>{347b3df7-d3f6-4ef6-a11b-80514735f43a}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -131,6 +137,15 @@
     </ClInclude>
     <ClInclude Include="ECoreUI.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjParser\ObjParser.h">
+      <Filter>ObjParser</Filter>
+    </ClInclude>
+    <ClInclude Include="font\IconsCodicons.h">
+      <Filter>fonts</Filter>
+    </ClInclude>
+    <ClInclude Include="font\IconsFontAwesome4.h">
+      <Filter>fonts</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -248,6 +263,9 @@
       <Filter>Shaders</Filter>
     </FxCompile>
     <FxCompile Include="GeometryShader.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="SolidColWireFrame.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
   </ItemGroup>

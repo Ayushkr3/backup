@@ -1,10 +1,10 @@
 #include "Collider.h"
 //SAT algorithm
-//TODO: Consider Tessllated normals (Barrycentric normals)
+//TODO: Fix Normal update
 using namespace DirectX;
 using namespace Collision;
-BoxCollider::BoxCollider(std::vector<Vertex> vertices) {
-	CalcAxis(vertices);
+BoxCollider::BoxCollider(std::vector<Vertex>& vertices,std::vector<NormalPerObject> Normals) :vert(vertices), ObjectsNormals{Normals} {
+	CalcAxis(Normals);
 }
 std::vector<Projection> BoxCollider::CalcProjection(std::vector<DirectX::XMFLOAT3> normals) {
 	std::vector<Projection> allProj;
@@ -13,15 +13,13 @@ std::vector<Projection> BoxCollider::CalcProjection(std::vector<DirectX::XMFLOAT
 		pro.mini = FLT_MAX;
 		pro.maxi = -FLT_MAX;
 		auto vec = DirectX::XMLoadFloat3(&(normals)[i]);
-		for (unsigned int k = 0; k < faces.size(); k++) {
+		for (unsigned int k = 0; k < vert.size(); k++) {
 			float maxi = -FLT_MAX;
 			float mini = FLT_MAX;
-			for (unsigned int j = 0; j < faces[k].size(); j++) {
-				auto pos = XMFLOAT3(faces[k][j].position.x, faces[k][j].position.y, faces[k][j].position.z);
-				float proj = XMVectorGetX(XMVector3Dot(vec, XMLoadFloat3(&pos)));
-				 maxi = max(proj,maxi);
-				 mini = min(proj,mini);
-			}
+			auto pos = XMFLOAT3(vert[k].position.x, vert[k].position.y, vert[k].position.z);
+			float proj = XMVectorGetX(XMVector3Dot(vec, XMLoadFloat3(&pos)));
+			maxi = max(proj,maxi);
+			mini = min(proj,mini);
 			pro.maxi = max(maxi, pro.maxi);
 			pro.mini = min(mini, pro.mini);
 		}
@@ -29,37 +27,28 @@ std::vector<Projection> BoxCollider::CalcProjection(std::vector<DirectX::XMFLOAT
 	}
 	return allProj;
 }
-void BoxCollider::CalcAxis(std::vector<Vertex>& vertices) {
-	std::vector<Vertex> face;
-		for (unsigned int i = 0; i < (vertices).size(); i = i + 4) {
-			face.push_back((vertices)[i]);
-			face.push_back((vertices)[i + 1]);
-			face.push_back((vertices)[i + 2]);
-			face.push_back((vertices)[i + 3]);
-			faces.push_back(face);
-			auto nor = DirectX::XMFLOAT3((vertices)[i].Normal.x, vertices[i].Normal.y, vertices[i].Normal.z);
-			//auto vec = DirectX::XMLoadFloat3(&nor);
-			bool present = false;
-			axis1.normals.push_back(nor);
-			face.clear();
-		}
-		//*test = faces[0][0].position.x;
+bool BoxCollider::Comp(DirectX::XMFLOAT3& v1, DirectX::XMFLOAT3& v2) {
+	if (v1.x == v2.x && v1.y == v2.y && v1.z == v2.z)
+		return true;
+	return false;
 }
-void BoxCollider::UpdateBuffer(std::vector<Vertex>& vertices) {
-	int k = 0;
-	for (unsigned int i = 0; i < faces.size(); i++) {
-		for (unsigned int j = 0; j < 3; j=j+4) {
-			faces[i][j] = vertices[k];
-			faces[i][j+1] = vertices[k+1];
-			faces[i][j+2] = vertices[k+2];
-			faces[i][j+3] = vertices[k+3];
-			auto nor = DirectX::XMFLOAT3((vertices)[k].Normal.x, vertices[k].Normal.y, vertices[k].Normal.z);
+void BoxCollider::CalcAxis(std::vector<NormalPerObject>& Nor) {
+	if (Nor.empty()) {
+		return;
+	}
+	for (unsigned int i = 0; i < (Nor).size(); i++) {
+		auto nor = DirectX::XMFLOAT3(Nor[i].x, Nor[i].y, Nor[i].z);
+		axis1.normals.push_back(nor);
+	}
+}
+void BoxCollider::UpdateBuffer(std::vector<Vertex>& vertices,std::vector<NormalPerObject>& n) {
+	vert = vertices;
+	for (unsigned int i = 0; i < n.size(); i++) {
+			auto nor = DirectX::XMFLOAT3((n)[i].x, n[i].y, n[i].z);
 			axis1.normals[i] = nor;
-			k = k + 4;
-		}
 		//auto vec = DirectX::XMLoadFloat3(&nor);
 	}
-	k = 0;
+	//axis1.normals = std::vector<XMFLOAT3>(std::set<XMFLOAT3>(temp.begin(),temp.end()).begin(),std::set<XMFLOAT3>(temp.begin(), temp.end()).end());
 }
 ////////////////////----Narrow Phase-----/////////////////////////////
 bool BoxCollider::CheckCollision(BoxCollider secondObj) {
@@ -84,8 +73,7 @@ bool BoxCollider::CheckCollisionSAT(const std::vector<Projection>& cubeProjectio
 
 bool  BoxCollider::IsOverlap(float minA, float maxA, float minB, float maxB)
 {
-	bool test = (minA <= maxB && maxA >= minB);
-	return test;
+	return (minA <= maxB && maxA >= minB);
 }
 
 ////////////////////--------------------//////////////////////

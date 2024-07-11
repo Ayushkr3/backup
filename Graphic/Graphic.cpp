@@ -23,7 +23,6 @@ Graphic::Graphic(HWND hwnd){
 	scd.SampleDesc.Quality = 0;
 	scd.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
 	scd.Windowed = true;
-	//TODO: Create Class for device and context for global availiblity
 	CHECK_ERROR(D3D11CreateDeviceAndSwapChain(nullptr, D3D_DRIVER_TYPE_HARDWARE, nullptr,D3D11_CREATE_DEVICE_DEBUG, nullptr, 0, D3D11_SDK_VERSION, &scd, &pSwap, &pDevice, nullptr,&pContext));
 	WIC::SetImFac();
 	ID3D11Resource* pBackBuffer = nullptr;
@@ -40,33 +39,46 @@ Graphic::Graphic(HWND hwnd){
 	vp.TopLeftX = 0;
 	vp.TopLeftY = 0;
 	pContext->RSSetViewports(1u, &vp);
-
-	Microsoft::WRL::ComPtr<ID3D11RasterizerState> WireFrame;
+#define DEPTH_BIAS_D32_FLOAT(d) (d/(1/pow(2,23)))
+	
 	D3D11_RASTERIZER_DESC rasDesc;
 	rasDesc.FillMode = D3D11_FILL_WIREFRAME;
 	rasDesc.CullMode = D3D11_CULL_NONE;
-	rasDesc.FrontCounterClockwise = true;;
-	rasDesc.DepthClipEnable = TRUE;
+	rasDesc.FrontCounterClockwise = true;
+	rasDesc.DepthClipEnable = true;
 	rasDesc.DepthBias = 0;
-	rasDesc.DepthBiasClamp = 0.0f;
+	rasDesc.SlopeScaledDepthBias = 0;
+	rasDesc.DepthBiasClamp = 0;
 	rasDesc.ScissorEnable = FALSE;
-	rasDesc.MultisampleEnable = FALSE;
-	rasDesc.AntialiasedLineEnable = FALSE;
+	rasDesc.MultisampleEnable = false;  //should be off
+	rasDesc.AntialiasedLineEnable = true;
 	CHECK_ERROR(pDevice->CreateRasterizerState(&rasDesc, &WireFrame));
 
-	pContext->RSSetState(WireFrame.Get());
+	D3D11_RASTERIZER_DESC rasDescS;
+	rasDescS.FillMode = D3D11_FILL_SOLID;
+	rasDescS.CullMode = D3D11_CULL_BACK;
+	rasDescS.FrontCounterClockwise = true;
+	rasDescS.DepthClipEnable = true;
+	rasDescS.DepthBias = 0;
+	rasDescS.SlopeScaledDepthBias = 0;
+	rasDescS.DepthBiasClamp = 0;
+	rasDescS.ScissorEnable = FALSE;
+	rasDescS.MultisampleEnable = false;
+	rasDescS.AntialiasedLineEnable = false;
+	CHECK_ERROR(pDevice->CreateRasterizerState(&rasDescS, &Solid));
+	Microsoft::WRL::ComPtr<ID3D10Blob> pWireShad;
+	CHECK_ERROR(D3DReadFileToBlob(L"SolidColWireFrame.cso", &pWireShad));
+	pDevice->CreatePixelShader(pWireShad->GetBufferPointer(), pWireShad->GetBufferSize(), nullptr, &pWireFrameSolid);
 
+	Microsoft::WRL::ComPtr<ID3D10Blob> pDSBlob;
 	D3D11_DEPTH_STENCIL_DESC dsDesc = {};
-	dsDesc.DepthEnable = TRUE;
+	dsDesc.DepthEnable = true;
 	dsDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
 	dsDesc.DepthFunc = D3D11_COMPARISON_LESS;
 	Microsoft::WRL::ComPtr<ID3D11DepthStencilState> pDSState;
-	
 
 	CHECK_ERROR(pDevice->CreateDepthStencilState(&dsDesc, &pDSState));
-	pContext->OMSetDepthStencilState(pDSState.Get(),1u);
-
-
+	pContext->OMSetDepthStencilState(pDSState.Get(),0);
 	Microsoft::WRL::ComPtr<ID3D11Texture2D> pDepthStencil;
 	D3D11_TEXTURE2D_DESC descDepth = {};
 #ifdef ImGUI_ENABLED
@@ -82,7 +94,9 @@ Graphic::Graphic(HWND hwnd){
 	descDepth.SampleDesc.Count = 1u;
 	descDepth.SampleDesc.Quality = 0u;
 	descDepth.Usage = D3D11_USAGE_DEFAULT;
-	descDepth.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+	descDepth.BindFlags = D3D11_BIND_DEPTH_STENCIL; 
+	descDepth.CPUAccessFlags = 0;
+	descDepth.MiscFlags = 0;
 	CHECK_ERROR(pDevice->CreateTexture2D(&descDepth, nullptr, &pDepthStencil));
 
 
@@ -94,16 +108,8 @@ Graphic::Graphic(HWND hwnd){
 
 	CHECK_ERROR(pDevice->CreateDepthStencilView(pDepthStencil.Get(), &stencil_view_desc, &pDs));
 	pContext->OMSetRenderTargets(1, pTarget.GetAddressOf(),pDs.Get());
-#ifdef ImGUI_ENABLED
-	//ImGui_ImplDX11_Init(pDevice.Get(), pContext.Get());
-#endif
 }
-Graphic::~Graphic() {
-#ifdef ImGUI_ENABLED
-	/*ImGui_ImplDX11_Shutdown();
-	ImGui::DestroyContext();*/
-#endif
-}
+Graphic::~Graphic(){}
 void Graphic::EndFrame() {
 	pSwap->Present(1u,0);
 }
@@ -112,44 +118,14 @@ void Graphic::ClearBuffer(float rgba[4]) {
 	pContext->ClearDepthStencilView(pDs.Get(), D3D11_CLEAR_DEPTH , 1.0f, 0);
 }
 void Graphic::TestFrames() {
-#ifdef ImGUI_ENABLED
-//	UpdateImGui();
-#endif // ImGUI_ENABLED
+	pContext->PSGetShader(&pLastShader,nullptr,0);
+	pContext->RSSetState(WireFrame.Get());
 	pSc->Render();
-
+	pContext->PSSetShader(pWireFrameSolid.Get(), nullptr, 0);
+	pContext->RSSetState(Solid.Get());
+	pSc->RenderWireFrame();
+	pContext->PSSetShader(pLastShader.Get(), nullptr, 0);
 }
-#ifdef ImGUI_ENABLED
-//void Graphic::UpdateImGui() {
-//	ImGui::Begin("Scene", nullptr, ImGuiWindowFlags_NoMove);
-//	for (size_t i = 0; i < pSc->Triangles.size(); i++) {
-//		if (ImGui::Selectable(("Test " + std::to_string(i)).c_str())) {
-//			//showvalue = !showvalue;
-//			showvalue = true;
-//			t = i;
-//		};
-//	}
-//	ImGui::End();
-//	ImGui::Begin("Inspector", nullptr, ImGuiWindowFlags_NoMove);
-//	if (ImGui::CollapsingHeader("Object")) {
-//		if (showvalue) {
-//			/*pSc->Triangles[t].UpdateBuffers();*/
-//			ImGui::DragFloat3("Rotation", pSc->Triangles[t].rotation, 0.2f);
-//			ImGui::DragFloat3("Position", pSc->Triangles[t].position, 0.2f);
-//			//ImGui::Text(("Coll " + (std::to_string((pSc->check_collision)))).c_str());
-//			ImGui::DragFloat3("Scale", pSc->Triangles[t].Scale, 0.2f);
-//			ImGui::Text(("Moving" + (std::to_string((pSc->CContoller->GlobalCollide)))).c_str());
-//		}
-//	}
-//	if (ImGui::CollapsingHeader("Camera")==false) {
-//		ImGui::DragFloat2("Camera Rotation", pSc->cam.rotation, 0.1f);
-//		ImGui::DragFloat3("Camera Position", pSc->cam.postion, 0.1f);
-//	}
-//	ImGui::End();
-//	
-//	ImGui::EndFrame();
-//	
-//}
-#endif
 Scene* Graphic::GetCurrentScene() {
 	return pSc.get();
 }
