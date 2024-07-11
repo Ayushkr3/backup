@@ -12,9 +12,6 @@ cbuffer Test: register (b0){
 	 row_major matrix Translation;
 	 row_major matrix Scale;
 }
-cbuffer PerFrameBuffer : register (b1) {
-	  matrix viewXprojection;
-}
 
 VSOut main(float3 pos : Position,float2 tex: Texcoord,float3 norm:Normal)
 {

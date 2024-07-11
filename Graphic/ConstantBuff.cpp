@@ -35,7 +35,7 @@ XMFLOAT4X4 ConstantBuffer::ConvertMatrixToFloat4x4(XMMATRIX mat) {
 	return result;
 }
 ////////////////////Provisional code//////////////////////////
-void ConstantBuffer::Transform(TransformStruct* t)
+void ConstantBuffer::Transform(TransformStruct* t, std::vector<NormalPerObject>& n)
 {
 	XMMATRIX ro = XMMatrixTranspose(XMMatrixRotationRollPitchYaw(XMConvertToRadians(t->rotation[0]), XMConvertToRadians(t->rotation[1]), XMConvertToRadians(t->rotation[2])));
 	XMMATRIX po = XMMatrixTranspose(XMMatrixTranslation(t->position[0], t->position[1], t->position[2]));
@@ -61,6 +61,14 @@ void ConstantBuffer::Transform(TransformStruct* t)
 		vertice_f[i].Normal.x = returnnor.x;
 		vertice_f[i].Normal.y = returnnor.y;
 		vertice_f[i].Normal.z = returnnor.z;
+		if (i < n.size()) {
+			XMFLOAT4 coll_norm = XMFLOAT4(n[i].x, n[i].y, n[i].z, 1.0f);
+			XMVECTOR normal_rotation = XMVector4Transform(XMLoadFloat4(&coll_norm), XMLoadFloat4x4(&rota));
+			XMStoreFloat4(&returnnor, normal_rotation);
+			n[i].x = returnnor.x;
+			n[i].y = returnnor.y;
+			n[i].z = returnnor.z;
+		}
 	}
 }
 void ConstantBuffer::GetData(std::vector<Vertex> vertices)
@@ -88,4 +96,21 @@ void ConstantBuffer::UpdateBuffer(Microsoft::WRL::ComPtr<ID3D11DeviceContext> pC
 }
 void ConstantBuffer::BindToPSshader(Microsoft::WRL::ComPtr<ID3D11DeviceContext> pContext) {
 	pContext->PSSetConstantBuffers(2, 1, pObjectConstantBuffer.GetAddressOf());
+}
+
+void ConstantBuffer::BindToPSshader(Microsoft::WRL::ComPtr<ID3D11Device> pDevice,Microsoft::WRL::ComPtr<ID3D11DeviceContext> pContext,float rgba[3]) {
+	Microsoft::WRL::ComPtr<ID3D11Buffer> Color;
+	rgbaS rgb(rgba[0],rgba[1],rgba[2]);
+	D3D11_BUFFER_DESC CbuffDesc;
+	CbuffDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	CbuffDesc.ByteWidth = sizeof(PerObjectData);
+	CbuffDesc.Usage = D3D11_USAGE_DYNAMIC;
+	CbuffDesc.MiscFlags = 0;
+	CbuffDesc.StructureByteStride = 0;
+	CbuffDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	D3D11_SUBRESOURCE_DATA Csbr;
+	Csbr.pSysMem = &rgb;
+
+	CHECK_ERROR(pDevice->CreateBuffer(&CbuffDesc, &Csbr, &Color));
+	pContext->PSSetConstantBuffers(3, 1, Color.GetAddressOf());
 }

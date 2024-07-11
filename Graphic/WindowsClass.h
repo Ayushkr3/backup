@@ -28,6 +28,7 @@ public:
 	std::unique_ptr<UIElements> UIwindow;
 	std::unique_ptr<SceneManager> Scene;
 	std::unique_ptr<PropertiesWindow> Properties;
+	std::unique_ptr<Files> file;
 	std::unique_ptr<UIWindows> RenderTargetWindows;
 	window();
 	HWND hwnd;

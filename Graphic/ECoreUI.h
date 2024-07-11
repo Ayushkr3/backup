@@ -6,6 +6,11 @@
 #include "ImGui/imgui_impl_win32.h"
 #include "ImGui/imgui_impl_dx11.h"
 #include "Scene.h"
+#include "ObjParser/ObjParser.h"
+#include <iterator>
+#include <filesystem>
+#include "Global.h"
+#include "font/IconsFontAwesome4.h"
 class UIWindows {
 public:
 	HWND cHwnd;
@@ -25,16 +30,19 @@ public:
 	void UpdateUI();
 	~UIElements();
 	void Swap();
+	static ImGuiIO* io;
 };
 class SceneManager {
 	int posX;
 	int posY;
 	int widthX;
 	int widthY;
-	Scene* currentScene;
+	std::vector<Objects*>::iterator LookUp(short id, std::vector<Objects*>& vec);
+	std::vector<Triangle*>::iterator LookUp(Triangle* Tri, std::vector<Triangle*>& vec);
 public:
+	static Scene* currentScene;
 	void SetSizenWidth();
-	SceneManager(int posX,int posY,int widthX,int widthY,Scene* InitalScene);
+	SceneManager(int posX,int posY,int widthX,int widthY);
 	void Content();
 };
 class PropertiesWindow  {
@@ -43,11 +51,21 @@ class PropertiesWindow  {
 	int widthX;
 	int widthY;
 public:
-	static Triangle* Obj;
+	static Objects* Obj;
 	void SetSizenWidth();
 	PropertiesWindow(int posX, int posY, int widthX, int widthY);
 	void Content();
 };
 class Files{
-	
+	int posX;
+	int posY;
+	int widthX;
+	int widthY;
+	std::filesystem::path working = WorkingDirectory;
+	Microsoft::WRL::ComPtr<ID3D11Device> pDevice;
+	Microsoft::WRL::ComPtr<ID3D11DeviceContext> pContext;
+public:
+	void SetSizenWidth();
+	Files(int posX, int posY, int widthX, int widthY, Microsoft::WRL::ComPtr<ID3D11Device> pDevice,Microsoft::WRL::ComPtr<ID3D11DeviceContext> pContext);
+	void Content();
 };

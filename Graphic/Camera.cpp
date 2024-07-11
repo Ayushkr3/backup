@@ -1,14 +1,16 @@
 #include"Camera.h"
 #define CHECK_ERROR(hr) if(FAILED(hr)) throw error::error(hr,__LINE__)
 
-Camera::Camera(Microsoft::WRL::ComPtr<ID3D11Device> pDevice)
+Camera::Camera(Microsoft::WRL::ComPtr<ID3D11Device> pDevice):Objects(++Objects::count,"Camera")//should be changed
 {
+	PosNrot = new CameraProp;
+	CamProperties.push_back(PosNrot);
 	viewmatrix =XMMatrixLookAtLH(
-		XMVectorSet(postion[0], postion[1], postion[2],1.0f),
+		XMVectorSet(PosNrot->postion[0], PosNrot->postion[1], PosNrot->postion[2],1.0f),
 		XMVectorSet(focus[0],focus[1],focus[2],1.0f),
 		XMVectorSet(0.0f,1.0f,0.0f,0.0f));
 #ifdef ImGUI_ENABLED
-	projection = XMMatrixPerspectiveFovLH(XMConvertToRadians(60.0f), 1.791225416036309f, 0.1f, 100.0f);
+	projection = XMMatrixPerspectiveFovLH(XMConvertToRadians(60.0f), 1.7777777777f, 0.1f, 100.0f);
 #else
 	projection = XMMatrixPerspectiveFovLH(XMConvertToRadians(60.0f), 1.33333333f, 0.1f, 100.0f);
 #endif // ImGUI_ENABLED
@@ -33,21 +35,21 @@ void Camera::calculateProjection(Microsoft::WRL::ComPtr<ID3D11DeviceContext> pCo
 }
 PerFrameData Camera::GetViewMatrix() {
 	//////////////////////////
-	if (rotation[0] > 90) {
-		rotation[0] = 89;
+	if (PosNrot->rotation[0] > 90) {
+		PosNrot->rotation[0] = 89;
 	}
-	if (rotation[0] <-90) {
-		rotation[0] = -89;
+	if (PosNrot->rotation[0] < -90) {
+		PosNrot->rotation[0] = -89;
 	}
-	if (rotation[1] > 360) {
-		rotation[1] = 0;
+	if (PosNrot->rotation[1] > 360) {
+		PosNrot->rotation[1] = 0;
 	}
-	if (rotation[1] < 0) {
-		rotation[1] = 359;
+	if (PosNrot->rotation[1] < 0) {
+		PosNrot->rotation[1] = 359;
 	}
 	//////////////////////////
-	XMVECTOR pos = XMVectorSet(postion[0], postion[1], postion[2], 1.0f);
-	XMMATRIX Rotation = XMMatrixRotationRollPitchYaw(XMConvertToRadians(rotation[0]), XMConvertToRadians(rotation[1]), 0.0f);
+	XMVECTOR pos = XMVectorSet(PosNrot->postion[0], PosNrot->postion[1], PosNrot->postion[2], 1.0f);
+	XMMATRIX Rotation = XMMatrixRotationRollPitchYaw(XMConvertToRadians(PosNrot->rotation[0]), XMConvertToRadians(PosNrot->rotation[1]), 0.0f);
 	XMVECTOR forwardDirection = XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f);
 	forwardDirection = XMVector3TransformCoord(forwardDirection, Rotation);
 

@@ -1,14 +1,16 @@
 #include "Triangle.h"
 
 
-Triangle::Triangle(Microsoft::WRL::ComPtr<ID3D11Device> pDevice, Microsoft::WRL::ComPtr<ID3D11DeviceContext> pContext, std::vector<Vertex> vertice, std::vector<unsigned int>indi, short id) :
+Triangle::Triangle(Microsoft::WRL::ComPtr<ID3D11Device> pDevice, Microsoft::WRL::ComPtr<ID3D11DeviceContext> pContext, std::vector<Vertex> vertice, std::vector<unsigned int>indi, short id, float rgba[3],short globalID, std::vector<NormalPerObject>nor) :
 	pContext(pContext), pDevice(pDevice), vertices(
 		vertice
 	), index(indi
-	), id(id), coll(vertice)
+	), Objects(globalID, "Object"), id(id), coll(vertice, nor), color{ rgba[0],rgba[1],rgba[2] }, n{nor}
 {
 	Trans = new TransformStruct;
 	ObjProperties.push_back(Trans);
+	D3D11_BUFFER_DESC IndexBufferDesc;
+	D3D11_BUFFER_DESC VertexBuffer;
 	VertexBuffer.BindFlags = D3D11_BIND_VERTEX_BUFFER ;
 	VertexBuffer.Usage = D3D11_USAGE_DYNAMIC;
 	VertexBuffer.ByteWidth = (vertices.size() * sizeof(Vertex));
@@ -36,7 +38,8 @@ Triangle::Triangle(Microsoft::WRL::ComPtr<ID3D11Device> pDevice, Microsoft::WRL:
 	Transformation.Translation = ConstantBuffer::ConvertMatrixToFloat4x4(XMMatrixTranslation(Trans->position[0], Trans->position[1], Trans->position[2]));
 	Transformation.Scale = ConstantBuffer::ConvertMatrixToFloat4x4(XMMatrixScaling(Trans->Scale[0], Trans->Scale[1], Trans->Scale[2]));
 	pCB = std::make_unique<ConstantBuffer>(&Transformation, pDevice);
-	pCB->Transform(Trans);
+	pCB->Transform(Trans,n);
+	pCB->GetData(vertices);
 
 	pContext->IASetVertexBuffers(0, 1, pVertexBuffer.GetAddressOf(), &strides, &offset);
 
@@ -44,7 +47,7 @@ Triangle::Triangle(Microsoft::WRL::ComPtr<ID3D11Device> pDevice, Microsoft::WRL:
 	CHECK_ERROR(pDevice->CreateBuffer(&IndexBufferDesc, &index_subr, &pIndexBuffer));
 	///////////////////////////////////////////////////////////
 	
-	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> pSRV;
+	/*Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> pSRV;
 	Microsoft::WRL::ComPtr<ID3D11Texture2D> pTexture;
 	Microsoft::WRL::ComPtr <ID3D11Resource> pR;
 	CHECK_ERROR(CreateWICTextureFromFile(pDevice.Get(), pContext.Get(), L"rick.jpg",pR.GetAddressOf(), pSRV.GetAddressOf()));
@@ -57,13 +60,13 @@ Triangle::Triangle(Microsoft::WRL::ComPtr<ID3D11Device> pDevice, Microsoft::WRL:
 	desc.SampleDesc.Count = 1;
 	desc.SampleDesc.Quality = 0;
 	desc.Usage = D3D11_USAGE_DEFAULT;
-	desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+	desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;*/
 
-	CHECK_ERROR(pDevice->CreateTexture2D(&desc, nullptr, pTexture.GetAddressOf()));
+	//CHECK_ERROR(pDevice->CreateTexture2D(&desc, nullptr, pTexture.GetAddressOf()));
 	//pContext->UpdateSubresource(pTexture.Get(), 0, nullptr,pR.Get(), 0, 0);
 
 	
-	D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+	/*D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
 	srvDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
 	srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
 	srvDesc.Texture2D.MostDetailedMip = 0;
@@ -82,11 +85,11 @@ Triangle::Triangle(Microsoft::WRL::ComPtr<ID3D11Device> pDevice, Microsoft::WRL:
 	smpdesc.MaxAnisotropy = 1;
 	smpdesc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
 
-	CHECK_ERROR(pDevice->CreateSamplerState(&smpdesc,&pSmpler));
+	CHECK_ERROR(pDevice->CreateSamplerState(&smpdesc,&pSmpler));*/
 
 	/////////////////////////////////////////////////////////
 	pCB->BindToVSshader(pContext);
-	
+	pCB->BindToPSshader(pDevice,pContext,color);
 	pVshader = std::make_unique<VertexShader_>(pDevice,pContext);
 	std::unique_ptr<GeometryShader_>pGeo = std::make_unique<GeometryShader_>(pDevice, pContext);
 	//pHull = std::make_unique<HullShader_>(pDevice, pContext);
@@ -100,7 +103,8 @@ Triangle::Triangle(Microsoft::WRL::ComPtr<ID3D11Device> pDevice, Microsoft::WRL:
 	CHECK_ERROR(D3DReadFileToBlob(L"DomainShader.cso", &pDSBlob));
 	pDevice->CreateDomainShader(pDSBlob->GetBufferPointer(), pDSBlob->GetBufferSize(), nullptr, &pDSS);
 	pContext->DSSetShader(pDSS.Get(), nullptr, 0);
-	pPshader->bind(pSRV,pSmpler);
+	//pPshader->bind(pSRV,pSmpler);
+	pPshader->bind();
 	pVshader->bind();
 
 	pGeo->bind();
@@ -118,13 +122,11 @@ Triangle::Triangle(Microsoft::WRL::ComPtr<ID3D11Device> pDevice, Microsoft::WRL:
 void Triangle::Draw() {
 	pContext->IASetVertexBuffers(0, 1, pVertexBuffer.GetAddressOf(), &strides, &offset);
 	pContext->IASetIndexBuffer(pIndexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
-
+	pCB->BindToPSshader(pDevice, pContext, color);
 	//Have to bind other wise it will not be rendered ,before every draw call
 	pCB->BindToVSshader(pContext);
-	pContext->DrawIndexed(index.size(), 0, 0);
-	//----------------------------------------
-	isMoving = Phys.isMoving();
-	//----------------------------------------
+	//pContext->DrawIndexed(index.size(), 0, 0);
+	pContext->Draw(vertices.size(), 0);
 }
 void Triangle::UpdateBuffers() {
 	Transformation.Rotation = ConstantBuffer::ConvertMatrixToFloat4x4(XMMatrixRotationRollPitchYaw(XMConvertToRadians(Trans->rotation[0]), XMConvertToRadians(Trans->rotation[1]), XMConvertToRadians(Trans->rotation[2])));
@@ -132,10 +134,11 @@ void Triangle::UpdateBuffers() {
 	Transformation.Scale = ConstantBuffer::ConvertMatrixToFloat4x4(XMMatrixScaling(Trans->Scale[0], Trans->Scale[1], Trans->Scale[2]));
 	// is there even any point to update if i have to bind it every frame ?
 	pCB->UpdateBuffer(pContext, &Transformation);
-	Phys.Update(&Trans->position[0],&Trans->position[1],&Trans->position[2]);
+	//Phys.Update(&Trans->position[0],&Trans->position[1],&Trans->position[2]);
 }
 void Triangle::UpdateCollider() {
-	coll.UpdateBuffer(vertices);
+	pCB->Transform(Trans,n);
+	coll.UpdateBuffer(pCB->vertice_f,n);
 }
 std::vector<Vertex> Triangle::GetVertices() {
 	return vertices;
@@ -145,4 +148,7 @@ bool Triangle::operator<(const Triangle& secondObj) const {
 }
 bool Triangle::operator==(const Triangle& secondObj) const {
 	return (id == secondObj.id) ? true : false;
+}
+std::vector<ObjectProperties*> Triangle::GetProperties() {
+	return ObjProperties;
 }

@@ -62,11 +62,14 @@ window::window():
 	RenderTargetWindows = std::make_unique<UIWindows>(className, hwnd, hint,300,0, 1024, 576,2);
 	pGfx = std::make_unique<Graphic>(RenderTargetWindows.get()->cHwnd);
 	UIwindow = std::make_unique<UIElements>(className, hwnd, hint, 0, 0, 1600, 900, 1);
-	Scene = std::make_unique<SceneManager>(0, 0, 300, 900,pGfx->GetCurrentScene());
+	Scene = std::make_unique<SceneManager>(0, 0, 300, 900);
+	SceneManager::currentScene = pGfx->GetCurrentScene();
 	Properties = std::make_unique<PropertiesWindow>(1324, 0, 276, 900);
+	file = std::make_unique<Files>(300,576,1024,324,pGfx->pDevice,pGfx->pContext);
 	UIwindow->UpdateUI();
 	Scene->SetSizenWidth();
 	Properties->SetSizenWidth();
+	file->SetSizenWidth();
 	UIwindow->Swap();
 	SetWindowPos(UIwindow->cHwnd, HWND_BOTTOM, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
 	SetWindowPos(RenderTargetWindows->cHwnd, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
@@ -243,9 +246,6 @@ LRESULT window::HandleMsg(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) noe
 
 window::~window() {
 #ifdef ImGUI_ENABLED
-	//ImGui_ImplWin32_Shutdown();
-	//Metrice::shutdown = 1;
-	//Metrice::Destruct();
 #endif // ImGUI_ENABLED
 	DestroyWindow(hwnd);
 	UnregisterClass("OI",hint);

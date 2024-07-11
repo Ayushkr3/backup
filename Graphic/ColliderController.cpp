@@ -13,8 +13,6 @@ using namespace std;
 #define BSOUTHWEST 6
 #define BSOUTHEAST 7
 
-
-
 #define EXTENT 5
 ColliderController::~ColliderController() {
 	//delete baseTree;
@@ -46,7 +44,6 @@ Collision::AABBProjection ColliderController::calcAABB(Triangle& tri) {
 		proj.maxK = max(projk, proj.maxK);
 		proj.minK = min(projk, proj.minK);
 	}
-	//midpoints.push_back((proj.minI + proj.maxI) / 2);
 	return proj;
 }
 void ColliderController::InitalizePosition() {
@@ -55,6 +52,7 @@ void ColliderController::InitalizePosition() {
 		proj = calcAABB(*Triangle);
 		collList[Triangle->id] = proj;
 	}
+
 }
 void ColliderController::AddTriangle(Triangle* tri) {
 	Triglist.push_back(tri);
@@ -71,6 +69,11 @@ void ColliderController::Update(Triangle* tri) {
 	baseOcTree->MoveUp(baseOcTree->lastNode);
 	//CheckCollision(tri,&baseTree->BaseQuad);
 	CheckCollision(tri, &baseOcTree->BaseOc);
+}
+void ColliderController::deleteObject(Triangle * tri)
+{
+	baseOcTree->deleteObject(tri);
+	//Triglist.erase(find(Triglist.begin(), Triglist.end(), tri));
 }
 bool ColliderController::isCollidingAABB(Triangle* first, Triangle* second) {
 	AABBProjection firstobjproj = collList[first->id];
@@ -407,7 +410,7 @@ void ColliderController::CheckCollision(Triangle* tri, QuadTree::QuadNode* Node,
 		}
 	}
 }
-ColliderController::OcTree::OcTree(vector<Triangle*>triglist, std::map<short, AABBProjection>& AABBList)
+ColliderController::OcTree::OcTree(vector<Triangle*>& triglist, std::map<short, AABBProjection>& AABBList)
 	:Triglist(triglist),collList(AABBList)
 {
 	ConstructOcTree();
@@ -444,6 +447,16 @@ void ColliderController::OcTree::ConstructOcTree() {
 	for (auto& Tri : Triglist) {
 		Insert(Tri, &BaseOc);
 	}
+}
+std::vector<Triangle*>::iterator ColliderController::OcTree::getIterator(Triangle* tri) {
+	auto it = find(Triglist.begin(), Triglist.end(), tri);
+	return it;
+}
+void ColliderController::OcTree::deleteObject(Triangle * tri)
+{
+	//QnD(tri, &BaseOc);
+	collList.erase(tri->id);
+	Triglist.erase(getIterator(tri));
 }
 void ColliderController::OcTree::ReShuffle(OcNode* Node) {
 	Node->isNode = true;
