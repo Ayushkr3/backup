@@ -59,17 +59,19 @@ window::window():
 	);
 #endif // ImGUI_ENABLED
 
-	RenderTargetWindows = std::make_unique<UIWindows>(className, hwnd, hint,300,0, 1024, 576,2);
+	RenderTargetWindows = std::make_unique<UIWindows>(className, hwnd, hint,300,70, 1024, 576,2);
 	pGfx = std::make_unique<Graphic>(RenderTargetWindows.get()->cHwnd);
 	UIwindow = std::make_unique<UIElements>(className, hwnd, hint, 0, 0, 1600, 900, 1);
-	Scene = std::make_unique<SceneManager>(0, 0, 300, 900);
+	Scene = std::make_unique<SceneManager>(0, 70, 300, 830);
 	SceneManager::currentScene = pGfx->GetCurrentScene();
-	Properties = std::make_unique<PropertiesWindow>(1324, 0, 276, 900);
-	file = std::make_unique<Files>(300,576,1024,324,pGfx->pDevice,pGfx->pContext);
+	Properties = std::make_unique<PropertiesWindow>(1324, 70, 276, 830);
+	file = std::make_unique<Files>(300,646,1024,254,pGfx->pDevice,pGfx->pContext);
+	Control = std::make_unique<ControlMenu>(0, 0, 1600, 70);
 	UIwindow->UpdateUI();
 	Scene->SetSizenWidth();
 	Properties->SetSizenWidth();
 	file->SetSizenWidth();
+	Control->SetSizenWidth();
 	UIwindow->Swap();
 	SetWindowPos(UIwindow->cHwnd, HWND_BOTTOM, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
 	SetWindowPos(RenderTargetWindows->cHwnd, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);

@@ -13,6 +13,8 @@ public:
 	Scene(Microsoft::WRL::ComPtr<ID3D11Device> pDevice, Microsoft::WRL::ComPtr<ID3D11DeviceContext> pContext);
 	void Render();
 	void RenderWireFrame();
+	void PlayMode();
+	void InitalizePlayMode();
 public:
 	Microsoft::WRL::ComPtr<ID3D11Device> pDevice;
 	Microsoft::WRL::ComPtr<ID3D11DeviceContext> pContext;
@@ -20,7 +22,6 @@ public:
 	Camera cam;
 	Light light;
 	//
-	bool check_collision;
 	//
 	std::vector<Triangle*>Triangles;
 	std::vector<Objects*>AllObject; 

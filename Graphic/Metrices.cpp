@@ -15,7 +15,6 @@ bool Metrice::shutdown = 0;
 float Metrice::fps = 0;
 Timer Metrice::tim;
 float Metrice::deltaTime = 0.0;
-float* Globals::dT = &Metrice::deltaTime;
 #ifdef ImGUI_ENABLED
 void Metrice::GetWindows() {
 	cpuHandler = std::thread(Metrice::GetCPU);

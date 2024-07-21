@@ -1,14 +1,15 @@
 #include "Triangle.h"
-
-
 Triangle::Triangle(Microsoft::WRL::ComPtr<ID3D11Device> pDevice, Microsoft::WRL::ComPtr<ID3D11DeviceContext> pContext, std::vector<Vertex> vertice, std::vector<unsigned int>indi, short id, float rgba[3],short globalID, std::vector<NormalPerObject>nor) :
 	pContext(pContext), pDevice(pDevice), vertices(
 		vertice
 	), index(indi
-	), Objects(globalID, "Object"), id(id), coll(vertice, nor), color{ rgba[0],rgba[1],rgba[2] }, n{nor}
+	), Objects(globalID, "Object"), id(id), coll(vertice, nor), color{ rgba[0],rgba[1],rgba[2] }, n{nor},phy(Trans)
 {
 	Trans = new TransformStruct;
 	ObjProperties.push_back(Trans);
+	ObjProperties.push_back(&coll);
+	
+	ObjProperties.push_back(&phy);
 	D3D11_BUFFER_DESC IndexBufferDesc;
 	D3D11_BUFFER_DESC VertexBuffer;
 	VertexBuffer.BindFlags = D3D11_BIND_VERTEX_BUFFER ;
@@ -38,8 +39,8 @@ Triangle::Triangle(Microsoft::WRL::ComPtr<ID3D11Device> pDevice, Microsoft::WRL:
 	Transformation.Translation = ConstantBuffer::ConvertMatrixToFloat4x4(XMMatrixTranslation(Trans->position[0], Trans->position[1], Trans->position[2]));
 	Transformation.Scale = ConstantBuffer::ConvertMatrixToFloat4x4(XMMatrixScaling(Trans->Scale[0], Trans->Scale[1], Trans->Scale[2]));
 	pCB = std::make_unique<ConstantBuffer>(&Transformation, pDevice);
-	pCB->Transform(Trans,n);
 	pCB->GetData(vertices);
+	pCB->Transform(Trans,n);
 
 	pContext->IASetVertexBuffers(0, 1, pVertexBuffer.GetAddressOf(), &strides, &offset);
 
@@ -136,8 +137,13 @@ void Triangle::UpdateBuffers() {
 	pCB->UpdateBuffer(pContext, &Transformation);
 	//Phys.Update(&Trans->position[0],&Trans->position[1],&Trans->position[2]);
 }
+void Triangle::inPlayMode() {
+	Trans->Update();
+	if(Trans->isMoving)
+		pCB->Transform(Trans, n);
+}
 void Triangle::UpdateCollider() {
-	pCB->Transform(Trans,n);
+	//TODO: Make a single for loop for each object and get all nessecary data out of it instead of multple loops which
 	coll.UpdateBuffer(pCB->vertice_f,n);
 }
 std::vector<Vertex> Triangle::GetVertices() {
@@ -149,6 +155,6 @@ bool Triangle::operator<(const Triangle& secondObj) const {
 bool Triangle::operator==(const Triangle& secondObj) const {
 	return (id == secondObj.id) ? true : false;
 }
-std::vector<ObjectProperties*> Triangle::GetProperties() {
-	return ObjProperties;
+std::vector<ObjectProperties*>* Triangle::GetProperties() {
+	return &ObjProperties;
 }

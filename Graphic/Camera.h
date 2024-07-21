@@ -1,7 +1,8 @@
 #include "ConstantBuff.h"
 #include "errors.h"
 #include "Global.h"
-
+#include "ImGui/imgui.h"
+#include "ImGui/imgui_impl_dx11.h"
 class Camera:public Objects {
 public:
 	struct CameraProp:public ObjectProperties {
@@ -15,7 +16,7 @@ public:
 	Camera(Microsoft::WRL::ComPtr<ID3D11Device> pDevice);
 	CameraProp* PosNrot;
 	std::vector<ObjectProperties*> CamProperties;
-	std::vector<ObjectProperties*> GetProperties() { return CamProperties; }
+	std::vector<ObjectProperties*>* GetProperties() { return &CamProperties; }
 	float focus[3] = { 0,0,1 };
 	void calculateProjection(Microsoft::WRL::ComPtr<ID3D11DeviceContext> pContext, PerFrameData* ViewMatrix);
 	PerFrameData GetViewMatrix();

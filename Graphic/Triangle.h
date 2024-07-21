@@ -13,10 +13,11 @@
 #include "WIC.h"
 #include "HullShader.h"
 #include "DomainShader.h"
-#include "Physics.h"
-#include "Collider.h"
-#include "Global.h"
+#include "Colliders.h"
+#include "Phys.h"
 #include "GeometryShader.h"
+#include "EPhysics.h"
+
 #define CHECK_ERROR(hr) if(FAILED(hr)) throw error::error(hr,__LINE__)
 
 class Triangle:public Objects
@@ -29,6 +30,7 @@ public:
 	bool isMoving;
 	void Draw();
 	void UpdateBuffers();
+	void inPlayMode();
 	PerObjectData Transformation;
 	bool operator<(const Triangle& secondObj)const;
 	bool operator==(const Triangle& secondObj)const;
@@ -56,9 +58,10 @@ public:
 	std::vector<NormalPerObject> n;
 	void UpdateCollider();
 	BoxCollider coll;
+	Physics_Body phy;
 	float color[3];
 public:
-	std::vector<ObjectProperties*> GetProperties();
+	std::vector<ObjectProperties*>* GetProperties();
 };
 
 

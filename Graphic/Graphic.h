@@ -4,6 +4,7 @@
 #include <array>
 #include "Scene.h"
 #include "errors.h"
+#include "Global.h"
 #ifdef ImGUI_ENABLED
 #include "ImGui/imgui_impl_dx11.h"
 #include "ImGui/imgui.h"

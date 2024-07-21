@@ -94,15 +94,15 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <ConformanceMode>true</ConformanceMode>
+      <ConformanceMode>false</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <AdditionalIncludeDirectories>D:\program\vs\graphic\Graphic\ObjParser;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>D:\program\vs\graphic\EngineDependency;D:\program\vs\graphic\Shared;D:\program\vs\graphic\Graphic\ObjParser;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>D:\program\vs\graphic\Graphic\ImGuiDep;D:\program\vs\graphic\Graphic\ObjParser;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>ObjParser.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>D:\program\vs\graphic\EngineDependency;D:\program\vs\graphic\Graphic\ObjParser;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>ImGui.lib;EPhysics.lib;ObjParser.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -160,8 +160,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\Shared\Global.h" />
     <ClInclude Include="Camera.h" />
-    <ClInclude Include="Collider.h" />
     <ClInclude Include="ColliderController.h" />
     <ClInclude Include="ConstantBuff.h" />
     <ClInclude Include="DomainShader.h" />
@@ -169,28 +169,17 @@
     <ClInclude Include="ECoreUI.h" />
     <ClInclude Include="Entry.h" />
     <ClInclude Include="errors.h" />
-    <ClInclude Include="Expo.h" />
     <ClInclude Include="font\IconsCodicons.h" />
     <ClInclude Include="font\IconsFontAwesome4.h" />
     <ClInclude Include="GeometryShader.h" />
-    <ClInclude Include="Global.h" />
     <ClInclude Include="Graphic.h" />
     <ClInclude Include="HullShader.h" />
-    <ClInclude Include="ImGui\imconfig.h" />
-    <ClInclude Include="ImGui\imgui.h" />
-    <ClInclude Include="ImGui\imgui_impl_dx11.h" />
-    <ClInclude Include="ImGui\imgui_impl_win32.h" />
-    <ClInclude Include="ImGui\imgui_internal.h" />
-    <ClInclude Include="ImGui\imstb_rectpack.h" />
-    <ClInclude Include="ImGui\imstb_textedit.h" />
-    <ClInclude Include="ImGui\imstb_truetype.h" />
     <ClInclude Include="Keyboard.h" />
     <ClInclude Include="Light.h" />
     <ClInclude Include="Metrices.h" />
     <ClInclude Include="Microsoft_wic.h" />
     <ClInclude Include="Mouse.h" />
     <ClInclude Include="ObjParser\ObjParser.h" />
-    <ClInclude Include="Physics.h" />
     <ClInclude Include="PixelShader.h" />
     <ClInclude Include="Scene.h" />
     <ClInclude Include="StaticMesh.h" />
@@ -201,8 +190,8 @@
     <ClInclude Include="WindowsClass.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\Shared\Global.cpp" />
     <ClCompile Include="Camera.cpp" />
-    <ClCompile Include="Collider.cpp" />
     <ClCompile Include="ColliderController.cpp" />
     <ClCompile Include="ConstantBuff.cpp" />
     <ClCompile Include="DomainShader.cpp" />
@@ -213,19 +202,11 @@
     <ClCompile Include="GeometryShader.cpp" />
     <ClCompile Include="Graphic.cpp" />
     <ClCompile Include="HullShader.cpp" />
-    <ClCompile Include="ImGui\imgui.cpp" />
-    <ClCompile Include="ImGui\imgui_demo.cpp" />
-    <ClCompile Include="ImGui\imgui_draw.cpp" />
-    <ClCompile Include="ImGui\imgui_impl_dx11.cpp" />
-    <ClCompile Include="ImGui\imgui_impl_win32.cpp" />
-    <ClCompile Include="ImGui\imgui_tables.cpp" />
-    <ClCompile Include="ImGui\imgui_widgets.cpp" />
     <ClCompile Include="Keyboard.cpp" />
     <ClCompile Include="Light.cpp" />
     <ClCompile Include="Metrices.cpp" />
     <ClCompile Include="Microsoft_wic.cpp" />
     <ClCompile Include="Mouse.cpp" />
-    <ClCompile Include="Physics.cpp" />
     <ClCompile Include="PixelShader.cpp" />
     <ClCompile Include="Scene.cpp" />
     <ClCompile Include="StaticMesh.cpp" />

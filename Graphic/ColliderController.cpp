@@ -46,29 +46,43 @@ Collision::AABBProjection ColliderController::calcAABB(Triangle& tri) {
 	}
 	return proj;
 }
-void ColliderController::InitalizePosition() {
+Collision::AABBProjection ColliderController::calcAABBfromPCB(Triangle & tri)
+{
+	Collision::AABBProjection aabb;
+	aabb.maxI = tri.pCB->aabb.maxI;
+	aabb.minI = tri.pCB->aabb.minI;
+	aabb.maxJ = tri.pCB->aabb.maxJ;
+	aabb.minJ = tri.pCB->aabb.minJ;
+	aabb.maxK = tri.pCB->aabb.maxK;
+	aabb.minK = tri.pCB->aabb.minK;
+	return aabb;
+}
+void ColliderController::InitalizePosition(Triangle* tri) {
 	AABBProjection proj;
-	for (auto &Triangle:Triglist) {
-		proj = calcAABB(*Triangle);
-		collList[Triangle->id] = proj;
-	}
-
+	proj = calcAABBfromPCB(*tri);
+	//proj = calcAABB(*tri);
+	collList[tri->id] = proj;
 }
 void ColliderController::AddTriangle(Triangle* tri) {
 	Triglist.push_back(tri);
 }
-void ColliderController::Update(Triangle* tri) {
-	AABBProjection proj;
-	proj = calcAABB(*tri);
-	//ColliderController::QuadTree::QuadNode* Node = baseTree->QueryndDelete(&baseTree->BaseQuad, tri);
-	ColliderController::OcTree::OcNode* Node = baseOcTree->QnD(tri,&baseOcTree->BaseOc);
-	collList[tri->id] = proj;
-	//baseTree->UpdatePoisition(Node,tri);
-	baseOcTree->UpdatePosition(tri, Node);
-	//baseTree->MoveUp(baseTree->idk);
-	baseOcTree->MoveUp(baseOcTree->lastNode);
-	//CheckCollision(tri,&baseTree->BaseQuad);
-	CheckCollision(tri, &baseOcTree->BaseOc);
+void ColliderController::Update() {
+	for (auto& tri : Triglist) {
+		if (tri->Trans->isMoving) {
+			AABBProjection proj;
+			//proj = calcAABB(*tri);
+			proj = calcAABBfromPCB(*tri);
+			//ColliderController::QuadTree::QuadNode* Node = baseTree->QueryndDelete(&baseTree->BaseQuad, tri);
+			ColliderController::OcTree::OcNode* Node = baseOcTree->QnD(tri, &baseOcTree->BaseOc);
+			collList[tri->id] = proj;
+			//baseTree->UpdatePoisition(Node,tri);
+			baseOcTree->UpdatePosition(tri, Node);
+			//baseTree->MoveUp(baseTree->idk);
+			baseOcTree->MoveUp(baseOcTree->lastNode);
+			//CheckCollision(tri,&baseTree->BaseQuad);
+		}
+		CheckCollision(tri, &baseOcTree->BaseOc);
+	}
 }
 void ColliderController::deleteObject(Triangle * tri)
 {
@@ -604,9 +618,10 @@ void ColliderController::CheckCollision(Triangle* tri, OcTree::OcNode* Node) {
 				if (isCollidingAABB(ObjectToCheckWith[k], Node->objects[l])) {
 					ObjectToCheckWith[k]->UpdateCollider();
 					Node->objects[l]->UpdateBuffers();
+					
 					GlobalCollide = ObjectToCheckWith[k]->coll.CheckCollision(Node->objects[l]->coll) && Node->objects[l]->coll.CheckCollision(ObjectToCheckWith[k]->coll);
 					if(GlobalCollide)
-						Physics_Body::gravity = 0.0f;
+					Physics_Body::ResetGravity();
 					//go to narrow phase collision check
 				}
 				else {
@@ -627,7 +642,7 @@ void ColliderController::CheckCollision(Triangle* tri, OcTree::OcNode* Node) {
 					GlobalCollide = Node->objects[i]->coll.CheckCollision(Node->objects[j]->coll) && Node->objects[j]->coll.CheckCollision(Node->objects[i]->coll);
 					//go to narrow phase collision check
 					if (GlobalCollide)
-						Physics_Body::gravity = 0.0f;
+					Physics_Body::ResetGravity();
 				}
 				else {
 					GlobalCollide = false;
@@ -659,7 +674,7 @@ void ColliderController::CheckCollision(Triangle* tri, OcTree::OcNode* Node) {
 						GlobalCollide = ObjectToCheckWith[k]->coll.CheckCollision(Node->objects[l]->coll) && Node->objects[l]->coll.CheckCollision(ObjectToCheckWith[k]->coll);
 						//go to narrow phase collision check
 						if (GlobalCollide)
-							Physics_Body::gravity = 0.0f;
+							Physics_Body::ResetGravity();
 					}
 					else {
 						GlobalCollide = false;
