@@ -15,6 +15,12 @@ ConstantBuffer::ConstantBuffer(PerObjectData* SubResource, Microsoft::WRL::ComPt
 	Csbr.pSysMem = SubResource;
 
 	CHECK_ERROR(pDevice->CreateBuffer(&CbuffDesc,&Csbr,&pObjectConstantBuffer));
+	XMFLOAT3 icap = XMFLOAT3(1.0f, 0.0f, 0.0f);
+	XMFLOAT3 jcap = XMFLOAT3(0.0f, 1.0f, 0.0f);
+	XMFLOAT3 kcap = XMFLOAT3(0.0f, 0.0f, 1.0f);
+	ivec = XMLoadFloat3(&icap);
+	jvec = XMLoadFloat3(&jcap);
+	kvec = XMLoadFloat3(&kcap);
 }
 ConstantBuffer::ConstantBuffer(LightData* SubResource, Microsoft::WRL::ComPtr<ID3D11Device> pDevice) {
 	D3D11_BUFFER_DESC CbuffDesc;
@@ -37,6 +43,7 @@ XMFLOAT4X4 ConstantBuffer::ConvertMatrixToFloat4x4(XMMATRIX mat) {
 ////////////////////Provisional code//////////////////////////
 void ConstantBuffer::Transform(TransformStruct* t, std::vector<NormalPerObject>& n)
 {
+	AABB aabbijk;
 	XMMATRIX ro = XMMatrixTranspose(XMMatrixRotationRollPitchYaw(XMConvertToRadians(t->rotation[0]), XMConvertToRadians(t->rotation[1]), XMConvertToRadians(t->rotation[2])));
 	XMMATRIX po = XMMatrixTranspose(XMMatrixTranslation(t->position[0], t->position[1], t->position[2]));
 	XMMATRIX so = XMMatrixTranspose(XMMatrixScaling(t->Scale[0], t->Scale[1], t->Scale[2]));
@@ -55,12 +62,23 @@ void ConstantBuffer::Transform(TransformStruct* t, std::vector<NormalPerObject>&
 		XMFLOAT4 returnnor;
 		XMStoreFloat4(&returnpos, vec);
 		XMStoreFloat4(&returnnor, normal_rota);
-		vertice_f[i].position.x = returnpos.x+t->position[0];
-		vertice_f[i].position.y = returnpos.y+ t->position[1];
-		vertice_f[i].position.z = returnpos.z+t->position[2];
+		XMVECTOR posvec = XMLoadFloat3(&XMFLOAT3(returnpos.x,returnpos.y,returnpos.z));
+		float proji = XMVectorGetX(XMVector3Dot(posvec, ivec))+t->position[0];
+		float projj = XMVectorGetX(XMVector3Dot(posvec, jvec))+ t->position[1];
+		float projk = XMVectorGetX(XMVector3Dot(posvec, kvec))+ t->position[2];
+		aabbijk.maxI = max(proji, aabbijk.maxI);
+		aabbijk.minI = min(proji, aabbijk.minI);
+		aabbijk.maxJ = max(projj, aabbijk.maxJ);
+		aabbijk.minJ = min(projj, aabbijk.minJ);
+		aabbijk.maxK = max(projk, aabbijk.maxK);
+		aabbijk.minK = min(projk, aabbijk.minK);
+		vertice_f[i].position.x = returnpos.x+(t->position[0]*t->Scale[0]);
+		vertice_f[i].position.y = returnpos.y+ (t->position[1] * t->Scale[1]);
+		vertice_f[i].position.z = returnpos.z+ (t->position[2] * t->Scale[2]);
 		vertice_f[i].Normal.x = returnnor.x;
 		vertice_f[i].Normal.y = returnnor.y;
 		vertice_f[i].Normal.z = returnnor.z;
+
 		if (i < n.size()) {
 			XMFLOAT4 coll_norm = XMFLOAT4(n[i].x, n[i].y, n[i].z, 1.0f);
 			XMVECTOR normal_rotation = XMVector4Transform(XMLoadFloat4(&coll_norm), XMLoadFloat4x4(&rota));
@@ -70,6 +88,7 @@ void ConstantBuffer::Transform(TransformStruct* t, std::vector<NormalPerObject>&
 			n[i].z = returnnor.z;
 		}
 	}
+	aabb = aabbijk;
 }
 void ConstantBuffer::GetData(std::vector<Vertex> vertices)
 {

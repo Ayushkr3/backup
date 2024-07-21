@@ -140,9 +140,10 @@ void SceneManager::Content() {
 		if (ImGui::BeginPopupContextItem(std::to_string(Tri->Id).c_str())) {
 			if (ImGui::Button("Delete")) {
 				Triangle* t = dynamic_cast<Triangle*>(Tri);
-				currentScene->CContoller->deleteObject(t);
 				Scene::globalCurrentOBJID.push_back(t->id);
 				Objects::GlobalIdPool.push_back(t->Id);
+				if(Globals::inPlayMode)
+					currentScene->CContoller->deleteObject(t);
 				currentScene->AllObject.erase(LookUp(Tri->Id,currentScene->AllObject));
 				currentScene->Triangles.erase(LookUp(t, currentScene->Triangles));
 				delete t;
@@ -170,7 +171,7 @@ void PropertiesWindow::SetSizenWidth() {
 void PropertiesWindow::Content() {
 	ImGui::Begin("Properties", nullptr, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize);
 	if (PropertiesWindow::Obj != nullptr) {
-		for (auto& obj : PropertiesWindow::Obj->GetProperties()) {
+		for (auto& obj : *PropertiesWindow::Obj->GetProperties()) {
 			obj->show();
 		}
 	}
@@ -238,10 +239,12 @@ void Files::Content()
 						ObjectID = SceneManager::currentScene->currentOBJID++;
 					}
 					newTriangle = new Triangle(pDevice, pContext, newVert, indi, ObjectID, rgba,globalID,n);
+					if (Globals::inPlayMode) {
+						SceneManager::currentScene->CContoller->AddTriangle(newTriangle);
+						SceneManager::currentScene->CContoller->InitalizePosition(newTriangle);
+					}
 					SceneManager::currentScene->AllObject.push_back(newTriangle);
 					SceneManager::currentScene->Triangles.push_back(newTriangle);
-					SceneManager::currentScene->CContoller->AddTriangle(newTriangle);
-					SceneManager::currentScene->CContoller->InitalizePosition();
 					ImGui::CloseCurrentPopup();
 				}
 				ImGui::EndPopup();
@@ -253,5 +256,27 @@ void Files::Content()
 			working = fileSelected;
 		}
 	}
+	ImGui::End();
+}
+ControlMenu::ControlMenu(int posX, int posY, int widthX, int widthY) :posX(posX), posY(posY), widthX(widthX), widthY(widthY)
+{
+}
+void ControlMenu::SetSizenWidth()
+{
+	ImGui::Begin("Control");
+	ImGui::SetWindowSize(ImVec2((float)widthX, (float)widthY));
+	ImGui::SetWindowPos(ImVec2((float)posX, (float)posY));
+	ImGui::End();
+}
+void ControlMenu::Content() {
+	ImGui::Begin("Control",nullptr,ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoResize);
+	if (ImGui::Button(ICON_FA_PLAY"Play/Pause")) {
+		Globals::inPlayMode = !Globals::inPlayMode;
+		if (Globals::inPlayMode) {
+			SceneManager::currentScene->InitalizePlayMode();
+		}
+	}
+	ImGui::SameLine();
+	ImGui::Text(("inPlayMode"+std::to_string(Globals::inPlayMode)).c_str());
 	ImGui::End();
 }

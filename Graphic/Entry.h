@@ -8,6 +8,7 @@
 
 void DoFrame(window* Skeleton) {
 	Metrice::MetriceTimeMark();
+	Globals::dT = &Metrice::deltaTime;
 	float color[4] = {0.0,0.0,0.0,1.0 };
 	Skeleton->pGfx->ClearBuffer(color);
 #ifdef ImGUI_ENABLED
@@ -15,6 +16,7 @@ void DoFrame(window* Skeleton) {
 	Skeleton->Scene->Content();
 	Skeleton->Properties->Content();
 	Skeleton->file->Content();
+	Skeleton->Control->Content();
 #endif // ImGUI_ENABLED
 	Skeleton->pGfx->TestFrames();
 #ifdef ImGUI_ENABLED

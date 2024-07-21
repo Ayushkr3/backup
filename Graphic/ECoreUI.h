@@ -69,3 +69,13 @@ public:
 	Files(int posX, int posY, int widthX, int widthY, Microsoft::WRL::ComPtr<ID3D11Device> pDevice,Microsoft::WRL::ComPtr<ID3D11DeviceContext> pContext);
 	void Content();
 };
+class ControlMenu {
+	int posX;
+	int posY;
+	int widthX;
+	int widthY;
+public:
+	void SetSizenWidth();
+	ControlMenu(int posX, int posY, int widthX, int widthY);
+	void Content();
+};

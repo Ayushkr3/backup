@@ -1,5 +1,5 @@
 #pragma once
-#include "Collider.h"
+#include "Colliders.h"
 #include "Triangle.h"
 #include <map>
 #include <algorithm>
@@ -100,10 +100,11 @@ public:
 	void AddTriangle(Triangle* tri);
 	//
 	//-Add projection to object maps
-	void InitalizePosition();
-	void Update(Triangle* tri);
+	void InitalizePosition(Triangle* tri);
+	void Update();
 	void deleteObject(Triangle* tri);
 	Collision::AABBProjection calcAABB(Triangle& tri);
+	Collision::AABBProjection calcAABBfromPCB(Triangle& tri);
 	bool GlobalCollide = false;
 	~ColliderController();
 };

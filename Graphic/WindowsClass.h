@@ -30,6 +30,7 @@ public:
 	std::unique_ptr<PropertiesWindow> Properties;
 	std::unique_ptr<Files> file;
 	std::unique_ptr<UIWindows> RenderTargetWindows;
+	std::unique_ptr<ControlMenu> Control;
 	window();
 	HWND hwnd;
 	~window();

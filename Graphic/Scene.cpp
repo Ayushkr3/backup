@@ -6,9 +6,6 @@ Scene::Scene(Microsoft::WRL::ComPtr<ID3D11Device> pDevice, Microsoft::WRL::ComPt
 	:cam(pDevice), pContext(pContext),light(pDevice),pDevice(pDevice)
 
 {
-	CContoller = std::make_unique<ColliderController>();
-
-	CContoller->ConstructTree();
 	AllObject.push_back(&cam);
 }
 void Scene::Render() {
@@ -28,4 +25,24 @@ void Scene::RenderWireFrame() {
 		Triangle->UpdateBuffers();
 		//CContoller->Update(Triangle);
 	}
+}
+
+void Scene::PlayMode()
+{
+	for (auto& Triangle : Triangles) {
+		Triangle->inPlayMode();
+		for (auto& Prop : *Triangle->GetProperties())
+			Prop->inPlayMode();
+	}
+	CContoller->Update();
+}
+void Scene::InitalizePlayMode()
+{
+	CContoller = std::make_unique<ColliderController>();
+	for (auto& Triangle : Triangles) {
+		Triangle->pCB->Transform(Triangle->Trans, Triangle->n);
+		CContoller->AddTriangle(Triangle);
+		CContoller->InitalizePosition(Triangle);
+	}
+	CContoller->ConstructTree();
 }

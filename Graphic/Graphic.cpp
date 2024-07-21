@@ -124,6 +124,9 @@ void Graphic::TestFrames() {
 	pContext->PSSetShader(pWireFrameSolid.Get(), nullptr, 0);
 	pContext->RSSetState(Solid.Get());
 	pSc->RenderWireFrame();
+	if (Globals::inPlayMode) {
+		pSc->PlayMode();
+	}
 	pContext->PSSetShader(pLastShader.Get(), nullptr, 0);
 }
 Scene* Graphic::GetCurrentScene() {
