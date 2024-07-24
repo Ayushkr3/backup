@@ -13,7 +13,7 @@ using namespace std;
 #define BSOUTHWEST 6
 #define BSOUTHEAST 7
 
-#define EXTENT 5
+#define EXTENT 10
 ColliderController::~ColliderController() {
 	//delete baseTree;
 	delete baseOcTree;
@@ -617,7 +617,7 @@ void ColliderController::CheckCollision(Triangle* tri, OcTree::OcNode* Node) {
 			for (unsigned int l = 0; l < Node->objects.size(); l++) {
 				if (isCollidingAABB(ObjectToCheckWith[k], Node->objects[l])) {
 					ObjectToCheckWith[k]->UpdateCollider();
-					Node->objects[l]->UpdateBuffers();
+					Node->objects[l]->UpdateCollider();
 					
 					GlobalCollide = ObjectToCheckWith[k]->coll.CheckCollision(Node->objects[l]->coll) && Node->objects[l]->coll.CheckCollision(ObjectToCheckWith[k]->coll);
 					if(GlobalCollide)
@@ -638,11 +638,14 @@ void ColliderController::CheckCollision(Triangle* tri, OcTree::OcNode* Node) {
 			for (unsigned int j = i + 1; j < Node->objects.size(); j++) {
 				if (isCollidingAABB(Node->objects[i], Node->objects[j])) {
 					Node->objects[i]->UpdateCollider();
-					Node->objects[j]->UpdateBuffers();
+					Node->objects[j]->UpdateCollider();
+					//Node->objects[j]->UpdateBuffers();
 					GlobalCollide = Node->objects[i]->coll.CheckCollision(Node->objects[j]->coll) && Node->objects[j]->coll.CheckCollision(Node->objects[i]->coll);
 					//go to narrow phase collision check
-					if (GlobalCollide)
-					Physics_Body::ResetGravity();
+					if (GlobalCollide) {
+						Physics_Body::ResetGravity();
+						
+					}
 				}
 				else {
 					GlobalCollide = false;
@@ -670,7 +673,7 @@ void ColliderController::CheckCollision(Triangle* tri, OcTree::OcNode* Node) {
 				for (unsigned int l = 0; l < Node->objects.size(); l++) {
 					if (isCollidingAABB(ObjectToCheckWith[k], Node->objects[l])) {
 						ObjectToCheckWith[k]->UpdateCollider();
-						Node->objects[l]->UpdateBuffers();
+						Node->objects[l]->UpdateCollider();
 						GlobalCollide = ObjectToCheckWith[k]->coll.CheckCollision(Node->objects[l]->coll) && Node->objects[l]->coll.CheckCollision(ObjectToCheckWith[k]->coll);
 						//go to narrow phase collision check
 						if (GlobalCollide)

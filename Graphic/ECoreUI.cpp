@@ -132,10 +132,17 @@ void SceneManager::Content() {
 		}
 		ImGui::EndPopup();
 	}
+	static Objects* last_object = nullptr;
 	for (auto& Tri : currentScene->AllObject) {
 		if (ImGui::Selectable((Tri->ObjName + std::to_string(Tri->Id)).c_str(), selected == Tri->Id)) {
 			PropertiesWindow::Obj = Tri;
 			selected = Tri->Id;
+			Tri->Highlight();
+			if (last_object != Tri) {
+				if (last_object != nullptr)
+					last_object->Restore();
+				last_object = Tri;
+			}
 		}
 		if (ImGui::BeginPopupContextItem(std::to_string(Tri->Id).c_str())) {
 			if (ImGui::Button("Delete")) {

@@ -55,11 +55,14 @@ public:
 	std::unique_ptr<GeometryShader_> pGeo;
 	std::unique_ptr<VertexShader_> pVshader;
 public:
+	void Highlight();
+	void Restore();
 	std::vector<NormalPerObject> n;
 	void UpdateCollider();
 	BoxCollider coll;
 	Physics_Body phy;
 	float color[3];
+	float last_color[3];
 public:
 	std::vector<ObjectProperties*>* GetProperties();
 };

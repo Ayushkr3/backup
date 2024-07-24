@@ -1,6 +1,6 @@
+#pragma once
 #include "EPhysics.h"
 #include "Global.h"
-
 class Physics_Body:public ObjectProperties {
 	float objTrans[3] = { 0,0,0 };
 	float lastPos[3] = { 0,0,0 };

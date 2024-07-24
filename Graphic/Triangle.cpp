@@ -3,12 +3,11 @@ Triangle::Triangle(Microsoft::WRL::ComPtr<ID3D11Device> pDevice, Microsoft::WRL:
 	pContext(pContext), pDevice(pDevice), vertices(
 		vertice
 	), index(indi
-	), Objects(globalID, "Object"), id(id), coll(vertice, nor), color{ rgba[0],rgba[1],rgba[2] }, n{nor},phy(Trans)
+	), Objects(globalID, "Object"), id(id), coll(Trans,vertice, nor), color{ rgba[0],rgba[1],rgba[2] }, n{nor},phy(Trans),last_color{ rgba[0],rgba[1],rgba[2] }
 {
 	Trans = new TransformStruct;
 	ObjProperties.push_back(Trans);
-	ObjProperties.push_back(&coll);
-	
+	ObjProperties.push_back(&coll);	
 	ObjProperties.push_back(&phy);
 	D3D11_BUFFER_DESC IndexBufferDesc;
 	D3D11_BUFFER_DESC VertexBuffer;
@@ -145,6 +144,15 @@ void Triangle::inPlayMode() {
 void Triangle::UpdateCollider() {
 	//TODO: Make a single for loop for each object and get all nessecary data out of it instead of multple loops which
 	coll.UpdateBuffer(pCB->vertice_f,n);
+}
+void Triangle::Highlight(){
+	color[0] = 0.0f;
+	color[1] = 1.0f;
+}
+void Triangle::Restore()
+{
+	color[0] = last_color[0];
+	color[1] = last_color[1];
 }
 std::vector<Vertex> Triangle::GetVertices() {
 	return vertices;
