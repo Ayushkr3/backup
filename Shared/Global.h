@@ -8,6 +8,8 @@ struct ObjectProperties {
 };
 class Objects {
 public:
+	virtual void Highlight() {}; // If item is selected then do stuff
+	virtual void Restore() {}; //If item is unselected restore previous state
 	inline static std::vector<short> GlobalIdPool;
 	inline static int count = 0;
 	Objects(short id,std::string ObjName) :Id(id),ObjName(ObjName) {};

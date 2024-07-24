@@ -43,7 +43,7 @@ Graphic::Graphic(HWND hwnd){
 	
 	D3D11_RASTERIZER_DESC rasDesc;
 	rasDesc.FillMode = D3D11_FILL_WIREFRAME;
-	rasDesc.CullMode = D3D11_CULL_NONE;
+	rasDesc.CullMode = D3D11_CULL_BACK;
 	rasDesc.FrontCounterClockwise = true;
 	rasDesc.DepthClipEnable = true;
 	rasDesc.DepthBias = 0;

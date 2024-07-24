@@ -8,10 +8,10 @@
 using namespace DirectX;
 struct AABB {
 	float minI = FLT_MAX;
-	float maxI = -FLT_MIN;
-	float maxJ = -FLT_MIN;
+	float maxI = -FLT_MAX;
+	float maxJ = -FLT_MAX;
 	float minJ = FLT_MAX;
-	float maxK = -FLT_MIN;
+	float maxK = -FLT_MAX;
 	float minK = FLT_MAX;
 };
 struct PerObjectData {
