@@ -1,9 +1,9 @@
 #include "Triangle.h"
-Triangle::Triangle(Microsoft::WRL::ComPtr<ID3D11Device> pDevice, Microsoft::WRL::ComPtr<ID3D11DeviceContext> pContext, std::vector<Vertex> vertice, std::vector<unsigned int>indi, short id, float rgba[3],short globalID, std::vector<NormalPerObject>nor) :
+Triangle::Triangle(Microsoft::WRL::ComPtr<ID3D11Device> pDevice, Microsoft::WRL::ComPtr<ID3D11DeviceContext> pContext, std::vector<Vertex> vertice, std::vector<unsigned int>indi, short id, float rgba[3], short globalID, std::vector<NormalPerObject>nor) :
 	pContext(pContext), pDevice(pDevice), vertices(
 		vertice
 	), index(indi
-	), Objects(globalID, "Object"), id(id), coll(Trans,vertice, nor), color{ rgba[0],rgba[1],rgba[2] }, n{nor},phy(Trans),last_color{ rgba[0],rgba[1],rgba[2] }
+	), Objects(globalID, "Object"), id(id), coll(Trans, vertice, nor), color{ rgba[0],rgba[1],rgba[2] }, n{ nor }, phy(Trans), last_color{ rgba[0],rgba[1],rgba[2] }, rn{ nor }
 {
 	Trans = new TransformStruct;
 	ObjProperties.push_back(Trans);
@@ -37,9 +37,9 @@ Triangle::Triangle(Microsoft::WRL::ComPtr<ID3D11Device> pDevice, Microsoft::WRL:
 	Transformation.Rotation = ConstantBuffer::ConvertMatrixToFloat4x4(XMMatrixRotationRollPitchYaw(XMConvertToRadians(Trans->rotation[0]), XMConvertToRadians(Trans->rotation[1]), XMConvertToRadians(Trans->rotation[2])));
 	Transformation.Translation = ConstantBuffer::ConvertMatrixToFloat4x4(XMMatrixTranslation(Trans->position[0], Trans->position[1], Trans->position[2]));
 	Transformation.Scale = ConstantBuffer::ConvertMatrixToFloat4x4(XMMatrixScaling(Trans->Scale[0], Trans->Scale[1], Trans->Scale[2]));
-	pCB = std::make_unique<ConstantBuffer>(&Transformation, pDevice);
+	pCB = std::make_unique<ConstantBuffer>(&Transformation, pDevice,n);
 	pCB->GetData(vertices);
-	pCB->Transform(Trans,n);
+	pCB->Transform(Trans,rn);
 
 	pContext->IASetVertexBuffers(0, 1, pVertexBuffer.GetAddressOf(), &strides, &offset);
 
@@ -138,12 +138,16 @@ void Triangle::UpdateBuffers() {
 }
 void Triangle::inPlayMode() {
 	Trans->Update();
-	if(Trans->isMoving)
-		pCB->Transform(Trans, n);
+	//if(Trans->isMoving)
+		pCB->Transform(Trans, rn);
 }
 void Triangle::UpdateCollider() {
 	//TODO: Make a single for loop for each object and get all nessecary data out of it instead of multple loops which
-	coll.UpdateBuffer(pCB->vertice_f,n);
+	coll.UpdateBuffer(pCB->vertice_f,rn);
+}
+void Triangle::InitializePlayMode()
+{
+	pCB->Transform(Trans, rn);
 }
 void Triangle::Highlight(){
 	color[0] = 0.0f;

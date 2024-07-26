@@ -46,8 +46,10 @@ private:
 	Microsoft::WRL::ComPtr<ID3D11Device> pDevice;
 	Microsoft::WRL::ComPtr<ID3D11HullShader> pHull;
 	Microsoft::WRL::ComPtr<ID3D11DomainShader> pDSS;
+	std::vector<NormalPerObject> n;
 public:
 	TransformStruct* Trans;
+	std::vector<NormalPerObject> rn; //Transformed normals
 	std::vector<ObjectProperties*> ObjProperties;
 	std::unique_ptr<PixelShader_> pPshader;
 	//std::unique_ptr<HullShader_> pHull;
@@ -55,9 +57,9 @@ public:
 	std::unique_ptr<GeometryShader_> pGeo;
 	std::unique_ptr<VertexShader_> pVshader;
 public:
+	void InitializePlayMode();
 	void Highlight();
 	void Restore();
-	std::vector<NormalPerObject> n;
 	void UpdateCollider();
 	BoxCollider coll;
 	Physics_Body phy;

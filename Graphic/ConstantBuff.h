@@ -37,10 +37,11 @@ private:
 	std::vector<float> dataVector;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
 	Microsoft::WRL::ComPtr<ID3D11Buffer> pObjectConstantBuffer;
+	std::vector<NormalPerObject> n;
 public:
 	 void BindToPSshader(Microsoft::WRL::ComPtr<ID3D11DeviceContext> pContext);
 	 void BindToPSshader(Microsoft::WRL::ComPtr<ID3D11Device> pDevice, Microsoft::WRL::ComPtr<ID3D11DeviceContext> pContext, float rgba[3]);
-	 ConstantBuffer(PerObjectData* SubResource, Microsoft::WRL::ComPtr<ID3D11Device> pDevice);
+	 ConstantBuffer(PerObjectData* SubResource, Microsoft::WRL::ComPtr<ID3D11Device> pDevice, std::vector<NormalPerObject> n);
 	 ConstantBuffer(LightData* SubResource, Microsoft::WRL::ComPtr<ID3D11Device> pDevice);
 	 void BindToVSshader(Microsoft::WRL::ComPtr<ID3D11DeviceContext> pContext);
 	 void UpdateBuffer(Microsoft::WRL::ComPtr<ID3D11DeviceContext> pContext, PerObjectData* obj);
@@ -48,7 +49,7 @@ public:
 	 static XMFLOAT4X4 ConvertMatrixToFloat4x4(XMMATRIX mat);
 public:
 	AABB aabb;
-	void Transform(TransformStruct* t,std::vector<NormalPerObject>& n);
+	void Transform(TransformStruct* t, std::vector<NormalPerObject>& on);
 	XMFLOAT4X4 viewmat;
 	void GetData(std::vector<Vertex> vertices);
 	std::vector<Vertex> vertice_m;
