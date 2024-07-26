@@ -40,7 +40,7 @@ void Scene::InitalizePlayMode()
 {
 	CContoller = std::make_unique<ColliderController>();
 	for (auto& Triangle : Triangles) {
-		Triangle->pCB->Transform(Triangle->Trans, Triangle->n);
+		Triangle->InitializePlayMode();
 		CContoller->AddTriangle(Triangle);
 		CContoller->InitalizePosition(Triangle);
 	}

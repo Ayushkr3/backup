@@ -42,8 +42,9 @@ private:
 	struct axis {
 		std::vector<DirectX::XMFLOAT3> normals;
 	};
-	Collision::Projection CalcProjection(DirectX::XMFLOAT3 normal);
+	Collision::Projection CalcProjection(DirectX::XMFLOAT3 normals);
 public:
+	bool isStaticObject = false;
 	PHYSICS_API void inPlayMode() {};
 	PHYSICS_API void show();
 	PHYSICS_API BoxCollider(TransformStruct*& trans, std::vector<Vertex>& vertices, std::vector<NormalPerObject> Normals, ImGuiContext* ctx = ImGui::GetCurrentContext());

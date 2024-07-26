@@ -3,7 +3,7 @@
 #define CHECK_ERROR(hr) if(FAILED(hr)) throw error::error(hr,__LINE__)
 
 
-ConstantBuffer::ConstantBuffer(PerObjectData* SubResource, Microsoft::WRL::ComPtr<ID3D11Device> pDevice) {
+ConstantBuffer::ConstantBuffer(PerObjectData* SubResource, Microsoft::WRL::ComPtr<ID3D11Device> pDevice, std::vector<NormalPerObject> n):n(n) {
 	D3D11_BUFFER_DESC CbuffDesc;
 	CbuffDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 	CbuffDesc.ByteWidth = sizeof(PerObjectData);
@@ -41,7 +41,7 @@ XMFLOAT4X4 ConstantBuffer::ConvertMatrixToFloat4x4(XMMATRIX mat) {
 	return result;
 }
 ////////////////////Provisional code//////////////////////////
-void ConstantBuffer::Transform(TransformStruct* t, std::vector<NormalPerObject>& n)
+void ConstantBuffer::Transform(TransformStruct* t,/*output normals*/ std::vector<NormalPerObject>& on)
 {
 	AABB aabbijk;
 	XMMATRIX ro = XMMatrixTranspose(XMMatrixRotationRollPitchYaw(XMConvertToRadians(t->rotation[0]), XMConvertToRadians(t->rotation[1]), XMConvertToRadians(t->rotation[2])));
@@ -83,9 +83,9 @@ void ConstantBuffer::Transform(TransformStruct* t, std::vector<NormalPerObject>&
 			XMFLOAT4 coll_norm = XMFLOAT4(n[i].x, n[i].y, n[i].z, 1.0f);
 			XMVECTOR normal_rotation = XMVector4Transform(XMLoadFloat4(&coll_norm), XMLoadFloat4x4(&rota));
 			XMStoreFloat4(&returnnor, normal_rotation);
-			n[i].x = returnnor.x;
-			n[i].y = returnnor.y;
-			n[i].z = returnnor.z;
+			on[i].x = returnnor.x;
+			on[i].y = returnnor.y;
+			on[i].z = returnnor.z;
 		}
 	}
 	aabb = aabbijk;

@@ -83,6 +83,7 @@ void ColliderController::Update() {
 		}
 		CheckCollision(tri, &baseOcTree->BaseOc);
 	}
+
 }
 void ColliderController::deleteObject(Triangle * tri)
 {
@@ -620,8 +621,8 @@ void ColliderController::CheckCollision(Triangle* tri, OcTree::OcNode* Node) {
 					Node->objects[l]->UpdateCollider();
 					
 					GlobalCollide = ObjectToCheckWith[k]->coll.CheckCollision(Node->objects[l]->coll) && Node->objects[l]->coll.CheckCollision(ObjectToCheckWith[k]->coll);
-					if(GlobalCollide)
-					Physics_Body::ResetGravity();
+					//if(GlobalCollide)
+					//Physics_Body::ResetGravity();
 					//go to narrow phase collision check
 				}
 				else {
@@ -643,7 +644,7 @@ void ColliderController::CheckCollision(Triangle* tri, OcTree::OcNode* Node) {
 					GlobalCollide = Node->objects[i]->coll.CheckCollision(Node->objects[j]->coll) && Node->objects[j]->coll.CheckCollision(Node->objects[i]->coll);
 					//go to narrow phase collision check
 					if (GlobalCollide) {
-						Physics_Body::ResetGravity();
+						//Physics_Body::ResetGravity();
 						
 					}
 				}
@@ -676,8 +677,8 @@ void ColliderController::CheckCollision(Triangle* tri, OcTree::OcNode* Node) {
 						Node->objects[l]->UpdateCollider();
 						GlobalCollide = ObjectToCheckWith[k]->coll.CheckCollision(Node->objects[l]->coll) && Node->objects[l]->coll.CheckCollision(ObjectToCheckWith[k]->coll);
 						//go to narrow phase collision check
-						if (GlobalCollide)
-							Physics_Body::ResetGravity();
+						//if (GlobalCollide)
+							//Physics_Body::ResetGravity();
 					}
 					else {
 						GlobalCollide = false;

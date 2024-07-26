@@ -10,23 +10,22 @@ BoxCollider::BoxCollider(TransformStruct*& trans,std::vector<Vertex>& vertices, 
 	CalcAxis(Normals);
 	ImGui::SetCurrentContext(ctx);
 }
-Collision::Projection BoxCollider::CalcProjection(DirectX::XMFLOAT3 normal) {
+Collision::Projection BoxCollider::CalcProjection(DirectX::XMFLOAT3 normals) {
+	//std::vector<Projection> allProj;
 	Projection pro;
 		pro.mini = FLT_MAX;
 		pro.maxi = -FLT_MAX;
-		auto vec = DirectX::XMLoadFloat3(&(normal));
+		auto vec = DirectX::XMLoadFloat3(&(normals));
 		for (unsigned int k = 0; k < vert.size(); k++) {
 			float maxi = -FLT_MAX;
 			float mini = FLT_MAX;
 			auto pos = XMFLOAT3(vert[k].position.x, vert[k].position.y, vert[k].position.z);
 			float proj = XMVectorGetX(XMVector3Dot(vec, XMLoadFloat3(&pos)));
-			maxi = max(proj,maxi);
-			mini = min(proj,mini);
+			maxi = max(proj, maxi);
+			mini = min(proj, mini);
 			pro.maxi = max(maxi, pro.maxi);
 			pro.mini = min(mini, pro.mini);
 		}
-		//allProj.push_back(pro);
-		
 	return pro;
 }
 bool BoxCollider::Comp(DirectX::XMFLOAT3& v1, DirectX::XMFLOAT3& v2) {
@@ -56,26 +55,35 @@ void BoxCollider::UpdateBuffer(std::vector<Vertex>& vertices,std::vector<NormalP
 bool BoxCollider::CheckCollision(BoxCollider secondObj) {
 	bool isColliding = true;
 	std::vector<Collision::Projection> allproj;
+	DirectX::XMFLOAT3 collaxis;
 	float minover = std::numeric_limits<float>::infinity();
 	for (unsigned int i = 0; i < axis1.normals.size();i++) {
 		Projection p1;
 		Projection p2;
 		p1 = CalcProjection(axis1.normals[i]);
 		p2 = secondObj.CalcProjection(axis1.normals[i]);
-		if (!IsOverlap(p1.mini, p1.maxi, p2.mini, p2.maxi)) {
-			isColliding = isColliding && false;
+		if (IsOverlap(p1.mini, p1.maxi, p2.mini, p2.maxi)) {
+			
+			float overlap = min(p1.maxi, p2.maxi) - max(p1.mini, p2.mini);
+			isColliding = isColliding && true;
+			if (minover > overlap) {
+				collaxis = axis1.normals[i];
+				minover = overlap;
+			}
 		}
 		else {
-			auto axis = axis1.normals[i];
-			float overlap = min(p1.maxi, p2.maxi) - max(p1.mini, p2.mini);
-			if (minover > overlap)
-				minover = overlap;
-			isColliding = isColliding && true;
+			isColliding = isColliding && false;
 		}
 	}
-	 //p1 = CalcProjection(secondObj.axis1.normals);
-	 //p2 = secondObj.CalcProjection(secondObj.axis1.normals); // potential to remove self projection
-	 //isColliding = CheckCollisionSAT(p1, p2);
+	if (isColliding && !isStaticObject) {
+		objTransform->position[0] = objTransform->position[0] + (collaxis.x*minover);
+		objTransform->position[1] = objTransform->position[1] + (collaxis.y*minover);
+		objTransform->position[2] = objTransform->position[2] + (collaxis.z*minover);
+
+	}
+	 //p1 = CalcProjection(axis1.normals);
+	 //p2 = secondObj.CalcProjection(axis1.normals); // potential to remove self projection
+	// isColliding = CheckCollisionSAT(p1, p2);
 	 //get the projection of 1 object on 2 object on axis --- Done p1 p2
 	 //p1 the projection of itself on its normal
 	 //compare p2 with p1 of the other object 
@@ -97,7 +105,7 @@ bool  BoxCollider::IsOverlap(float minA, float maxA, float minB, float maxB)
 }
 void BoxCollider::show() {
 	if (ImGui::CollapsingHeader("Collider", ImGuiTreeNodeFlags_CollapsingHeader)) {
-		ImGui::Text("Collider");
+		ImGui::Checkbox("Static Object", &isStaticObject);
 	}
 }
 ////////////////////--------------------//////////////////////
