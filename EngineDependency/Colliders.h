@@ -7,6 +7,7 @@
 #include <DirectXMath.h>
 #include <algorithm>
 #include "ImGui/imgui.h"
+#include "Phys.h"
 #include "Global.h"
 namespace Collision {
 	struct Projection {
@@ -34,20 +35,24 @@ namespace Collision {
 //https://learn.microsoft.com/en-us/cpp/error-messages/compiler-warnings/compiler-warning-level-1-c4251?view=msvc-170
 class BoxCollider:public ObjectProperties {
 private:
+	Physics_Body& phys;
 	TransformStruct*& objTransform;
 	ImGuiContext* cxt;
 	std::vector<NormalPerObject> ObjectsNormals;
 	bool Comp(DirectX::XMFLOAT3& v1, DirectX::XMFLOAT3& v2);
 	std::vector<Vertex> vert;
+	DirectX::XMFLOAT3 lastCollaxis;
 	struct axis {
 		std::vector<DirectX::XMFLOAT3> normals;
 	};
 	Collision::Projection CalcProjection(DirectX::XMFLOAT3 normals);
 public:
 	bool isStaticObject = false;
+	PHYSICS_API void ResolveCollision();
+	PHYSICS_API ObjectProperties* GetPropertyRef();
 	PHYSICS_API void inPlayMode() {};
 	PHYSICS_API void show();
-	PHYSICS_API BoxCollider(TransformStruct*& trans, std::vector<Vertex>& vertices, std::vector<NormalPerObject> Normals, ImGuiContext* ctx = ImGui::GetCurrentContext());
+	PHYSICS_API BoxCollider(TransformStruct*& trans, std::vector<Vertex>& vertices, std::vector<NormalPerObject> Normals, Physics_Body& phy, ImGuiContext* ctx = ImGui::GetCurrentContext());
 	//std::vector<Collision::Projection> p1;
 	//std::vector<Collision::Projection> p2;
 	axis axis1;
@@ -61,5 +66,5 @@ private:
 public:
 	//float* test;
 };
-extern "C" PHYSICS_API BoxCollider *CreateBoxCollider(TransformStruct*& trans,std::vector<Vertex>& vertices, std::vector<NormalPerObject> Normals);
+extern "C" PHYSICS_API BoxCollider *CreateBoxCollider(Physics_Body*& phy,TransformStruct*& trans,std::vector<Vertex>& vertices, std::vector<NormalPerObject> Normals);
 #endif

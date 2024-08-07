@@ -5,6 +5,7 @@ static std::string WorkingDirectory = "D:\\program\\Eng";
 struct ObjectProperties {
 	virtual void show() = 0;
 	virtual void inPlayMode() {};
+	virtual ObjectProperties* GetPropertyRef() = 0;
 };
 class Objects {
 public:
@@ -18,9 +19,11 @@ public:
 	virtual std::vector<ObjectProperties*>* GetProperties() = 0;
 };
 struct TransformStruct:public ObjectProperties {
-private:
+public:
+	bool isChangedexternally = false; // changed from imgui
 	float l_position[3] = { 0,0,0 }; //last position
 public:
+	ObjectProperties* GetPropertyRef();
 	bool isMoving;
 	void Update();
 	float rotation[3] = { 0,0,0 };

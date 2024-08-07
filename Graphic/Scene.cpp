@@ -30,9 +30,10 @@ void Scene::RenderWireFrame() {
 void Scene::PlayMode()
 {
 	for (auto& Triangle : Triangles) {
-		Triangle->inPlayMode();
-		for (auto& Prop : *Triangle->GetProperties())
+		for (auto& Prop : *Triangle->GetProperties()) {
 			Prop->inPlayMode();
+		}
+		Triangle->inPlayMode();
 	}
 	CContoller->Update();
 }

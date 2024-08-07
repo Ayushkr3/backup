@@ -1,8 +1,7 @@
 #include "Graphic.h"
 #include <d3dcompiler.h>
 //////////////////////
-#include "Mouse.h"
-#include "Keyboard.h"
+
 /////////////////////
 #pragma comment(lib,"D3DCompiler.lib")
 #pragma comment(lib,"d3d11.lib")

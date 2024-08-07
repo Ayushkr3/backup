@@ -3,7 +3,7 @@ Triangle::Triangle(Microsoft::WRL::ComPtr<ID3D11Device> pDevice, Microsoft::WRL:
 	pContext(pContext), pDevice(pDevice), vertices(
 		vertice
 	), index(indi
-	), Objects(globalID, "Object"), id(id), coll(Trans, vertice, nor), color{ rgba[0],rgba[1],rgba[2] }, n{ nor }, phy(Trans), last_color{ rgba[0],rgba[1],rgba[2] }, rn{ nor }
+	), Objects(globalID, "Object"), id(id), coll(Trans, vertice, nor,phy), color{ rgba[0],rgba[1],rgba[2] }, n{ nor }, phy(Trans), last_color{ rgba[0],rgba[1],rgba[2] }, rn{ nor }
 {
 	Trans = new TransformStruct;
 	ObjProperties.push_back(Trans);
@@ -138,8 +138,11 @@ void Triangle::UpdateBuffers() {
 }
 void Triangle::inPlayMode() {
 	Trans->Update();
-	//if(Trans->isMoving)
+	if(Trans->isMoving)
 		pCB->Transform(Trans, rn);
+}
+void Triangle::ReCalculatePosition() {
+	pCB->Transform(Trans, rn);
 }
 void Triangle::UpdateCollider() {
 	//TODO: Make a single for loop for each object and get all nessecary data out of it instead of multple loops which
@@ -147,6 +150,7 @@ void Triangle::UpdateCollider() {
 }
 void Triangle::InitializePlayMode()
 {
+	phy.ResetVelocity();
 	pCB->Transform(Trans, rn);
 }
 void Triangle::Highlight(){

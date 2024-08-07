@@ -9,7 +9,6 @@
 #include "errors.h"
 #include "timer.h"
 #include "ConstantBuff.h"
-#include "Mouse.h"
 #include "WIC.h"
 #include "HullShader.h"
 #include "DomainShader.h"
@@ -57,6 +56,7 @@ public:
 	std::unique_ptr<GeometryShader_> pGeo;
 	std::unique_ptr<VertexShader_> pVshader;
 public:
+	void ReCalculatePosition();
 	void InitializePlayMode();
 	void Highlight();
 	void Restore();

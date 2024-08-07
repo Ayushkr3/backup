@@ -10,6 +10,8 @@
 #include <iterator>
 #include <filesystem>
 #include "Global.h"
+#include <typeinfo>
+#include "EInputManager.h"
 #include "font/IconsFontAwesome4.h"
 class UIWindows {
 public:

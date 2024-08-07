@@ -153,6 +153,8 @@ void SceneManager::Content() {
 					currentScene->CContoller->deleteObject(t);
 				currentScene->AllObject.erase(LookUp(Tri->Id,currentScene->AllObject));
 				currentScene->Triangles.erase(LookUp(t, currentScene->Triangles));
+				if (last_object == t)
+					last_object = nullptr;
 				delete t;
 				t = nullptr;
 				ImGui::CloseCurrentPopup();
@@ -182,6 +184,8 @@ void PropertiesWindow::Content() {
 			obj->show();
 		}
 	}
+ 
+	ImGui::Text((std::string(1,InputManager::GetLastKeyPress())).c_str());
 	ImGui::End();
 }
 
