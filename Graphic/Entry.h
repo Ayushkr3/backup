@@ -2,7 +2,6 @@
 #include"WindowsClass.h"
 #include"Graphic.h"
 #include "timer.h"
-#include "Mouse.h"
 #include <string>
 #include "Metrices.h"
 

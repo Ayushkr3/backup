@@ -12,6 +12,7 @@ public:
 			ImGui::DragFloat2("Camera Rotation", rotation, 0.1f);
 			ImGui::DragFloat3("Camera Position", postion, 0.1f);
 		}
+		ObjectProperties* GetPropertyRef() { return this; }
 	};
 	Camera(Microsoft::WRL::ComPtr<ID3D11Device> pDevice);
 	CameraProp* PosNrot;

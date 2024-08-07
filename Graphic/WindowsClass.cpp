@@ -75,7 +75,7 @@ window::window():
 	UIwindow->Swap();
 	SetWindowPos(UIwindow->cHwnd, HWND_BOTTOM, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
 	SetWindowPos(RenderTargetWindows->cHwnd, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
-
+	InputManager::Init();
 	ShowWindow(hwnd, SW_SHOWDEFAULT);
 }
 std::optional<int> window::ProcessMessage() {
@@ -132,6 +132,7 @@ LRESULT window::HandleMsg(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) noe
 		PostQuitMessage(0);
 		return 0;
 	case WM_INPUT:
+		InputManager::Start(lParam);
 #ifdef ImGUI_ENABLED
 		/*if (io.WantCaptureMouse) {
 			Mouse::deltaMouseX = 0;
@@ -230,18 +231,6 @@ LRESULT window::HandleMsg(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) noe
 			Mouse::mouse_ypos = GET_Y_LPARAM(lParam);
 		
 		return 0;*/
-	case WM_LBUTTONDOWN:
-		Mouse::mouse_button[0] = true;
-		return 0;
-	case WM_LBUTTONUP:
-		Mouse::mouse_button[0] = false;
-		return 0;
-	case WM_RBUTTONDOWN:
-		Mouse::mouse_button[1] = true;
-		return 0;
-	case WM_RBUTTONUP:
-		Mouse::mouse_button[1] = false;
-		return 0;
 	}
 	return DefWindowProc(hWnd, msg, wParam, lParam);
 }

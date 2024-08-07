@@ -6,7 +6,7 @@
 //TODO: Fix Normal update
 using namespace DirectX;
 using namespace Collision;
-BoxCollider::BoxCollider(TransformStruct*& trans,std::vector<Vertex>& vertices, std::vector<NormalPerObject> Normals, ImGuiContext * ctx) :vert(vertices), ObjectsNormals{Normals},cxt(ctx), objTransform(trans) {
+BoxCollider::BoxCollider(TransformStruct*& trans,std::vector<Vertex>& vertices, std::vector<NormalPerObject> Normals,Physics_Body& phy,ImGuiContext * ctx) :vert(vertices), ObjectsNormals{Normals},cxt(ctx), objTransform(trans),phys(phy){
 	CalcAxis(Normals);
 	ImGui::SetCurrentContext(ctx);
 }
@@ -75,11 +75,22 @@ bool BoxCollider::CheckCollision(BoxCollider secondObj) {
 			isColliding = isColliding && false;
 		}
 	}
+	XMVECTOR vert1 = XMVECTOR(XMLoadFloat3(&XMFLOAT3(vert[0].position.x,vert[0].position.y, vert[0].position.z)));
+	XMVECTOR vert2 = XMVECTOR(XMLoadFloat3(&XMFLOAT3(secondObj.vert[0].position.x, secondObj.vert[0].position.y, secondObj.vert[0].position.z)));
+	XMVECTOR diff = XMVectorSubtract(vert1, vert2);
+	auto angle = XMVectorGetX(XMVector3Dot(XMVector3Normalize(diff), XMLoadFloat3(&collaxis)));
+	if (XMVectorGetX(XMVector3Dot(XMVector3Normalize(diff), XMLoadFloat3(&collaxis))) < 0) {
+		collaxis.x = -collaxis.x;
+		collaxis.y = -collaxis.y;
+		collaxis.z = -collaxis.z;
+	}
+	isColliding ? lastCollaxis = collaxis :lastCollaxis = DirectX::XMFLOAT3(0,0,0);
 	if (isColliding && !isStaticObject) {
+		minover = std::round(minover*1000000.0f)/1000000.0f;
 		objTransform->position[0] = objTransform->position[0] + (collaxis.x*minover);
 		objTransform->position[1] = objTransform->position[1] + (collaxis.y*minover);
 		objTransform->position[2] = objTransform->position[2] + (collaxis.z*minover);
-
+		lastCollaxis = collaxis;
 	}
 	 //p1 = CalcProjection(axis1.normals);
 	 //p2 = secondObj.CalcProjection(axis1.normals); // potential to remove self projection
@@ -88,6 +99,15 @@ bool BoxCollider::CheckCollision(BoxCollider secondObj) {
 	 //p1 the projection of itself on its normal
 	 //compare p2 with p1 of the other object 
 	 return isColliding;
+}
+void BoxCollider::ResolveCollision() {
+	if (!isStaticObject) {
+		if(lastCollaxis.x == 0 && lastCollaxis.y == 1.0f&&lastCollaxis.z == 0)
+		phys.AddForce(0, 9.81f, 0);
+		else {
+			phys.AddForce(lastCollaxis.x, lastCollaxis.y*phys.acceleration[1],lastCollaxis.z);
+		}
+	}
 }
 bool BoxCollider::CheckCollisionSAT(const std::vector<Projection>& cubeProjections, const std::vector<Projection>& planeProjections)
 {
@@ -106,11 +126,14 @@ bool  BoxCollider::IsOverlap(float minA, float maxA, float minB, float maxB)
 void BoxCollider::show() {
 	if (ImGui::CollapsingHeader("Collider", ImGuiTreeNodeFlags_CollapsingHeader)) {
 		ImGui::Checkbox("Static Object", &isStaticObject);
+	//	ImGui::Text(("Collision" + std::to_string(isColliding)).c_str());
 	}
 }
 ////////////////////--------------------//////////////////////
-
-BoxCollider* CreateBoxCollider(TransformStruct*& trans, std::vector<Vertex>& vertices, std::vector<NormalPerObject> Normals)
+ObjectProperties* BoxCollider::GetPropertyRef() {
+	return this;
+}
+BoxCollider* CreateBoxCollider(Physics_Body*& phy,TransformStruct*& trans, std::vector<Vertex>& vertices, std::vector<NormalPerObject> Normals)
 {
-	return new BoxCollider(trans,vertices,Normals);
+	return new BoxCollider(trans,vertices,Normals,*phy);
 }

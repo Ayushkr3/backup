@@ -60,9 +60,6 @@
     <ClInclude Include="ConstantBuff.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Mouse.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Camera.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -71,9 +68,6 @@
     </ClInclude>
     <ClInclude Include="Microsoft_wic.h">
       <Filter>Wic</Filter>
-    </ClInclude>
-    <ClInclude Include="Keyboard.h">
-      <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Light.h">
       <Filter>Header Files</Filter>
@@ -143,9 +137,6 @@
     <ClCompile Include="ConstantBuff.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Mouse.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Camera.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -154,9 +145,6 @@
     </ClCompile>
     <ClCompile Include="Microsoft_wic.cpp">
       <Filter>Wic</Filter>
-    </ClCompile>
-    <ClCompile Include="Keyboard.cpp">
-      <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Light.cpp">
       <Filter>Source Files</Filter>
