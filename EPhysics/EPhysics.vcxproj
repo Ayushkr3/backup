@@ -114,15 +114,29 @@ xcopy /y /d  "$(OutDir)EPhysics.lib" "$(SolutionDir)EngineDependency" </Command>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;EPHYSICS_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>API_EXPORT;_DEBUG;EPHYSICS_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+      <AdditionalIncludeDirectories>D:\program\vs\graphic\Shared\include;D:\program\vs\graphic\Shared;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
+      <AdditionalLibraryDirectories>D:\program\vs\graphic\EngineDependency\Physx;D:\program\vs\graphic\Shared;D:\program\vs\graphic\EngineDependency;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>Global.lib;ImGui.lib;LowLevel_static_64.lib;LowLevelAABB_static_64.lib;PhysX_64.lib;PhysXCommon_64.lib;PhysXCooking_64.lib;PhysXExtensions_static_64.lib;PhysXFoundation_64.lib;PhysXPvdSDK_static_64.lib;PhysXTask_static_64.lib;PhysXVehicle_static_64.lib;SampleBase_static_64.lib;SampleFramework_static_64.lib;SamplesToolkit_static_64.lib;SceneQuery_static_64.lib;SimulationController_static_64.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
     </Link>
+    <PostBuildEvent>
+      <Command>xcopy /y /d  "$(OutDir)EPhysics.dll" "$(SolutionDir)EngineDependency" 
+xcopy /y /d  "$(OutDir)EPhysics.lib" "$(SolutionDir)EngineDependency" 
+xcopy /y /d  "$(ProjectDir)EPhysics.h" "$(SolutionDir)EngineDependency" 
+xcopy /y /d  "$(ProjectDir)Phys.h" "$(SolutionDir)EngineDependency"
+xcopy /y /d  "$(ProjectDir)Colliders.h" "$(SolutionDir)EngineDependency"  
+xcopy /y /d  "$(ProjectDir)Maths.h" "$(SolutionDir)EngineDependency"  </Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -168,12 +182,14 @@ xcopy /y /d  "$(OutDir)EPhysics.lib" "$(SolutionDir)EngineDependency" </Command>
     <ClInclude Include="Colliders.h" />
     <ClInclude Include="EPhysics.h" />
     <ClInclude Include="framework.h" />
+    <ClInclude Include="Maths.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="Phys.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Colliders.cpp" />
     <ClCompile Include="dllmain.cpp" />
+    <ClCompile Include="Maths.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>

@@ -3,12 +3,19 @@ Triangle::Triangle(Microsoft::WRL::ComPtr<ID3D11Device> pDevice, Microsoft::WRL:
 	pContext(pContext), pDevice(pDevice), vertices(
 		vertice
 	), index(indi
-	), Objects(globalID, "Object"), id(id), coll(Trans, vertice, nor,phy), color{ rgba[0],rgba[1],rgba[2] }, n{ nor }, phy(Trans), last_color{ rgba[0],rgba[1],rgba[2] }, rn{ nor }
+	), Objects(globalID, "Object"), id(id), color{ rgba[0],rgba[1],rgba[2] }, n{ nor }, last_color{ rgba[0],rgba[1],rgba[2] }, rn{ nor }
 {
-	Trans = new TransformStruct;
+	Objects* obj = dynamic_cast<Objects*>(this);
+	Trans = new TransformStruct(obj);
 	ObjProperties.push_back(Trans);
-	ObjProperties.push_back(&coll);	
-	ObjProperties.push_back(&phy);
+	rb = new NVPhysx::RigidBody(obj);
+	b = new NVPhysx::BoxCollider(obj);
+	ObjProperties.push_back(rb);
+	ObjProperties.push_back(b);
+	//Physics_Body* phy = new Physics_Body(Trans,obj);
+	//ObjProperties.push_back(phy);
+	//BoxCollider* coll = new BoxCollider(Trans,vertices,n,obj);
+	//ObjProperties.push_back(coll);	
 	D3D11_BUFFER_DESC IndexBufferDesc;
 	D3D11_BUFFER_DESC VertexBuffer;
 	VertexBuffer.BindFlags = D3D11_BIND_VERTEX_BUFFER ;
@@ -35,7 +42,7 @@ Triangle::Triangle(Microsoft::WRL::ComPtr<ID3D11Device> pDevice, Microsoft::WRL:
 	pContext->IASetIndexBuffer(pIndexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
 
 	Transformation.Rotation = ConstantBuffer::ConvertMatrixToFloat4x4(XMMatrixRotationRollPitchYaw(XMConvertToRadians(Trans->rotation[0]), XMConvertToRadians(Trans->rotation[1]), XMConvertToRadians(Trans->rotation[2])));
-	Transformation.Translation = ConstantBuffer::ConvertMatrixToFloat4x4(XMMatrixTranslation(Trans->position[0], Trans->position[1], Trans->position[2]));
+	Transformation.Translation = ConstantBuffer::ConvertMatrixToFloat4x4(XMMatrixTranslation(Trans->position[0]+(Inheritence.InheritedTrans)->position[0], Trans->position[1] + (Inheritence.InheritedTrans)->position[1], Trans->position[2] + (Inheritence.InheritedTrans)->position[2]));
 	Transformation.Scale = ConstantBuffer::ConvertMatrixToFloat4x4(XMMatrixScaling(Trans->Scale[0], Trans->Scale[1], Trans->Scale[2]));
 	pCB = std::make_unique<ConstantBuffer>(&Transformation, pDevice,n);
 	pCB->GetData(vertices);
@@ -129,28 +136,32 @@ void Triangle::Draw() {
 	pContext->Draw(vertices.size(), 0);
 }
 void Triangle::UpdateBuffers() {
-	Transformation.Rotation = ConstantBuffer::ConvertMatrixToFloat4x4(XMMatrixRotationRollPitchYaw(XMConvertToRadians(Trans->rotation[0]), XMConvertToRadians(Trans->rotation[1]), XMConvertToRadians(Trans->rotation[2])));
-	Transformation.Translation = ConstantBuffer::ConvertMatrixToFloat4x4(XMMatrixTranslation(Trans->position[0], Trans->position[1], Trans->position[2]));
+	Transformation.Rotation = ConstantBuffer::ConvertMatrixToFloat4x4(XMMatrixRotationRollPitchYaw((Trans->rotation[0]), (Trans->rotation[1]), (Trans->rotation[2])));
+	Transformation.Translation = ConstantBuffer::ConvertMatrixToFloat4x4(XMMatrixTranslation(Trans->position[0] + (Inheritence.InheritedTrans)->position[0], Trans->position[1] + (Inheritence.InheritedTrans)->position[1], Trans->position[2] + (Inheritence.InheritedTrans)->position[2]));
 	Transformation.Scale = ConstantBuffer::ConvertMatrixToFloat4x4(XMMatrixScaling(Trans->Scale[0], Trans->Scale[1], Trans->Scale[2]));
 	// is there even any point to update if i have to bind it every frame ?
 	pCB->UpdateBuffer(pContext, &Transformation);
-	//Phys.Update(&Trans->position[0],&Trans->position[1],&Trans->position[2]);
 }
 void Triangle::inPlayMode() {
 	Trans->Update();
-	if(Trans->isMoving)
+	if (Trans->isMoving) {
 		pCB->Transform(Trans, rn);
+	}
+	for (auto& o : ObjProperties) {
+		if (dynamic_cast<NVPhysx::RigidBody*>(o) != nullptr) {
+			o->inPlayMode();
+		}
+	}
 }
 void Triangle::ReCalculatePosition() {
 	pCB->Transform(Trans, rn);
 }
-void Triangle::UpdateCollider() {
-	//TODO: Make a single for loop for each object and get all nessecary data out of it instead of multple loops which
-	coll.UpdateBuffer(pCB->vertice_f,rn);
-}
 void Triangle::InitializePlayMode()
 {
-	phy.ResetVelocity();
+	//rb->InitPlayMode(Trans);
+	for (auto& o : ObjProperties) {
+		o->InitPlayMode();
+	}
 	pCB->Transform(Trans, rn);
 }
 void Triangle::Highlight(){

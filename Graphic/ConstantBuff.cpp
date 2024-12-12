@@ -44,7 +44,7 @@ XMFLOAT4X4 ConstantBuffer::ConvertMatrixToFloat4x4(XMMATRIX mat) {
 void ConstantBuffer::Transform(TransformStruct* t,/*output normals*/ std::vector<NormalPerObject>& on)
 {
 	AABB aabbijk;
-	XMMATRIX ro = XMMatrixTranspose(XMMatrixRotationRollPitchYaw(XMConvertToRadians(t->rotation[0]), XMConvertToRadians(t->rotation[1]), XMConvertToRadians(t->rotation[2])));
+	XMMATRIX ro = XMMatrixTranspose(XMMatrixRotationRollPitchYaw((t->rotation[0]), (t->rotation[1]), (t->rotation[2])));
 	XMMATRIX po = XMMatrixTranspose(XMMatrixTranslation(t->position[0], t->position[1], t->position[2]));
 	XMMATRIX so = XMMatrixTranspose(XMMatrixScaling(t->Scale[0], t->Scale[1], t->Scale[2]));
 	XMMATRIX view = (XMLoadFloat4x4(&viewmat));
@@ -53,7 +53,7 @@ void ConstantBuffer::Transform(TransformStruct* t,/*output normals*/ std::vector
 	XMFLOAT4X4 rota;
 	XMStoreFloat4x4(&rota,ro);
 	XMStoreFloat4x4(&mat, fina);
-	for (unsigned int i = 0; i < vertice_m.size();i++) {
+	/*for (unsigned int i = 0; i < vertice_m.size();i++) {
 		XMFLOAT4 indi_vert = XMFLOAT4(vertice_m[i].position.x, vertice_m[i].position.y, vertice_m[i].position.z, 1.0f);
 		XMFLOAT4 indi_norm = XMFLOAT4(vertice_m[i].Normal.x, vertice_m[i].Normal.y, vertice_m[i].Normal.z, 1.0f);
 		XMVECTOR vec = XMVector4Transform(XMLoadFloat4(&indi_vert),XMLoadFloat4x4(&mat));
@@ -88,7 +88,7 @@ void ConstantBuffer::Transform(TransformStruct* t,/*output normals*/ std::vector
 			on[i].z = returnnor.z;
 		}
 	}
-	aabb = aabbijk;
+	aabb = aabbijk;*/
 }
 void ConstantBuffer::GetData(std::vector<Vertex> vertices)
 {

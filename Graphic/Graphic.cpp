@@ -28,18 +28,20 @@ Graphic::Graphic(HWND hwnd){
 	pSwap->GetBuffer(0, __uuidof(ID3D11Resource), reinterpret_cast<void**>(&pBackBuffer));
 	pDevice->CreateRenderTargetView(pBackBuffer, nullptr, pTarget.GetAddressOf());
 	pBackBuffer->Release();
+	NVPhysx::Init();
 	pSc = std::make_unique<Scene>(pDevice,pContext);
 
+	DXGI_SWAP_CHAIN_DESC DESC;
+	pSwap->GetDesc(&DESC);
 	D3D11_VIEWPORT vp;
-	vp.Width = 1024;
-	vp.Height = 576;
+	vp.Width = DESC.BufferDesc.Width;
+	vp.Height = DESC.BufferDesc.Height;
 	vp.MinDepth = 0;
 	vp.MaxDepth = 1;
 	vp.TopLeftX = 0;
 	vp.TopLeftY = 0;
 	pContext->RSSetViewports(1u, &vp);
 #define DEPTH_BIAS_D32_FLOAT(d) (d/(1/pow(2,23)))
-	
 	D3D11_RASTERIZER_DESC rasDesc;
 	rasDesc.FillMode = D3D11_FILL_WIREFRAME;
 	rasDesc.CullMode = D3D11_CULL_BACK;
@@ -81,8 +83,8 @@ Graphic::Graphic(HWND hwnd){
 	Microsoft::WRL::ComPtr<ID3D11Texture2D> pDepthStencil;
 	D3D11_TEXTURE2D_DESC descDepth = {};
 #ifdef ImGUI_ENABLED
-	descDepth.Width = 1022;
-	descDepth.Height = 574;
+	descDepth.Width = DESC.BufferDesc.Width;
+	descDepth.Height = DESC.BufferDesc.Height;
 #else
 	descDepth.Width = 784;
 	descDepth.Height = 561;
@@ -108,7 +110,9 @@ Graphic::Graphic(HWND hwnd){
 	CHECK_ERROR(pDevice->CreateDepthStencilView(pDepthStencil.Get(), &stencil_view_desc, &pDs));
 	pContext->OMSetRenderTargets(1, pTarget.GetAddressOf(),pDs.Get());
 }
-Graphic::~Graphic(){}
+Graphic::~Graphic(){
+	NVPhysx::Destroy();
+}
 void Graphic::EndFrame() {
 	pSwap->Present(1u,0);
 }
@@ -123,7 +127,7 @@ void Graphic::TestFrames() {
 	pContext->PSSetShader(pWireFrameSolid.Get(), nullptr, 0);
 	pContext->RSSetState(Solid.Get());
 	pSc->RenderWireFrame();
-	if (Globals::inPlayMode) {
+	if (*Globals::inPlayMode) {
 		pSc->PlayMode();
 	}
 	pContext->PSSetShader(pLastShader.Get(), nullptr, 0);

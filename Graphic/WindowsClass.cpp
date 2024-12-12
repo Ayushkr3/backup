@@ -1,7 +1,10 @@
 #include"WindowsClass.h"
+#include <shellscalingapi.h>
 #ifdef ImGUI_ENABLED
 #include "Metrices.h"
 #include <string>
+#include "Global.h"
+#pragma comment(lib, "Shcore.lib")
 
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 #endif
@@ -27,7 +30,14 @@ window::window():
 	wndClass.style = CS_OWNDC;
 	RegisterClassEx(&wndClass);
 
+	winRef = new WindowRef;
+	scaledWidth = MulDiv(1620, 96, 144);
+	scaledHeight = MulDiv(960, 96, 144);
+	winRef->Additional_Param.heightY = &scaledHeight;
+	winRef->Additional_Param.widthX = &scaledWidth;
+
 #ifdef ImGUI_ENABLED
+	
 	hwnd = CreateWindowEx(
 		0,                          // Optional window styles.
 		className.c_str(),                     // Window class
@@ -35,13 +45,14 @@ window::window():
 		WS_OVERLAPPEDWINDOW,     // Window style
 
 							   // Size and position
-		0, 0, 1600, 900,
+		0, 0, scaledWidth, scaledHeight,
 
 		NULL,				// Parent window    
 		NULL,			   // Menu
 		hint,			  // Instance handle
-		NULL			 // Additional application data
+		(LPVOID)(winRef)				  // Additional application data
 	);
+	SetWindowLongPtr(hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(winRef));
 #else 
 	hwnd = CreateWindowEx(
 		0,                          // Optional window styles.
@@ -58,15 +69,14 @@ window::window():
 		NULL			 // Additional application data
 	);
 #endif // ImGUI_ENABLED
-
-	RenderTargetWindows = std::make_unique<UIWindows>(className, hwnd, hint,300,70, 1024, 576,2);
+	UIwindow = std::make_unique<UIElements>(className, hwnd, hint, 0, 0, MulDiv(1600, 96, 144), MulDiv(900, 96, 144), 1);
+	RenderTargetWindows = std::make_unique<UIWindows>(className, hwnd, hint, MulDiv(300, 96, 144), MulDiv(70, 96, 144), MulDiv(1024, 96, 144), MulDiv(576, 96, 144),2);
 	pGfx = std::make_unique<Graphic>(RenderTargetWindows.get()->cHwnd);
-	UIwindow = std::make_unique<UIElements>(className, hwnd, hint, 0, 0, 1600, 900, 1);
-	Scene = std::make_unique<SceneManager>(0, 70, 300, 830);
+	Scene = std::make_unique<SceneManager>(0, MulDiv(70, 96, 144), MulDiv(300, 96, 144), MulDiv(830, 96, 144));
 	SceneManager::currentScene = pGfx->GetCurrentScene();
-	Properties = std::make_unique<PropertiesWindow>(1324, 70, 276, 830);
-	file = std::make_unique<Files>(300,646,1024,254,pGfx->pDevice,pGfx->pContext);
-	Control = std::make_unique<ControlMenu>(0, 0, 1600, 70);
+	Properties = std::make_unique<PropertiesWindow>(MulDiv(1324, 96, 144), MulDiv(70, 96, 144), MulDiv(280, 96, 144), MulDiv(830, 96, 144));
+	file = std::make_unique<Files>(MulDiv(300, 96, 144), MulDiv(646, 96, 144), MulDiv(1024, 96, 144), MulDiv(254, 96, 144),pGfx->pDevice,pGfx->pContext);
+	Control = std::make_unique<ControlMenu>(0, 0, MulDiv(1600, 96, 144), MulDiv(70, 96, 144));
 	UIwindow->UpdateUI();
 	Scene->SetSizenWidth();
 	Properties->SetSizenWidth();
@@ -75,7 +85,14 @@ window::window():
 	UIwindow->Swap();
 	SetWindowPos(UIwindow->cHwnd, HWND_BOTTOM, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
 	SetWindowPos(RenderTargetWindows->cHwnd, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+	winRef->Additional_Param.ptrFiles = &file;
+	winRef->Additional_Param.ptrProp = &Properties;
+	winRef->Additional_Param.ptrElem = &UIwindow;
 	InputManager::Init();
+	Globals::inPlayMode = new bool;
+	ObjectPropertiesFactory::Init();
+	*Globals::inPlayMode = false;
+	SharedVarInit(Globals::dT,Globals::inPlayMode);
 	ShowWindow(hwnd, SW_SHOWDEFAULT);
 }
 std::optional<int> window::ProcessMessage() {
@@ -118,7 +135,8 @@ LRESULT CALLBACK window::HandleMsgSetup(HWND hWnd, UINT msg, WPARAM wParam, LPAR
 LRESULT CALLBACK window::HandleMsgThunk(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) noexcept
 {
 	// retrieve ptr to window instance
-	window* const pWnd = reinterpret_cast<window*>(GetWindowLongPtr(hWnd, GWLP_USERDATA));
+	
+	window* pWnd = reinterpret_cast<window*>(GetWindowLongPtr(hWnd, GWLP_USERDATA));
 	// forward message to window instance handler
 	return pWnd->HandleMsg(hWnd, msg, wParam, lParam);
 }
@@ -128,6 +146,20 @@ LRESULT window::HandleMsg(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) noe
 }
 	switch (msg)
 	{
+	case WM_SIZE: {
+		WindowRef* const winRef = reinterpret_cast<WindowRef*>(GetWindowLongPtr(hWnd, GWLP_USERDATA));
+		if (winRef == nullptr)
+			return 0;
+		UINT height = HIWORD(lParam);//= *winRef->Additional_Param.heightY;
+		UINT width = LOWORD(lParam);//*winRef->Additional_Param.widthX;
+		winRef->Additional_Param.ptrElem->get()->SetSizenWidth(width, height);
+		winRef->Additional_Param.ptrFiles->get()->SetSizenWidth(width - *(winRef->Additional_Param.widthX), height - *(winRef->Additional_Param.heightY));
+		winRef->Additional_Param.ptrProp->get()->SetSizenWidth(width - *(winRef->Additional_Param.widthX), height - *(winRef->Additional_Param.heightY));
+
+		*winRef->Additional_Param.heightY = height;
+		*winRef->Additional_Param.widthX = width;
+		return 0;
+	}
 	case WM_CLOSE:
 		PostQuitMessage(0);
 		return 0;

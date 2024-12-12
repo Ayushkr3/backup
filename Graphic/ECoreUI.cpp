@@ -1,6 +1,7 @@
 #include "ECoreUI.h"
 #define CHECK_ERROR(hr) if(FAILED(hr)) throw error::error(hr,__LINE__)
 Microsoft::WRL::ComPtr<ID3D11Device> UIElements::pUIDevice = nullptr;
+ImGuiContext* UIElements::ctx = nullptr;
 Microsoft::WRL::ComPtr<ID3D11DeviceContext> UIElements::pUIContext= nullptr;
 Microsoft::WRL::ComPtr<IDXGISwapChain>      UIElements::pUISwapChain= nullptr;
 Microsoft::WRL::ComPtr<ID3D11RenderTargetView>  UIElements::pUIRenderTarget= nullptr;
@@ -26,7 +27,8 @@ UIWindows::UIWindows(std::string className, HWND Phwnd, HINSTANCE hint,short x ,
 }
 UIElements::UIElements(std::string className, HWND Phwnd, HINSTANCE hint, short x, short y, short w, short b, int windowsN) {
 	if (pUIDevice == nullptr) {
-		ImGui::CreateContext();
+		NVPhysx::privateCtx = (ImGui::CreateContext());
+		ctx = NVPhysx::privateCtx;
 		UIElements::io = &ImGui::GetIO();
 		io->FontGlobalScale = 1.4f;
 		io->WantCaptureMouse = true;
@@ -95,11 +97,32 @@ void UIElements::Swap() {
 	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 	pUISwapChain->Present(1u, 0);
 }
+void UIElements::SetSizenWidth(int w, int b)
+{
+	DXGI_MODE_DESC modeDesc;
+	modeDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
+	modeDesc.Height = b-1;
+	modeDesc.Width = w-1;
+	modeDesc.RefreshRate.Numerator = 0;
+	modeDesc.RefreshRate.Denominator = 0;
+	modeDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
+	modeDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
+	ID3D11Resource* pBackBuffer = nullptr;
+	pUISwapChain->GetBuffer(0, __uuidof(ID3D11Resource), reinterpret_cast<void**>(&pBackBuffer));
+	pBackBuffer->Release();
+	pUIRenderTarget->Release();
+	pUISwapChain->ResizeBuffers(0, w - 1, b - 1, DXGI_FORMAT_B8G8R8A8_UNORM,0);
+	pUISwapChain->ResizeTarget(&modeDesc);
+	pUIDevice->CreateRenderTargetView(pBackBuffer, nullptr, pUIRenderTarget.GetAddressOf());
+	pUIContext->OMSetRenderTargets(1, pUIRenderTarget.GetAddressOf(), nullptr);
+	io->DisplaySize = ImVec2(static_cast<float>(w - 1), static_cast<float>(b - 1));
+}
 SceneManager::SceneManager(int posX, int posY, int widthX, int widthY):posX(posX),posY(posY),widthX(widthX),widthY(widthY)
 {
 }
 void SceneManager::SetSizenWidth() {
 	ImGui::Begin("Scene Objects");
+	ImGui::SetWindowFontScale(0.7f);
 	ImGui::SetWindowSize(ImVec2((float)widthX, (float)widthY));
 	ImGui::SetWindowPos(ImVec2((float)posX, (float)posY));
 	ImGui::End();
@@ -119,6 +142,8 @@ std::vector<Triangle*>::iterator SceneManager::LookUp(Triangle* Tri, std::vector
 	return currentScene->Triangles.end();
 }
 void SceneManager::Content() {
+	if (currentScene == nullptr)
+		return;
 	static int selected = -1;
 	ImGui::Begin("Scene Objects",nullptr,ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoResize);
 	if (ImGui::BeginPopupContextItem("Scene Menu")) {
@@ -144,13 +169,25 @@ void SceneManager::Content() {
 				last_object = Tri;
 			}
 		}
+		if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None)) {
+			ImGui::SetDragDropPayload("Objects",&Tri,sizeof(Tri));
+			ImGui::EndDragDropSource();
+		}
+		if (ImGui::BeginDragDropTarget()) {
+			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("Objects")) {
+				Objects* data = *static_cast<Objects**>(payload->Data);
+				Tri->Inheritence.InheritedObj.push_back(data);
+				data->SetInheritence(Tri);
+				ImGui::EndDragDropTarget();
+			}
+		}
 		if (ImGui::BeginPopupContextItem(std::to_string(Tri->Id).c_str())) {
 			if (ImGui::Button("Delete")) {
 				Triangle* t = dynamic_cast<Triangle*>(Tri);
 				Scene::globalCurrentOBJID.push_back(t->id);
 				Objects::GlobalIdPool.push_back(t->Id);
-				if(Globals::inPlayMode)
-					currentScene->CContoller->deleteObject(t);
+				if (Globals::inPlayMode) {}
+					//currentScene->CContoller->deleteObject(t);
 				currentScene->AllObject.erase(LookUp(Tri->Id,currentScene->AllObject));
 				currentScene->Triangles.erase(LookUp(t, currentScene->Triangles));
 				if (last_object == t)
@@ -173,6 +210,7 @@ PropertiesWindow::PropertiesWindow(int posX, int posY, int widthX, int widthY) :
 }
 void PropertiesWindow::SetSizenWidth() {
 	ImGui::Begin("Properties");
+	ImGui::SetWindowFontScale(0.7f);
 	ImGui::SetWindowSize(ImVec2((float)widthX, (float)widthY));
 	ImGui::SetWindowPos(ImVec2((float)posX, (float)posY));
 	ImGui::End();
@@ -183,8 +221,23 @@ void PropertiesWindow::Content() {
 		for (auto& obj : *PropertiesWindow::Obj->GetProperties()) {
 			obj->show();
 		}
+		if (ImGui::BeginPopupContextWindow("Change Properties", 1)) {
+			if (ImGui::BeginMenu("Add Properties"))
+			{
+				ImGui::SetWindowFontScale(0.7f);
+				for (auto& x : ObjectProperties::GlobalPropertiesPool) {
+					if (ImGui::MenuItem(x.first.c_str()))
+					{
+						
+					}
+				}
+				ImGui::EndMenu();
+			}
+			ImGui::EndPopup();
+		}
+		if (ImGui::IsMouseDown(ImGuiMouseButton_Right) && ImGui::IsWindowHovered() && !ImGui::IsAnyItemHovered())
+			ImGui::OpenPopup("Change Properties");
 	}
- 
 	ImGui::Text((std::string(1,InputManager::GetLastKeyPress())).c_str());
 	ImGui::End();
 }
@@ -192,12 +245,13 @@ void PropertiesWindow::Content() {
 void Files::SetSizenWidth()
 {
 	ImGui::Begin("Files");
+	ImGui::SetWindowFontScale(0.7f);
 	ImGui::SetWindowSize(ImVec2((float)widthX, (float)widthY));
 	ImGui::SetWindowPos(ImVec2((float)posX, (float)posY));
 	ImGui::End();
 }
 
-Files::Files(int posX, int posY, int widthX, int widthY, Microsoft::WRL::ComPtr<ID3D11Device> pDevice, Microsoft::WRL::ComPtr<ID3D11DeviceContext> pContext): posX(posX), posY(posY), widthX(widthX), widthY(widthY),pDevice(pDevice),pContext(pContext)
+Files::Files(int posX, int posY, int widthX, int widthY ,Microsoft::WRL::ComPtr<ID3D11Device> pDevice, Microsoft::WRL::ComPtr<ID3D11DeviceContext> pContext): posX(posX), posY(posY), widthX(widthX), widthY(widthY),pDevice(pDevice),pContext(pContext)
 {
 	
 }
@@ -251,11 +305,12 @@ void Files::Content()
 					}
 					newTriangle = new Triangle(pDevice, pContext, newVert, indi, ObjectID, rgba,globalID,n);
 					if (Globals::inPlayMode) {
-						SceneManager::currentScene->CContoller->AddTriangle(newTriangle);
-						SceneManager::currentScene->CContoller->InitalizePosition(newTriangle);
+						//SceneManager::currentScene->CContoller->AddTriangle(newTriangle);
+						//SceneManager::currentScene->CContoller->InitalizePosition(newTriangle);
 					}
 					SceneManager::currentScene->AllObject.push_back(newTriangle);
 					SceneManager::currentScene->Triangles.push_back(newTriangle);
+					//SceneManager::currentScene->physScene->addActor(*newTriangle->rb->DynamicActor);
 					ImGui::CloseCurrentPopup();
 				}
 				ImGui::EndPopup();
@@ -275,6 +330,7 @@ ControlMenu::ControlMenu(int posX, int posY, int widthX, int widthY) :posX(posX)
 void ControlMenu::SetSizenWidth()
 {
 	ImGui::Begin("Control");
+	ImGui::SetWindowFontScale(0.7f);
 	ImGui::SetWindowSize(ImVec2((float)widthX, (float)widthY));
 	ImGui::SetWindowPos(ImVec2((float)posX, (float)posY));
 	ImGui::End();
@@ -282,12 +338,55 @@ void ControlMenu::SetSizenWidth()
 void ControlMenu::Content() {
 	ImGui::Begin("Control",nullptr,ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoResize);
 	if (ImGui::Button(ICON_FA_PLAY"Play/Pause")) {
-		Globals::inPlayMode = !Globals::inPlayMode;
-		if (Globals::inPlayMode) {
+		*Globals::inPlayMode = !(*Globals::inPlayMode);
+		if (*Globals::inPlayMode) {
 			SceneManager::currentScene->InitalizePlayMode();
 		}
 	}
 	ImGui::SameLine();
-	ImGui::Text(("inPlayMode"+std::to_string(Globals::inPlayMode)).c_str());
+	ImGui::Text(("inPlayMode"+std::to_string(*Globals::inPlayMode)).c_str());
 	ImGui::End();
 }
+//----------------------------------------------------------------------//
+void ControlMenu::SetSizenWidth(UINT width, UINT height) {
+	ImGui::Begin("Control");
+	ImGui::SetWindowFontScale(0.7f);
+	ImGui::SetWindowSize(ImVec2((float)width, (float)height));
+	ImGui::SetWindowPos(ImVec2((float)posX, (float)posY));
+	ImGui::End();
+}
+
+void SceneManager::SetSizenWidth(UINT width, UINT height) {
+	ImGui::Begin("Scene Objects");
+	ImGui::SetWindowFontScale(0.7f);
+	ImGui::SetWindowSize(ImVec2((float)width, (float)height));
+	ImGui::SetWindowPos(ImVec2((float)posX, (float)posY));
+	ImGui::End();
+}
+void Files::SetSizenWidth(int width, int height) {
+	ImGui::SetCurrentContext(UIElements::ctx);
+	ImGui::NewFrame();
+	ImGui::Begin("Files");
+	ImGui::SetWindowFontScale(0.7f);
+	posX = posX + width;
+	widthX = widthX + width;
+	widthY = widthY + height;
+	ImGui::SetWindowSize(ImVec2(widthX, widthY));
+	ImGui::SetWindowPos(ImVec2((float)posX, (float)posY));
+	ImGui::End();
+	ImGui::EndFrame();
+}
+void PropertiesWindow::SetSizenWidth(UINT width, UINT height) {
+	ImGui::SetCurrentContext(UIElements::ctx);
+	ImGui::NewFrame();
+	ImGui::Begin("Properties");
+	ImGui::SetWindowFontScale(0.7f);
+	//posX += width / 2;
+	widthX = widthX + width;
+	widthY = widthY + height;
+	ImGui::SetWindowSize(ImVec2(widthX, widthY));
+	ImGui::SetWindowPos(ImVec2((float)posX, (float)posY));
+	ImGui::End();
+	ImGui::EndFrame();
+}
+//----------------------------------------------------------------------//

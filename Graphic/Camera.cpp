@@ -1,9 +1,11 @@
 #include"Camera.h"
 #define CHECK_ERROR(hr) if(FAILED(hr)) throw error::error(hr,__LINE__)
+Camera::CameraProp::CameraProp(Objects* obj):ObjectProperties(obj){
 
+}
 Camera::Camera(Microsoft::WRL::ComPtr<ID3D11Device> pDevice):Objects(++Objects::count,"Camera")//should be changed
 {
-	PosNrot = new CameraProp;
+	PosNrot = new CameraProp(this);
 	CamProperties.push_back(PosNrot);
 	viewmatrix =XMMatrixLookAtLH(
 		XMVectorSet(PosNrot->postion[0], PosNrot->postion[1], PosNrot->postion[2],1.0f),
