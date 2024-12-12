@@ -6,7 +6,8 @@
 class Camera:public Objects {
 public:
 	struct CameraProp:public ObjectProperties {
-		float postion[3] = { 0,0,-5.0f };
+		CameraProp(Objects* obj);
+		float postion[3] = { 0 + associatedObj->Inheritence.InheritedTrans->position[0],0,-5.0f };
 		float rotation[2] = { 0,0 };
 		void show() {
 			ImGui::DragFloat2("Camera Rotation", rotation, 0.1f);

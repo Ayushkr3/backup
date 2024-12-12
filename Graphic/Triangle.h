@@ -5,18 +5,18 @@
 #include <d3dcompiler.h>
 #include <d3d11.h>
 #include <iterator>
-#include<wrl.h>
+#include <wrl.h>
 #include "errors.h"
 #include "timer.h"
 #include "ConstantBuff.h"
 #include "WIC.h"
 #include "HullShader.h"
 #include "DomainShader.h"
-#include "Colliders.h"
+//#include "Colliders.h"
 #include "Phys.h"
 #include "GeometryShader.h"
-#include "EPhysics.h"
-
+//#include "EPhysics.h"
+#include "EInputManager.h"
 #define CHECK_ERROR(hr) if(FAILED(hr)) throw error::error(hr,__LINE__)
 
 class Triangle:public Objects
@@ -60,12 +60,13 @@ public:
 	void InitializePlayMode();
 	void Highlight();
 	void Restore();
-	void UpdateCollider();
-	BoxCollider coll;
-	Physics_Body phy;
 	float color[3];
 	float last_color[3];
 public:
+	//
+	NVPhysx::RigidBody* rb;
+	NVPhysx::BoxCollider* b;
+	//
 	std::vector<ObjectProperties*>* GetProperties();
 };
 

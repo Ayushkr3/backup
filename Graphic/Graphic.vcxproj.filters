@@ -102,7 +102,7 @@
     <ClInclude Include="font\IconsFontAwesome4.h">
       <Filter>fonts</Filter>
     </ClInclude>
-    <ClInclude Include="..\Shared\Global.h">
+    <ClInclude Include="Factory.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -173,7 +173,7 @@
     <ClCompile Include="ECoreUI.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\Shared\Global.cpp">
+    <ClCompile Include="Factory.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

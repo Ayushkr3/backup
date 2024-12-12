@@ -27,11 +27,13 @@ protected:
 	static Microsoft::WRL::ComPtr<ID3D11RenderTargetView>  pUIRenderTarget;
 	static DXGI_SWAP_CHAIN_DESC UIscd;
 public:
+	static ImGuiContext* ctx;
 	HWND cHwnd;
 	UIElements(std::string className, HWND Phwnd, HINSTANCE hint, short x, short y, short w, short b, int windowsN);
 	void UpdateUI();
 	~UIElements();
 	void Swap();
+	void SetSizenWidth(int w,int b);
 	static ImGuiIO* io;
 };
 class SceneManager {
@@ -44,6 +46,7 @@ class SceneManager {
 public:
 	static Scene* currentScene;
 	void SetSizenWidth();
+	void SetSizenWidth(UINT width, UINT height);
 	SceneManager(int posX,int posY,int widthX,int widthY);
 	void Content();
 };
@@ -55,6 +58,7 @@ class PropertiesWindow  {
 public:
 	static Objects* Obj;
 	void SetSizenWidth();
+	void SetSizenWidth(UINT width, UINT height);
 	PropertiesWindow(int posX, int posY, int widthX, int widthY);
 	void Content();
 };
@@ -68,6 +72,7 @@ class Files{
 	Microsoft::WRL::ComPtr<ID3D11DeviceContext> pContext;
 public:
 	void SetSizenWidth();
+	void SetSizenWidth(int width, int height);
 	Files(int posX, int posY, int widthX, int widthY, Microsoft::WRL::ComPtr<ID3D11Device> pDevice,Microsoft::WRL::ComPtr<ID3D11DeviceContext> pContext);
 	void Content();
 };
@@ -78,6 +83,7 @@ class ControlMenu {
 	int widthY;
 public:
 	void SetSizenWidth();
+	void SetSizenWidth(UINT width,UINT height);
 	ControlMenu(int posX, int posY, int widthX, int widthY);
 	void Content();
 };

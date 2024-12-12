@@ -8,15 +8,18 @@
 #include <thread>
 #ifdef ImGUI_ENABLED
 #include "ECoreUI.h"
+#include "Factory.h"
 #include "ImGui/imgui.h"
 #include "ImGui/imgui_impl_win32.h"
 #endif
-
-
+struct WindowRef;
 class window {
 private:
 	HINSTANCE hint;
 	WNDCLASSEX wndClass;
+	int scaledWidth;
+	int scaledHeight;
+	WindowRef* winRef;
 	static LRESULT CALLBACK HandleMsgSetup(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) noexcept;
 	static LRESULT CALLBACK HandleMsgThunk(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) noexcept;
 	LRESULT HandleMsg(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) noexcept;
@@ -32,4 +35,14 @@ public:
 	window();
 	HWND hwnd;
 	~window();
+};
+struct WindowRef {
+	struct {
+		int* widthX;
+		int* heightY;
+		std::unique_ptr<Files>* ptrFiles;
+		std::unique_ptr<PropertiesWindow>* ptrProp;
+		std::unique_ptr<UIElements>* ptrElem;
+	}Additional_Param;
+	window* ContructParam = nullptr;
 };
