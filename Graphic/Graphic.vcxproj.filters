@@ -72,9 +72,6 @@
     <ClInclude Include="Light.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="StaticMesh.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="HullShader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -147,9 +144,6 @@
       <Filter>Wic</Filter>
     </ClCompile>
     <ClCompile Include="Light.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="StaticMesh.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="HullShader.cpp">

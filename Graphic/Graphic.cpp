@@ -43,7 +43,12 @@ Graphic::Graphic(HWND hwnd){
 	pContext->RSSetViewports(1u, &vp);
 #define DEPTH_BIAS_D32_FLOAT(d) (d/(1/pow(2,23)))
 	D3D11_RASTERIZER_DESC rasDesc;
+#ifdef WIREFRAME_ENABLED
 	rasDesc.FillMode = D3D11_FILL_WIREFRAME;
+#else
+	rasDesc.FillMode = D3D11_FILL_SOLID;
+#endif // WIREFRAME_ENABLED
+
 	rasDesc.CullMode = D3D11_CULL_BACK;
 	rasDesc.FrontCounterClockwise = true;
 	rasDesc.DepthClipEnable = true;
@@ -124,13 +129,15 @@ void Graphic::TestFrames() {
 	pContext->PSGetShader(&pLastShader,nullptr,0);
 	pContext->RSSetState(WireFrame.Get());
 	pSc->Render();
+#ifdef WIREFRAME_ENABLED
 	pContext->PSSetShader(pWireFrameSolid.Get(), nullptr, 0);
 	pContext->RSSetState(Solid.Get());
 	pSc->RenderWireFrame();
+#endif 
 	if (*Globals::inPlayMode) {
 		pSc->PlayMode();
 	}
-	pContext->PSSetShader(pLastShader.Get(), nullptr, 0);
+	pContext->PSSetShader(pLastShader.Get(), nullptr, 0);  //Remove this maybe
 }
 Scene* Graphic::GetCurrentScene() {
 	return pSc.get();

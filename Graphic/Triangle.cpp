@@ -8,10 +8,6 @@ Triangle::Triangle(Microsoft::WRL::ComPtr<ID3D11Device> pDevice, Microsoft::WRL:
 	Objects* obj = dynamic_cast<Objects*>(this);
 	Trans = new TransformStruct(obj);
 	ObjProperties.push_back(Trans);
-	rb = new NVPhysx::RigidBody(obj);
-	b = new NVPhysx::BoxCollider(obj);
-	ObjProperties.push_back(rb);
-	ObjProperties.push_back(b);
 	//Physics_Body* phy = new Physics_Body(Trans,obj);
 	//ObjProperties.push_back(phy);
 	//BoxCollider* coll = new BoxCollider(Trans,vertices,n,obj);
@@ -139,7 +135,6 @@ void Triangle::UpdateBuffers() {
 	Transformation.Rotation = ConstantBuffer::ConvertMatrixToFloat4x4(XMMatrixRotationRollPitchYaw((Trans->rotation[0]), (Trans->rotation[1]), (Trans->rotation[2])));
 	Transformation.Translation = ConstantBuffer::ConvertMatrixToFloat4x4(XMMatrixTranslation(Trans->position[0] + (Inheritence.InheritedTrans)->position[0], Trans->position[1] + (Inheritence.InheritedTrans)->position[1], Trans->position[2] + (Inheritence.InheritedTrans)->position[2]));
 	Transformation.Scale = ConstantBuffer::ConvertMatrixToFloat4x4(XMMatrixScaling(Trans->Scale[0], Trans->Scale[1], Trans->Scale[2]));
-	// is there even any point to update if i have to bind it every frame ?
 	pCB->UpdateBuffer(pContext, &Transformation);
 }
 void Triangle::inPlayMode() {
@@ -148,9 +143,7 @@ void Triangle::inPlayMode() {
 		pCB->Transform(Trans, rn);
 	}
 	for (auto& o : ObjProperties) {
-		if (dynamic_cast<NVPhysx::RigidBody*>(o) != nullptr) {
-			o->inPlayMode();
-		}
+		o->inPlayMode();
 	}
 }
 void Triangle::ReCalculatePosition() {
@@ -158,7 +151,6 @@ void Triangle::ReCalculatePosition() {
 }
 void Triangle::InitializePlayMode()
 {
-	//rb->InitPlayMode(Trans);
 	for (auto& o : ObjProperties) {
 		o->InitPlayMode();
 	}
@@ -184,4 +176,7 @@ bool Triangle::operator==(const Triangle& secondObj) const {
 }
 std::vector<ObjectProperties*>* Triangle::GetProperties() {
 	return &ObjProperties;
+}
+Triangle::~Triangle() {
+	delete Trans;
 }

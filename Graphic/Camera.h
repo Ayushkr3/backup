@@ -14,6 +14,7 @@ public:
 			ImGui::DragFloat3("Camera Position", postion, 0.1f);
 		}
 		ObjectProperties* GetPropertyRef() { return this; }
+		const std::type_info& GetPropertyType() { return typeid(CameraProp); };
 	};
 	Camera(Microsoft::WRL::ComPtr<ID3D11Device> pDevice);
 	CameraProp* PosNrot;

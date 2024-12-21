@@ -5,7 +5,6 @@ using namespace physx;
 //#include "EPhysics.h"
 //#include "ImGui/imgui.h"
 ////SAT algorithm
-////TODO: Fix Normal update
 //using namespace DirectX;
 //using namespace Collision;
 //BoxCollider::BoxCollider(TransformStruct*& trans,std::vector<Vertex>& vertices, std::vector<NormalPerObject> Normals,Objects*& obj,ImGuiContext * ctx) :vert(vertices), ObjectsNormals{Normals},cxt(ctx), objTransform(trans),ObjectProperties(obj),phys(nullptr){
@@ -149,8 +148,11 @@ NVPhysx::BoxCollider::BoxCollider(Objects* obj):ObjectProperties(obj) {
 }
 void NVPhysx::BoxCollider::InitPlayMode() {
 	try {
+		if (isInitalized)
+			return;
 		if (rb == nullptr)
 			throw 1;
+		rb->InitPlayMode();
 		this->Material = physicsObj->createMaterial(0.5f, 0.5f, 0.5f);
 		this->shape = physicsObj->createShape(PxBoxGeometry(1.0f, 1.0f, 1.0f), *this->Material);
 		if (rb->DynamicActor == rb->GetCurrentActor()) {
@@ -159,6 +161,7 @@ void NVPhysx::BoxCollider::InitPlayMode() {
 		if (rb->StaticActor == rb->GetCurrentActor()) {
 			rb->StaticActor->attachShape(*this->shape);
 		}
+		isInitalized = true;
 	}
 	catch (int Error) {
 		assert(Error);
@@ -184,13 +187,24 @@ void NVPhysx::BoxCollider::UpdateDependency(const void* ptr) {
 		rb = (RigidBody*)(ref->ObjectPtr);
 	}
 }
-std::unique_ptr<ObjectProperties> CreateCollider(Objects* obj) {
-	return std::make_unique<NVPhysx::BoxCollider>(obj);
+void NVPhysx::BoxCollider::DeInitPlayMode() {
+	isInitalized = false;
+}
+//-------------------------------------------------------------------------------//
+//---------------------------------Factroy functions----------------------------//
+//-------------------------------------------------------------------------------//
+ObjectProperties* CreateCollider(Objects* obj) {
+	return new NVPhysx::BoxCollider(obj);
 }
 ObjectProperties* NVPhysx::BoxCollider::GetPropertyRef() {
 	return this;
 }
-void NVPhysx::BoxCollider::RegisterFactory(std::multimap<std::string, std::function<std::unique_ptr<ObjectProperties>(Objects*)>>& GlobalPropertiesPoolL) {
-	std::function<std::unique_ptr<ObjectProperties>(Objects*)> f = CreateCollider;
+void NVPhysx::BoxCollider::RegisterFactory(std::multimap<std::string, std::function<ObjectProperties*(Objects*)>>& GlobalPropertiesPoolL) {
+	std::function<ObjectProperties*(Objects*)> f = CreateCollider;
 	ObjectProperties::PushToObjectPropertyPool("Collider",f,GlobalPropertiesPoolL);
 }
+const std::type_info& NVPhysx::BoxCollider::GetPropertyType() {
+	return typeid(NVPhysx::BoxCollider);
+}
+//-------------------------------------------------------------------------------//
+//-------------------------------------------------------------------------------//

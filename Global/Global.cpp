@@ -5,7 +5,7 @@
 
 bool* Globals::inPlayMode = nullptr;
 float* Globals::dT = 0;
-std::multimap<std::string,std::function<std::unique_ptr<ObjectProperties>(Objects*)>> ObjectProperties::GlobalPropertiesPool = {};
+std::multimap<std::string,std::function<ObjectProperties*(Objects*)>> ObjectProperties::GlobalPropertiesPool = {};
 ObjectProperties::ObjectProperties(Objects* obj) :associatedObj(obj) {
 
 }
@@ -13,7 +13,7 @@ TransformStruct::TransformStruct(Objects* obj) : ObjectProperties(obj) {
 
 }
 static TransformStruct* t = new TransformStruct(nullptr);
-void ObjectProperties::PushToObjectPropertyPool(std::string name, std::function<std::unique_ptr<ObjectProperties>(Objects*)> f, std::multimap<std::string, std::function<std::unique_ptr<ObjectProperties>(Objects*)>>& GlobalPropertiesPoolL = ObjectProperties::GlobalPropertiesPool) {
+void ObjectProperties::PushToObjectPropertyPool(std::string name, std::function<ObjectProperties*(Objects*)> f, std::multimap<std::string, std::function<ObjectProperties*(Objects*)>>& GlobalPropertiesPoolL = ObjectProperties::GlobalPropertiesPool) {
 	GlobalPropertiesPoolL.insert({name,f});
 }
 Objects::Objects(short id, std::string ObjName) :Id(id), ObjName(ObjName) {
@@ -69,4 +69,7 @@ void Objects::SetInheritence(Objects*& o) {
 }
 std::string GetMemAddress(void* ptr) {
 	std::ostringstream oss; oss << ptr; return oss.str().substr(oss.str().size()-7, 7);
+}
+const std::type_info& TransformStruct::GetPropertyType() {
+	return typeid(TransformStruct);
 }

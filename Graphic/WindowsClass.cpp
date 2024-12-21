@@ -69,6 +69,7 @@ window::window():
 		NULL			 // Additional application data
 	);
 #endif // ImGUI_ENABLED
+	DebugConsole::InitDebugConsole();
 	UIwindow = std::make_unique<UIElements>(className, hwnd, hint, 0, 0, MulDiv(1600, 96, 144), MulDiv(900, 96, 144), 1);
 	RenderTargetWindows = std::make_unique<UIWindows>(className, hwnd, hint, MulDiv(300, 96, 144), MulDiv(70, 96, 144), MulDiv(1024, 96, 144), MulDiv(576, 96, 144),2);
 	pGfx = std::make_unique<Graphic>(RenderTargetWindows.get()->cHwnd);
@@ -152,9 +153,9 @@ LRESULT window::HandleMsg(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) noe
 			return 0;
 		UINT height = HIWORD(lParam);//= *winRef->Additional_Param.heightY;
 		UINT width = LOWORD(lParam);//*winRef->Additional_Param.widthX;
-		winRef->Additional_Param.ptrElem->get()->SetSizenWidth(width, height);
-		winRef->Additional_Param.ptrFiles->get()->SetSizenWidth(width - *(winRef->Additional_Param.widthX), height - *(winRef->Additional_Param.heightY));
-		winRef->Additional_Param.ptrProp->get()->SetSizenWidth(width - *(winRef->Additional_Param.widthX), height - *(winRef->Additional_Param.heightY));
+		//winRef->Additional_Param.ptrElem->get()->SetSizenWidth(width, height);
+		//winRef->Additional_Param.ptrFiles->get()->SetSizenWidth(width - *(winRef->Additional_Param.widthX), height - *(winRef->Additional_Param.heightY));
+		//winRef->Additional_Param.ptrProp->get()->SetSizenWidth(width - *(winRef->Additional_Param.widthX), height - *(winRef->Additional_Param.heightY));
 
 		*winRef->Additional_Param.heightY = height;
 		*winRef->Additional_Param.widthX = width;
@@ -270,6 +271,7 @@ LRESULT window::HandleMsg(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) noe
 window::~window() {
 #ifdef ImGUI_ENABLED
 #endif // ImGUI_ENABLED
+	DebugConsole::DestroyConsole();
 	DestroyWindow(hwnd);
 	UnregisterClass("OI",hint);
 	//mouse_cont.DestroyRawInput();

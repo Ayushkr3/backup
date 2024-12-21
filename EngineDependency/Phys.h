@@ -51,6 +51,7 @@ public:
 	PHYSICS_API static void Destroy();
 	class RigidBody:public ObjectProperties {
 	private:
+		bool isInitalized = false ;
 		TransformStruct* nulltrans;
 		Euler updatedAngle;
 	private:
@@ -60,7 +61,8 @@ public:
 	public:
 		TransformStruct* trans;
 		PHYSICS_API void InitPlayMode();
-		PHYSICS_API static void RegisterFactory(std::multimap<std::string, std::function<std::unique_ptr<ObjectProperties>(Objects*)>>& GlobalPropertiesPoolL = ObjectProperties::GlobalPropertiesPool);
+		PHYSICS_API void DeInitPlayMode();
+		PHYSICS_API static void RegisterFactory(std::multimap<std::string, std::function<ObjectProperties*(Objects*)>>& GlobalPropertiesPoolL = ObjectProperties::GlobalPropertiesPool);
 		PHYSICS_API void UpdateDependency(const void* ptr);
 		PHYSICS_API void inPlayMode();
 		physx::PxRigidDynamic* DynamicActor;
@@ -70,19 +72,23 @@ public:
 		PHYSICS_API void show();
 		PHYSICS_API ObjectProperties* GetPropertyRef();
 		PHYSICS_API physx::PxActor* GetCurrentActor();
+		PHYSICS_API const std::type_info& GetPropertyType();
 	};
 	class BoxCollider:public ObjectProperties{
 		RigidBody* rb;
 		physx::PxMaterial* Material;
 		physx::PxShape* shape;
+		bool isInitalized = false;
 	public:
+		PHYSICS_API const std::type_info& GetPropertyType();
 		PHYSICS_API ObjectProperties* GetPropertyRef();
-		PHYSICS_API static void RegisterFactory(std::multimap<std::string, std::function<std::unique_ptr<ObjectProperties>(Objects*)>>& GlobalPropertiesPoolL = ObjectProperties::GlobalPropertiesPool);
+		PHYSICS_API static void RegisterFactory(std::multimap<std::string, std::function<ObjectProperties*(Objects*)>>& GlobalPropertiesPoolL = ObjectProperties::GlobalPropertiesPool);
 		PHYSICS_API void InitPlayMode();
+		PHYSICS_API void DeInitPlayMode();
 		PHYSICS_API void show();
 		PHYSICS_API void UpdateDependency(const void* ptr);
 		PHYSICS_API BoxCollider(Objects* obj);
 	};
 };
-PHYSICS_API std::unique_ptr<ObjectProperties> CreateRigidBody(Objects* obj);
-PHYSICS_API std::unique_ptr<ObjectProperties> CreateCollider(Objects* obj);
+PHYSICS_API ObjectProperties* CreateRigidBody(Objects* obj);
+PHYSICS_API ObjectProperties* CreateCollider(Objects* obj);

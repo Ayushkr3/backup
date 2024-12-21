@@ -93,7 +93,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIREFRAME_ENABLED;WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>false</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <AdditionalIncludeDirectories>D:\program\vs\graphic\EngineDependency;D:\program\vs\graphic\Shared;D:\program\vs\graphic\Graphic\ObjParser;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
@@ -112,7 +112,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIREFRAME_DISABLED;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>D:\program\vs\graphic\EngineDependency\include;D:\program\vs\graphic\EngineDependency;D:\program\vs\graphic\Shared;D:\program\vs\graphic\Graphic\ObjParser;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
@@ -185,7 +185,6 @@
     <ClInclude Include="ObjParser\ObjParser.h" />
     <ClInclude Include="PixelShader.h" />
     <ClInclude Include="Scene.h" />
-    <ClInclude Include="StaticMesh.h" />
     <ClInclude Include="timer.h" />
     <ClInclude Include="Triangle.h" />
     <ClInclude Include="VertexShader.h" />
@@ -210,7 +209,6 @@
     <ClCompile Include="Microsoft_wic.cpp" />
     <ClCompile Include="PixelShader.cpp" />
     <ClCompile Include="Scene.cpp" />
-    <ClCompile Include="StaticMesh.cpp" />
     <ClCompile Include="timer.cpp" />
     <ClCompile Include="Triangle.cpp" />
     <ClCompile Include="VertexShader.cpp" />

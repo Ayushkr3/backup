@@ -159,7 +159,8 @@ void SceneManager::Content() {
 	}
 	static Objects* last_object = nullptr;
 	for (auto& Tri : currentScene->AllObject) {
-		if (ImGui::Selectable((Tri->ObjName + std::to_string(Tri->Id)).c_str(), selected == Tri->Id)) {
+		std::string selectableLabel = Tri->ObjName + std::to_string(Tri->Id);
+		if (ImGui::Selectable(selectableLabel.c_str(), selected == Tri->Id)) {
 			PropertiesWindow::Obj = Tri;
 			selected = Tri->Id;
 			Tri->Highlight();
@@ -188,13 +189,11 @@ void SceneManager::Content() {
 				Objects::GlobalIdPool.push_back(t->Id);
 				if (Globals::inPlayMode) {}
 					//currentScene->CContoller->deleteObject(t);
-				currentScene->AllObject.erase(LookUp(Tri->Id,currentScene->AllObject));
-				currentScene->Triangles.erase(LookUp(t, currentScene->Triangles));
 				if (last_object == t)
 					last_object = nullptr;
-				delete t;
-				t = nullptr;
-				ImGui::CloseCurrentPopup();
+				currentScene->DeleteObject(Tri);
+				
+				//ImGui::CloseCurrentPopup();
 				PropertiesWindow::Obj = nullptr;
 			}
 			ImGui::EndPopup();
@@ -228,7 +227,15 @@ void PropertiesWindow::Content() {
 				for (auto& x : ObjectProperties::GlobalPropertiesPool) {
 					if (ImGui::MenuItem(x.first.c_str()))
 					{
-						
+						ObjectProperties* newProp = x.second(PropertiesWindow::Obj);
+						bool found = false;
+						for (auto& y : *PropertiesWindow::Obj->GetProperties()) {
+							if (y->GetPropertyType() == newProp->GetPropertyType()) {
+								found = true;
+								break;
+							}
+						}
+						found?delete newProp: PropertiesWindow::Obj->GetProperties()->push_back(newProp);
 					}
 				}
 				ImGui::EndMenu();
@@ -342,6 +349,10 @@ void ControlMenu::Content() {
 		if (*Globals::inPlayMode) {
 			SceneManager::currentScene->InitalizePlayMode();
 		}
+		else {
+			SceneManager::currentScene->DeInitalizePlayMode();
+			DebugConsole::Log("Exited PlayMode");
+		}
 	}
 	ImGui::SameLine();
 	ImGui::Text(("inPlayMode"+std::to_string(*Globals::inPlayMode)).c_str());
@@ -368,9 +379,9 @@ void Files::SetSizenWidth(int width, int height) {
 	ImGui::NewFrame();
 	ImGui::Begin("Files");
 	ImGui::SetWindowFontScale(0.7f);
-	posX = posX + width;
+	/*posX = posX + width;
 	widthX = widthX + width;
-	widthY = widthY + height;
+	widthY = widthY + height;*/
 	ImGui::SetWindowSize(ImVec2(widthX, widthY));
 	ImGui::SetWindowPos(ImVec2((float)posX, (float)posY));
 	ImGui::End();
@@ -382,8 +393,8 @@ void PropertiesWindow::SetSizenWidth(UINT width, UINT height) {
 	ImGui::Begin("Properties");
 	ImGui::SetWindowFontScale(0.7f);
 	//posX += width / 2;
-	widthX = widthX + width;
-	widthY = widthY + height;
+	/*widthX = widthX + width;
+	widthY = widthY + height;*/
 	ImGui::SetWindowSize(ImVec2(widthX, widthY));
 	ImGui::SetWindowPos(ImVec2((float)posX, (float)posY));
 	ImGui::End();

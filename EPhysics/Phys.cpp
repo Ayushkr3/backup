@@ -123,6 +123,7 @@ void NVPhysx::CreateNewScene(PxScene*& Scene) {
 	Scene = physicsObj->createScene(*physcenedesc);
 }
 NVPhysx::RigidBody::RigidBody(Objects* obj) :ObjectProperties(obj),trans(nulltrans){
+
 }
 ObjectProperties* NVPhysx::RigidBody::GetPropertyRef() {
 	return this;
@@ -141,27 +142,32 @@ PxActor* NVPhysx::RigidBody::GetCurrentActor()
 	return nullptr;
 }
 void NVPhysx::RigidBody::InitPlayMode() {
+	if (isInitalized) {
+		goto SKIP_CREATION;
+	}
 	if (trans == nullptr)
 		assert("UnInitialized");
 	if (DynamicActor == nullptr&&StaticActor == nullptr) {
 		DynamicActor = physicsObj->createRigidDynamic(physx::PxTransform(physx::PxVec3(trans->position[0], trans->position[1], trans->position[2])));
 		StaticActor = physicsObj->createRigidStatic(physx::PxTransform(physx::PxVec3(trans->position[0], trans->position[1], trans->position[2])));
 	}
-	if (DynamicActor->getScene() != nullptr) {
+	SKIP_CREATION:
+	if (DynamicActor != nullptr) {
 		DynamicActor->setActorFlag(PxActorFlag::eDISABLE_GRAVITY, !isAffectedbyGravity);
 		DynamicActor->setGlobalPose(physx::PxTransform(physx::PxVec3(trans->position[0], trans->position[1], trans->position[2]), EulerToQuaternion(trans->rotation[2], trans->rotation[1], trans->rotation[0])));
 		DynamicActor->setLinearVelocity(PxVec3(0.0f, 0.0f, 0.0f));
 		DynamicActor->setAngularVelocity(PxVec3(0.0f, 0.0f, 0.0f));
 	}
-	if (StaticActor->getScene() != nullptr) {
-		//StaticActor->setActorFlag(PxActorFlag::eDISABLE_GRAVITY, !isAffectedbyGravity);
+	if (StaticActor != nullptr) {
+		StaticActor->setActorFlag(PxActorFlag::eDISABLE_GRAVITY, !isAffectedbyGravity);
 		StaticActor->setGlobalPose(physx::PxTransform(physx::PxVec3(trans->position[0], trans->position[1], trans->position[2]), EulerToQuaternion(trans->rotation[2], trans->rotation[1], trans->rotation[0])));
 	}
+	isInitalized = true;
 }
 void NVPhysx::RigidBody::show() {
 	ImGuiContext* c = privateCtx;
 	ImGui::SetCurrentContext(privateCtx);
-	if (ImGui::CollapsingHeader("PhysX", ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_CollapsingHeader)) {
+	if (ImGui::CollapsingHeader("RigiBody", ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_CollapsingHeader)) {
 		ImGui::Button("RigidBody");
 		if (ImGui::BeginDragDropSource()) {
 			std::unique_ptr<RefrencePassing> ref = std::make_unique<RefrencePassing>((void*)this, typeid(*this));
@@ -238,13 +244,19 @@ void NVPhysx::RigidBody::UpdatePhysics() {
 		}
 	}
 }
-std::unique_ptr<ObjectProperties> CreateRigidBody(Objects* obj) {
-	return std::make_unique<NVPhysx::RigidBody>(obj);
+
+//-------------------------------------------------------------------------------//
+//---------------------------------Factroy functions----------------------------//
+//-------------------------------------------------------------------------------//
+ObjectProperties* CreateRigidBody(Objects* obj) {
+	return new NVPhysx::RigidBody(obj);
 }
-void NVPhysx::RigidBody::RegisterFactory(std::multimap<std::string, std::function<std::unique_ptr<ObjectProperties>(Objects*)>>& GlobalPropertiesPoolL) {
-	std::function<std::unique_ptr<ObjectProperties>(Objects*)> f = CreateRigidBody;
+void NVPhysx::RigidBody::RegisterFactory(std::multimap<std::string, std::function<ObjectProperties*(Objects*)>>& GlobalPropertiesPoolL) {
+	std::function<ObjectProperties*(Objects*)> f = CreateRigidBody;
 	ObjectProperties::PushToObjectPropertyPool("RigidBody",f, GlobalPropertiesPoolL);
 }
+//------------------------------------------------------------------------------//
+
 //Updates inter properties dependency
 //Drag and drop dependency
 void NVPhysx::RigidBody::UpdateDependency(const void* ptr) {
@@ -252,4 +264,10 @@ void NVPhysx::RigidBody::UpdateDependency(const void* ptr) {
 	if (ref->id == typeid(TransformStruct)) {
 		trans = (TransformStruct*)ref->ObjectPtr;
 	}
+}
+const std::type_info& NVPhysx::RigidBody::GetPropertyType() {
+	return typeid(NVPhysx::RigidBody);
+}
+void NVPhysx::RigidBody::DeInitPlayMode() {
+	isInitalized = false;
 }

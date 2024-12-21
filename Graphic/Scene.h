@@ -8,16 +8,20 @@
 #include "Phys.h"
 #include "ColliderController.h"
 class Scene {
+private:
+	std::vector<Objects*>::iterator LookUp(short id, std::vector<Objects*>& vec);
+	std::vector<Triangle*>::iterator LookUp(Triangle* Tri, std::vector<Triangle*>& vec);
 public:
 	void SaveScene();
 	static short currentOBJID;
 	static std::vector<short> globalCurrentOBJID;
-	//std::unique_ptr<ColliderController> CContoller;
 	Scene(Microsoft::WRL::ComPtr<ID3D11Device> pDevice, Microsoft::WRL::ComPtr<ID3D11DeviceContext> pContext);
 	void Render();
 	void RenderWireFrame();
 	void PlayMode();
 	void InitalizePlayMode();
+	void DeInitalizePlayMode();
+	void DeleteObject(Objects* obj);
 	Timer tim;
 public:
 	Microsoft::WRL::ComPtr<ID3D11Device> pDevice;

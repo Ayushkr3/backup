@@ -26,6 +26,7 @@ public:
 	std::vector<Vertex> vertices; // = { {0.0f,0.0f, 255, 0, 0, 0 }, { 0.5f,-0.5f,0,255,0,0 }, { -0.5f,-0.5f,0,0,255,0 } };
 	std::vector<unsigned int> index;
 	Triangle(Microsoft::WRL::ComPtr<ID3D11Device> pDevice, Microsoft::WRL::ComPtr<ID3D11DeviceContext> pContext, std::vector<Vertex> vertice, std::vector<unsigned int> indi, short id, float rgba[3],short globalID, std::vector<NormalPerObject>nor = {});
+	~Triangle();
 	bool isMoving;
 	void Draw();
 	void UpdateBuffers();
@@ -64,8 +65,6 @@ public:
 	float last_color[3];
 public:
 	//
-	NVPhysx::RigidBody* rb;
-	NVPhysx::BoxCollider* b;
 	//
 	std::vector<ObjectProperties*>* GetProperties();
 };
