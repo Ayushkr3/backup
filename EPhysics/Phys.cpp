@@ -165,7 +165,6 @@ void NVPhysx::RigidBody::InitPlayMode() {
 	isInitalized = true;
 }
 void NVPhysx::RigidBody::show() {
-	ImGuiContext* c = privateCtx;
 	ImGui::SetCurrentContext(privateCtx);
 	if (ImGui::CollapsingHeader("RigiBody", ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_CollapsingHeader)) {
 		ImGui::Button("RigidBody");

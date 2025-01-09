@@ -27,8 +27,8 @@ UIWindows::UIWindows(std::string className, HWND Phwnd, HINSTANCE hint,short x ,
 }
 UIElements::UIElements(std::string className, HWND Phwnd, HINSTANCE hint, short x, short y, short w, short b, int windowsN) {
 	if (pUIDevice == nullptr) {
-		NVPhysx::privateCtx = (ImGui::CreateContext());
-		ctx = NVPhysx::privateCtx;
+		ctx = (ImGui::CreateContext());
+		ImguiContextFactory::Init(ctx);
 		UIElements::io = &ImGui::GetIO();
 		io->FontGlobalScale = 1.4f;
 		io->WantCaptureMouse = true;
@@ -279,6 +279,28 @@ void Files::Content()
 		else if (it.is_regular_file()) {
 			if (ImGui::Selectable((ICON_FA_FILE_O" " + it.path().filename().string()).c_str(), fileSelected == it)) {
 				fileSelected = it;
+			}
+			if (it.path().extension() == ".cso") {
+				if (ImGui::BeginDragDropSource()) {
+					std::unique_ptr<PathToFile> pf = std::make_unique<PathToFile>();
+					pf.get()->Path = it.path().generic_string();
+					pf.get()->FileName = it.path().filename().generic_string();
+					std::unique_ptr<RefrencePassing> ref = std::make_unique<RefrencePassing>((void*)pf.get(), typeid(PathToFile));
+					ImGui::SetDragDropPayload("Shader", ref.get(), sizeof(RefrencePassing));
+					pf.release();
+					ImGui::EndDragDropSource();
+				}
+			}
+			else if (it.path().extension() == ".jpg"|| it.path().extension() ==".jpeg"|| it.path().extension() == ".dds") {
+				if (ImGui::BeginDragDropSource()) {
+					std::unique_ptr<PathToFile> pf = std::make_unique<PathToFile>();
+					pf.get()->Path = it.path().generic_string();
+					pf.get()->FileName = it.path().filename().generic_string();
+					std::unique_ptr<RefrencePassing> ref = std::make_unique<RefrencePassing>((void*)pf.get(), typeid(PathToFile));
+					ImGui::SetDragDropPayload("Texture", ref.get(), sizeof(RefrencePassing));
+					pf.release();
+					ImGui::EndDragDropSource();
+				}
 			}
 			if (ImGui::BeginPopupContextItem(it.path().string().c_str())) {
 				if (ImGui::Button("Add to scene")) {

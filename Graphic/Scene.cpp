@@ -7,7 +7,10 @@ Scene::Scene(Microsoft::WRL::ComPtr<ID3D11Device> pDevice, Microsoft::WRL::ComPt
 	:cam(pDevice), pContext(pContext),light(pDevice),pDevice(pDevice)
 
 {
+	pDumbDevice = pDevice.Get();
+	pDumbContext = pContext.Get();
 	NVPhysx::CreateNewScene(physScene);
+	LoadSkyBox();
 	AllObject.push_back(&cam);
 }
 Scene::~Scene() {
@@ -16,7 +19,7 @@ void Scene::Render() {
 	cam.calculateProjection(pContext, &(cam.GetViewMatrix()));
 	//light.UpdateBuffer(pContext);
 	//TODO: Fix proper lighting
-	//TODO: BroadPhase collision update on rotation
+	pSkyBox->Draw();
 	for (auto& Triangle : Triangles) {
 		Triangle->Draw();
 #ifndef WIREFRAME_ENABLED
@@ -108,4 +111,55 @@ std::vector<Triangle*>::iterator Scene::LookUp(Triangle* Tri, std::vector<Triang
 			return it;
 	}
 	return vec.end();
+}
+void Scene::LoadSkyBox() {
+	std::vector<Vertex> vertices = { {-1.0f, -1.0f, -1.0f, 0.0f, 1.0f}, // Bottom-left
+	{ 1.0f, -1.0f, -1.0f, 1.0f, 1.0f}, // Bottom-right
+	{ 1.0f,  1.0f, -1.0f, 1.0f, 0.0f}, // Top-right
+	{-1.0f,  1.0f, -1.0f, 0.0f, 0.0f}, // Top-left
+
+	// Back face
+	{-1.0f, -1.0f,  1.0f, 1.0f, 1.0f}, // Bottom-left
+	{ 1.0f, -1.0f,  1.0f, 0.0f, 1.0f}, // Bottom-right
+	{ 1.0f,  1.0f,  1.0f, 0.0f, 0.0f}, // Top-right
+	{-1.0f,  1.0f,  1.0f, 1.0f, 0.0f}, // Top-left
+
+	// Left face
+	{-1.0f, -1.0f,  1.0f, 0.0f, 1.0f}, // Bottom-left
+	{-1.0f, -1.0f, -1.0f, 1.0f, 1.0f}, // Bottom-right
+	{-1.0f,  1.0f, -1.0f, 1.0f, 0.0f}, // Top-right
+	{-1.0f,  1.0f,  1.0f, 0.0f, 0.0f}, // Top-left
+
+	// Right face
+	{ 1.0f, -1.0f, -1.0f, 0.0f, 1.0f}, // Bottom-left
+	{ 1.0f, -1.0f,  1.0f, 1.0f, 1.0f}, // Bottom-right
+	{ 1.0f,  1.0f,  1.0f, 1.0f, 0.0f}, // Top-right
+	{ 1.0f,  1.0f, -1.0f, 0.0f, 0.0f}, // Top-left
+
+	// Top face
+	{-1.0f,  1.0f, -1.0f, 0.0f, 1.0f}, // Bottom-left
+	{ 1.0f,  1.0f, -1.0f, 1.0f, 1.0f}, // Bottom-right
+	{ 1.0f,  1.0f,  1.0f, 1.0f, 0.0f}, // Top-right
+	{-1.0f,  1.0f,  1.0f, 0.0f, 0.0f}, // Top-left
+
+	// Bottom face
+	{-1.0f, -1.0f,  1.0f, 0.0f, 1.0f}, // Bottom-left
+	{ 1.0f, -1.0f,  1.0f, 1.0f, 1.0f}, // Bottom-right
+	{ 1.0f, -1.0f, -1.0f, 1.0f, 0.0f}, // Top-right
+	{-1.0f, -1.0f, -1.0f, 0.0f, 0.0f} };
+	std::vector<unsigned int> indices = { 0, 2, 1,  0, 3, 2,
+		// Back face
+		4, 5, 6,  4, 6, 7,
+		// Left face
+		8, 10, 9, 8, 11, 10,
+		// Right face
+		12, 14, 13, 12, 15, 14,
+		// Top face
+		16, 18, 17, 16, 19, 18,
+		// Bottom face
+		20, 22, 21, 20, 23, 22 };
+	std::vector <NormalPerObject> n;
+	float color[3];
+	//Set position of sky box to Camera
+	pSkyBox = std::make_unique<SkyBox>(pDumbDevice,pDumbContext,vertices,indices,currentOBJID++, color, ++Objects::count,n,&cam);
 }

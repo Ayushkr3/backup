@@ -10,7 +10,7 @@
 #include "ImGui/imgui_impl_dx11.h"
 #include "ImGui/imgui.h"
 #endif
-#include "WIC.h"
+#include <dxgidebug.h>
 
 #define CHECK_ERROR(hr) if(FAILED(hr)) throw error::error(hr,__LINE__)
 
@@ -19,7 +19,6 @@ private:
 	Microsoft::WRL::ComPtr<IDXGISwapChain> pSwap;
 	Microsoft::WRL::ComPtr<ID3D11RenderTargetView> pTarget;
 public:
-
 	Microsoft::WRL::ComPtr<ID3D11DepthStencilView>pDs;
 	Microsoft::WRL::ComPtr<ID3D11Device> pDevice;
 	Microsoft::WRL::ComPtr<ID3D11DeviceContext> pContext;
@@ -31,7 +30,6 @@ public:
 	void ClearBuffer(float rgba[4]);
 	//void ToDoFrame();
 	void TestFrames();
-
 public:
 	Scene* GetCurrentScene();
 	bool showvalue = true;

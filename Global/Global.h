@@ -103,6 +103,10 @@ struct RefrencePassing {
 	const std::type_info& id;
 	RefrencePassing(void* ObjectPtr,const std::type_info& id) :ObjectPtr(ObjectPtr),id(id){};
 };
+struct PathToFile {
+	std::string Path;
+	std::string FileName = "Default";
+};
 std::string GetMemAddress(void* ptr);
 //---------------------------------Console Stuff------------------------------//
 //----------------------------------------------------------------------------//

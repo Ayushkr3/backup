@@ -122,7 +122,7 @@
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>D:\program\vs\graphic\EngineDependency\Physx;D:\program\vs\graphic\EngineDependency;D:\program\vs\graphic\Graphic\ObjParser;D:\program\vs\graphic\Shared;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>Global.lib;EInputManager.lib;ImGui.lib;EPhysics.lib;ObjParser.lib;LowLevel_static_64.lib;LowLevelAABB_static_64.lib;PhysX_64.lib;PhysXCommon_64.lib;PhysXCooking_64.lib;PhysXExtensions_static_64.lib;PhysXFoundation_64.lib;PhysXPvdSDK_static_64.lib;PhysXTask_static_64.lib;PhysXVehicle_static_64.lib;SampleBase_static_64.lib;SampleFramework_static_64.lib;SamplesToolkit_static_64.lib;SceneQuery_static_64.lib;SimulationController_static_64.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Global.lib;EInputManager.lib;ImGui.lib;EPhysics.lib;EPrimitives.lib;ObjParser.lib;LowLevel_static_64.lib;LowLevelAABB_static_64.lib;PhysX_64.lib;PhysXCommon_64.lib;PhysXCooking_64.lib;PhysXExtensions_static_64.lib;PhysXFoundation_64.lib;PhysXPvdSDK_static_64.lib;PhysXTask_static_64.lib;PhysXVehicle_static_64.lib;SampleBase_static_64.lib;SampleFramework_static_64.lib;SamplesToolkit_static_64.lib;SceneQuery_static_64.lib;SimulationController_static_64.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -168,7 +168,6 @@
     <ClInclude Include="Camera.h" />
     <ClInclude Include="ColliderController.h" />
     <ClInclude Include="ConstantBuff.h" />
-    <ClInclude Include="DomainShader.h" />
     <ClInclude Include="dxerr.h" />
     <ClInclude Include="ECoreUI.h" />
     <ClInclude Include="Entry.h" />
@@ -176,43 +175,34 @@
     <ClInclude Include="Factory.h" />
     <ClInclude Include="font\IconsCodicons.h" />
     <ClInclude Include="font\IconsFontAwesome4.h" />
-    <ClInclude Include="GeometryShader.h" />
     <ClInclude Include="Graphic.h" />
-    <ClInclude Include="HullShader.h" />
     <ClInclude Include="Light.h" />
     <ClInclude Include="Metrices.h" />
-    <ClInclude Include="Microsoft_wic.h" />
     <ClInclude Include="ObjParser\ObjParser.h" />
     <ClInclude Include="PixelShader.h" />
     <ClInclude Include="Scene.h" />
+    <ClInclude Include="SkyBox.h" />
     <ClInclude Include="timer.h" />
     <ClInclude Include="Triangle.h" />
-    <ClInclude Include="VertexShader.h" />
-    <ClInclude Include="WIC.h" />
     <ClInclude Include="WindowsClass.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="ColliderController.cpp" />
     <ClCompile Include="ConstantBuff.cpp" />
-    <ClCompile Include="DomainShader.cpp" />
     <ClCompile Include="dxerr.cpp" />
     <ClCompile Include="ECoreUI.cpp" />
     <ClCompile Include="Entry.cpp" />
     <ClCompile Include="errors.cpp" />
     <ClCompile Include="Factory.cpp" />
-    <ClCompile Include="GeometryShader.cpp" />
     <ClCompile Include="Graphic.cpp" />
-    <ClCompile Include="HullShader.cpp" />
     <ClCompile Include="Light.cpp" />
     <ClCompile Include="Metrices.cpp" />
-    <ClCompile Include="Microsoft_wic.cpp" />
     <ClCompile Include="PixelShader.cpp" />
     <ClCompile Include="Scene.cpp" />
+    <ClCompile Include="SkyBox.cpp" />
     <ClCompile Include="timer.cpp" />
     <ClCompile Include="Triangle.cpp" />
-    <ClCompile Include="VertexShader.cpp" />
-    <ClCompile Include="WIC.cpp" />
     <ClCompile Include="WindowsClass.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -226,6 +216,17 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Domain</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(ProjectDir)%(Filename).cso</ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="DSSkyBox.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Domain</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Domain</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">5.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Domain</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">5.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Domain</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">D:\program\Eng\Shaders\%(Filename).cso</ObjectFileOutput>
     </FxCompile>
     <FxCompile Include="GeometryShader.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Geometry</ShaderType>
@@ -259,6 +260,28 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compute</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4.0</ShaderModel>
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(ProjectDir)%(Filename).cso</ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="PSTexture.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4.0</ShaderModel>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">D:\program\Eng\Shaders\%(Filename).cso</ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="PSSkyBox.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4.0</ShaderModel>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">D:\program\Eng\Shaders\%(Filename).cso</ObjectFileOutput>
     </FxCompile>
     <FxCompile Include="SolidColWireFrame.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>

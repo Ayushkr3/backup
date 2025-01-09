@@ -1,6 +1,7 @@
 struct DS_OUTPUT
 {
 	float4 vPosition  : Position1;
+	float2 uv : Texcoord;
 	// TODO: change/add other stuff
 };
 cbuffer Test: register (b0) {
@@ -13,6 +14,7 @@ cbuffer Test: register (b0) {
 struct HS_CONTROL_POINT_OUTPUT
 {
 	float3 pos : Position1;
+	float2 uv : Texcoord;
 };
 
 // Output patch constant data.
@@ -37,6 +39,6 @@ DS_OUTPUT main(HS_CONSTANT_DATA_OUTPUT input,
 	float4 TransformedMat = mul(vPosition, transformationMatrix);
 	//Output.vPosition = mul(TransformedMat, viewXprojection);
 	Output.vPosition = TransformedMat;
-
+	Output.uv = patch[0].uv * domain.x + patch[1].uv * domain.y + patch[2].uv * domain.z;
 	return Output;
 }

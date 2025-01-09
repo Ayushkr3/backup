@@ -1,3 +1,4 @@
+#pragma once
 #include "ConstantBuff.h"
 #include "errors.h"
 #include "Global.h"
@@ -23,10 +24,9 @@ public:
 	float focus[3] = { 0,0,1 };
 	void calculateProjection(Microsoft::WRL::ComPtr<ID3D11DeviceContext> pContext, PerFrameData* ViewMatrix);
 	PerFrameData GetViewMatrix();
+	XMMATRIX viewmatrix;
+	XMMATRIX projection;
 private:
 	PerFrameData viewXprojection;
 	Microsoft::WRL::ComPtr<ID3D11Buffer> pFrameConstantBuffer;
-	XMMATRIX viewmatrix;
-	XMMATRIX projection;
-	
 };

@@ -1,5 +1,7 @@
 #include "Graphic.h"
+#include "Factory.h"
 #include <d3dcompiler.h>
+#pragma comment(lib, "dxguid.lib")
 //////////////////////
 
 /////////////////////
@@ -23,7 +25,9 @@ Graphic::Graphic(HWND hwnd){
 	scd.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
 	scd.Windowed = true;
 	CHECK_ERROR(D3D11CreateDeviceAndSwapChain(nullptr, D3D_DRIVER_TYPE_HARDWARE, nullptr,D3D11_CREATE_DEVICE_DEBUG, nullptr, 0, D3D11_SDK_VERSION, &scd, &pSwap, &pDevice, nullptr,&pContext));
-	WIC::SetImFac();
+
+	D3DFactory::Init(pDevice, pContext);
+	
 	ID3D11Resource* pBackBuffer = nullptr;
 	pSwap->GetBuffer(0, __uuidof(ID3D11Resource), reinterpret_cast<void**>(&pBackBuffer));
 	pDevice->CreateRenderTargetView(pBackBuffer, nullptr, pTarget.GetAddressOf());
@@ -114,6 +118,7 @@ Graphic::Graphic(HWND hwnd){
 
 	CHECK_ERROR(pDevice->CreateDepthStencilView(pDepthStencil.Get(), &stencil_view_desc, &pDs));
 	pContext->OMSetRenderTargets(1, pTarget.GetAddressOf(),pDs.Get());
+	pContext->RSSetState(WireFrame.Get());
 }
 Graphic::~Graphic(){
 	NVPhysx::Destroy();
@@ -126,8 +131,9 @@ void Graphic::ClearBuffer(float rgba[4]) {
 	pContext->ClearDepthStencilView(pDs.Get(), D3D11_CLEAR_DEPTH , 1.0f, 0);
 }
 void Graphic::TestFrames() {
+	
 	pContext->PSGetShader(&pLastShader,nullptr,0);
-	pContext->RSSetState(WireFrame.Get());
+	//pContext->RSSetState(WireFrame.Get());
 	pSc->Render();
 #ifdef WIREFRAME_ENABLED
 	pContext->PSSetShader(pWireFrameSolid.Get(), nullptr, 0);
@@ -140,5 +146,6 @@ void Graphic::TestFrames() {
 	pContext->PSSetShader(pLastShader.Get(), nullptr, 0);  //Remove this maybe
 }
 Scene* Graphic::GetCurrentScene() {
+	
 	return pSc.get();
 }

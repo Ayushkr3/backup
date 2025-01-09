@@ -1,9 +1,11 @@
 
 struct HS_CONTROL_POINT_INPUT {
 	float3 pos : Position1;
+	float2 uv : Texcoord;
 };
 struct HS_CONTROL_POINT_OUTPUT {
 	float3 pos : Position1;
+	float2 uv : Texcoord;
 };
 struct HS_CONSTANT_DATA {
 	float EdgeTessFactor[3] : SV_TessFactor;
@@ -28,5 +30,6 @@ HS_CONSTANT_DATA HullConstantDataOutput(InputPatch<HS_CONTROL_POINT_INPUT, 3> Ip
 HS_CONTROL_POINT_INPUT main(InputPatch<HS_CONTROL_POINT_INPUT,3> Ip, uint i : SV_OutputControlPointID, uint PatchID : SV_PrimitiveID) {
 	HS_CONTROL_POINT_OUTPUT ho;
 	ho.pos = (Ip[i].pos);
+	ho.uv = (Ip[i].uv);
 	return ho;
 }

@@ -55,12 +55,12 @@ PerFrameData Camera::GetViewMatrix() {
 	XMVECTOR forwardDirection = XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f);
 	forwardDirection = XMVector3TransformCoord(forwardDirection, Rotation);
 
-	XMMATRIX viewmatrix = XMMatrixTranspose(XMMatrixLookAtLH(
+	viewmatrix = XMMatrixTranspose(XMMatrixLookAtLH(
 		pos,
 		pos + forwardDirection,
 		XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f)));
 
-	XMMATRIX projection = XMMatrixTranspose(XMMatrixPerspectiveFovLH(XMConvertToRadians(60.0f), 1.33333333f, 0.1f, 100.0f));
+	projection = XMMatrixTranspose(XMMatrixPerspectiveFovLH(XMConvertToRadians(60.0f), 1.33333333f, 0.1f, 100.0f));
 
 	viewXprojection.viewMat = ConstantBuffer::ConvertMatrixToFloat4x4(projection*viewmatrix );
 	return viewXprojection;

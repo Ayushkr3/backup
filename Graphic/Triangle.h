@@ -1,7 +1,5 @@
 #pragma once
 #include <vector>
-#include "VertexShader.h"
-#include "PixelShader.h"
 #include <d3dcompiler.h>
 #include <d3d11.h>
 #include <iterator>
@@ -9,14 +7,9 @@
 #include "errors.h"
 #include "timer.h"
 #include "ConstantBuff.h"
-#include "WIC.h"
-#include "HullShader.h"
-#include "DomainShader.h"
-//#include "Colliders.h"
 #include "Phys.h"
-#include "GeometryShader.h"
-//#include "EPhysics.h"
 #include "EInputManager.h"
+#include "Primitives.h"
 #define CHECK_ERROR(hr) if(FAILED(hr)) throw error::error(hr,__LINE__)
 
 class Triangle:public Objects
@@ -28,7 +21,7 @@ public:
 	Triangle(Microsoft::WRL::ComPtr<ID3D11Device> pDevice, Microsoft::WRL::ComPtr<ID3D11DeviceContext> pContext, std::vector<Vertex> vertice, std::vector<unsigned int> indi, short id, float rgba[3],short globalID, std::vector<NormalPerObject>nor = {});
 	~Triangle();
 	bool isMoving;
-	void Draw();
+	virtual void Draw();
 	void UpdateBuffers();
 	void inPlayMode();
 	PerObjectData Transformation;
@@ -36,7 +29,7 @@ public:
 	bool operator==(const Triangle& secondObj)const;
 	std::unique_ptr<ConstantBuffer> pCB;
 	std::vector<Vertex> GetVertices();
-private:
+protected:
 	UINT strides = sizeof(Vertex);
 	UINT offset = 0u;
 	Microsoft::WRL::ComPtr<ID3D11Buffer> pVertexBuffer;
@@ -44,18 +37,19 @@ private:
 	//TODO: Move Shader to SCENE class
 	Microsoft::WRL::ComPtr<ID3D11DeviceContext> pContext;
 	Microsoft::WRL::ComPtr<ID3D11Device> pDevice;
-	Microsoft::WRL::ComPtr<ID3D11HullShader> pHull;
-	Microsoft::WRL::ComPtr<ID3D11DomainShader> pDSS;
+	//Microsoft::WRL::ComPtr<ID3D11HullShader> pHull;
+	//Microsoft::WRL::ComPtr<ID3D11DomainShader> pDSS;
 	std::vector<NormalPerObject> n;
 public:
 	TransformStruct* Trans;
 	std::vector<NormalPerObject> rn; //Transformed normals
 	std::vector<ObjectProperties*> ObjProperties;
-	std::unique_ptr<PixelShader_> pPshader;
+	//std::unique_ptr<PixelShader_> pPshader;
 	//std::unique_ptr<HullShader_> pHull;
 	//std::unique_ptr<DomainShader_> pDomain;
-	std::unique_ptr<GeometryShader_> pGeo;
-	std::unique_ptr<VertexShader_> pVshader;
+	//std::unique_ptr<GeometryShader_> pGeo;
+	//std::unique_ptr<VertexShader_> pVshader;
+	Primitives::Material* Mat;
 public:
 	void ReCalculatePosition();
 	void InitializePlayMode();

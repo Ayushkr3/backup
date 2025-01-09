@@ -30,6 +30,7 @@ void DebugConsole::InitDebugConsole() {
 	CopyMemory(ptrToMem, Data, sizeof(SharedData));
 	DebugThread = std::thread(&DebugConsole::RunThread);
 	DebugThread.detach();
+	DebugConsole::Log("");
 }
 void DebugConsole::DestroyConsole() {
 	isFinished = true;

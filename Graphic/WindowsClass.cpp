@@ -73,6 +73,7 @@ window::window():
 	UIwindow = std::make_unique<UIElements>(className, hwnd, hint, 0, 0, MulDiv(1600, 96, 144), MulDiv(900, 96, 144), 1);
 	RenderTargetWindows = std::make_unique<UIWindows>(className, hwnd, hint, MulDiv(300, 96, 144), MulDiv(70, 96, 144), MulDiv(1024, 96, 144), MulDiv(576, 96, 144),2);
 	pGfx = std::make_unique<Graphic>(RenderTargetWindows.get()->cHwnd);
+	//D3DFactory::Init(pGfx->pDevice,pGfx->pContext);
 	Scene = std::make_unique<SceneManager>(0, MulDiv(70, 96, 144), MulDiv(300, 96, 144), MulDiv(830, 96, 144));
 	SceneManager::currentScene = pGfx->GetCurrentScene();
 	Properties = std::make_unique<PropertiesWindow>(MulDiv(1324, 96, 144), MulDiv(70, 96, 144), MulDiv(280, 96, 144), MulDiv(830, 96, 144));
@@ -272,6 +273,7 @@ window::~window() {
 #ifdef ImGUI_ENABLED
 #endif // ImGUI_ENABLED
 	DebugConsole::DestroyConsole();
+	D3DFactory::DeInit();
 	DestroyWindow(hwnd);
 	UnregisterClass("OI",hint);
 	//mouse_cont.DestroyRawInput();

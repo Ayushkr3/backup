@@ -18,9 +18,9 @@ ConstantBuffer::ConstantBuffer(PerObjectData* SubResource, Microsoft::WRL::ComPt
 	XMFLOAT3 icap = XMFLOAT3(1.0f, 0.0f, 0.0f);
 	XMFLOAT3 jcap = XMFLOAT3(0.0f, 1.0f, 0.0f);
 	XMFLOAT3 kcap = XMFLOAT3(0.0f, 0.0f, 1.0f);
-	ivec = XMLoadFloat3(&icap);
-	jvec = XMLoadFloat3(&jcap);
-	kvec = XMLoadFloat3(&kcap);
+	ivec = DirectX::XMLoadFloat3(&icap);
+	jvec = DirectX::XMLoadFloat3(&jcap);
+	kvec = DirectX::XMLoadFloat3(&kcap);
 }
 ConstantBuffer::ConstantBuffer(LightData* SubResource, Microsoft::WRL::ComPtr<ID3D11Device> pDevice) {
 	D3D11_BUFFER_DESC CbuffDesc;
@@ -37,7 +37,7 @@ ConstantBuffer::ConstantBuffer(LightData* SubResource, Microsoft::WRL::ComPtr<ID
 }
 XMFLOAT4X4 ConstantBuffer::ConvertMatrixToFloat4x4(XMMATRIX mat) {
 	XMFLOAT4X4 result;
-	XMStoreFloat4x4(&result,mat);
+	DirectX::XMStoreFloat4x4(&result,mat);
 	return result;
 }
 ////////////////////Provisional code//////////////////////////
@@ -47,12 +47,12 @@ void ConstantBuffer::Transform(TransformStruct* t,/*output normals*/ std::vector
 	XMMATRIX ro = XMMatrixTranspose(XMMatrixRotationRollPitchYaw((t->rotation[0]), (t->rotation[1]), (t->rotation[2])));
 	XMMATRIX po = XMMatrixTranspose(XMMatrixTranslation(t->position[0], t->position[1], t->position[2]));
 	XMMATRIX so = XMMatrixTranspose(XMMatrixScaling(t->Scale[0], t->Scale[1], t->Scale[2]));
-	XMMATRIX view = (XMLoadFloat4x4(&viewmat));
+	XMMATRIX view = (DirectX::XMLoadFloat4x4(&viewmat));
 	XMMATRIX fina = XMMatrixMultiply(XMMatrixMultiply(ro, po),so);
 	XMFLOAT4X4 mat;
 	XMFLOAT4X4 rota;
-	XMStoreFloat4x4(&rota,ro);
-	XMStoreFloat4x4(&mat, fina);
+	DirectX::XMStoreFloat4x4(&rota,ro);
+	DirectX::XMStoreFloat4x4(&mat, fina);
 	/*for (unsigned int i = 0; i < vertice_m.size();i++) {
 		XMFLOAT4 indi_vert = XMFLOAT4(vertice_m[i].position.x, vertice_m[i].position.y, vertice_m[i].position.z, 1.0f);
 		XMFLOAT4 indi_norm = XMFLOAT4(vertice_m[i].Normal.x, vertice_m[i].Normal.y, vertice_m[i].Normal.z, 1.0f);
@@ -115,21 +115,4 @@ void ConstantBuffer::UpdateBuffer(Microsoft::WRL::ComPtr<ID3D11DeviceContext> pC
 }
 void ConstantBuffer::BindToPSshader(Microsoft::WRL::ComPtr<ID3D11DeviceContext> pContext) {
 	pContext->PSSetConstantBuffers(2, 1, pObjectConstantBuffer.GetAddressOf());
-}
-
-void ConstantBuffer::BindToPSshader(Microsoft::WRL::ComPtr<ID3D11Device> pDevice,Microsoft::WRL::ComPtr<ID3D11DeviceContext> pContext,float rgba[3]) {
-	Microsoft::WRL::ComPtr<ID3D11Buffer> Color;
-	rgbaS rgb(rgba[0],rgba[1],rgba[2]);
-	D3D11_BUFFER_DESC CbuffDesc;
-	CbuffDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-	CbuffDesc.ByteWidth = sizeof(PerObjectData);
-	CbuffDesc.Usage = D3D11_USAGE_DYNAMIC;
-	CbuffDesc.MiscFlags = 0;
-	CbuffDesc.StructureByteStride = 0;
-	CbuffDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-	D3D11_SUBRESOURCE_DATA Csbr;
-	Csbr.pSysMem = &rgb;
-
-	CHECK_ERROR(pDevice->CreateBuffer(&CbuffDesc, &Csbr, &Color));
-	pContext->PSSetConstantBuffers(3, 1, Color.GetAddressOf());
 }

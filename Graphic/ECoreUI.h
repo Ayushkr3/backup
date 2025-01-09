@@ -12,6 +12,7 @@
 #include "Global.h"
 #include <typeinfo>
 #include "EInputManager.h"
+#include "Factory.h"
 #include "font/IconsFontAwesome4.h"
 class UIWindows {
 public:
