@@ -1,5 +1,6 @@
 #include "Scene.h"
 #include "ConstantBuff.h"
+#include "Shapes.h"
 short Scene::currentOBJID = 10;
 using namespace physx;
 std::vector<short> Scene::globalCurrentOBJID  = {};
@@ -17,7 +18,6 @@ Scene::~Scene() {
 }
 void Scene::Render() {
 	cam.calculateProjection(pContext, &(cam.GetViewMatrix()));
-	//light.UpdateBuffer(pContext);
 	//TODO: Fix proper lighting
 	pSkyBox->Draw();
 	for (auto& Triangle : Triangles) {
@@ -44,7 +44,7 @@ void Scene::PlayMode()
 	for (auto& Triangle : Triangles) {
 		Triangle->inPlayMode();	//Call every object properties which want to act in play Mode
 	}
-	physScene->fetchResults(true);
+	auto n = physScene->fetchResults(true);
 	//CContoller->Update();
 }
 void Scene::InitalizePlayMode()
@@ -93,7 +93,7 @@ void Scene::DeInitalizePlayMode() {
 		for (auto& prop : Triangle->ObjProperties) {
 			prop->DeInitPlayMode();
 			if (auto* rb = dynamic_cast<NVPhysx::RigidBody*>(prop)) {
-				physScene->removeActor(*rb->GetCurrentActor());
+				//physScene->removeActor(*rb->GetCurrentActor());
 			}
 		}
 	}
@@ -160,6 +160,9 @@ void Scene::LoadSkyBox() {
 		20, 22, 21, 20, 23, 22 };
 	std::vector <NormalPerObject> n;
 	float color[3];
+	indices.clear();
+	vertices.clear();
+	Primitives::BasicShapes::Circle::GetCircleofLongNLat(10, 10, vertices, indices);
 	//Set position of sky box to Camera
 	pSkyBox = std::make_unique<SkyBox>(pDumbDevice,pDumbContext,vertices,indices,currentOBJID++, color, ++Objects::count,n,&cam);
 }

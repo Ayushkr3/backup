@@ -11,6 +11,7 @@
 #include <filesystem>
 #include "Global.h"
 #include <typeinfo>
+#include "Graphic.h"
 #include "EInputManager.h"
 #include "Factory.h"
 #include "font/IconsFontAwesome4.h"
@@ -18,7 +19,7 @@ class UIWindows {
 public:
 	HWND cHwnd;
 	UIWindows(std::string className, HWND Phwnd, HINSTANCE hint, short x, short y, short w, short b, int windowN);
-	
+	void SetFullScreen(LPRECT rect);
 };
 class UIElements{
 protected:
@@ -28,6 +29,9 @@ protected:
 	static Microsoft::WRL::ComPtr<ID3D11RenderTargetView>  pUIRenderTarget;
 	static DXGI_SWAP_CHAIN_DESC UIscd;
 public:
+	bool isFullscreen = false;
+	void ContainerStart();
+	void ContainerEnd();
 	static ImGuiContext* ctx;
 	HWND cHwnd;
 	UIElements(std::string className, HWND Phwnd, HINSTANCE hint, short x, short y, short w, short b, int windowsN);
@@ -57,6 +61,7 @@ class PropertiesWindow  {
 	int widthX;
 	int widthY;
 public:
+	static bool closable;
 	static Objects* Obj;
 	void SetSizenWidth();
 	void SetSizenWidth(UINT width, UINT height);
@@ -82,9 +87,12 @@ class ControlMenu {
 	int posY;
 	int widthX;
 	int widthY;
+	std::unique_ptr<UIElements>& UIWindow;
+	std::unique_ptr<UIWindows>& win;
+	std::unique_ptr<Graphic>& pgfx;
 public:
 	void SetSizenWidth();
 	void SetSizenWidth(UINT width,UINT height);
-	ControlMenu(int posX, int posY, int widthX, int widthY);
+	ControlMenu(int posX, int posY, int widthX, int widthY, std::unique_ptr<UIElements>& UIWindow, std::unique_ptr<UIWindows>& win, std::unique_ptr<Graphic>& pgfx);
 	void Content();
 };

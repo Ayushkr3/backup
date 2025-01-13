@@ -7,13 +7,12 @@
 class Camera:public Objects {
 public:
 	struct CameraProp:public ObjectProperties {
+	public:
+		float FoV = 60.0f; float Ratio = 1.333333333f;
 		CameraProp(Objects* obj);
 		float postion[3] = { 0 + associatedObj->Inheritence.InheritedTrans->position[0],0,-5.0f };
 		float rotation[2] = { 0,0 };
-		void show() {
-			ImGui::DragFloat2("Camera Rotation", rotation, 0.1f);
-			ImGui::DragFloat3("Camera Position", postion, 0.1f);
-		}
+		void show();
 		ObjectProperties* GetPropertyRef() { return this; }
 		const std::type_info& GetPropertyType() { return typeid(CameraProp); };
 	};
@@ -26,6 +25,7 @@ public:
 	PerFrameData GetViewMatrix();
 	XMMATRIX viewmatrix;
 	XMMATRIX projection;
+	void SetFOVnAspectRatio(float FOV,float ratio);
 private:
 	PerFrameData viewXprojection;
 	Microsoft::WRL::ComPtr<ID3D11Buffer> pFrameConstantBuffer;

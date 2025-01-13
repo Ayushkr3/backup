@@ -60,9 +60,20 @@ PerFrameData Camera::GetViewMatrix() {
 		pos + forwardDirection,
 		XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f)));
 
-	projection = XMMatrixTranspose(XMMatrixPerspectiveFovLH(XMConvertToRadians(60.0f), 1.33333333f, 0.1f, 100.0f));
+	projection = XMMatrixTranspose(XMMatrixPerspectiveFovLH(XMConvertToRadians(PosNrot->FoV),PosNrot->Ratio, 0.1f, 100.0f));
 
 	viewXprojection.viewMat = ConstantBuffer::ConvertMatrixToFloat4x4(projection*viewmatrix );
 	return viewXprojection;
 	
+}
+void Camera::SetFOVnAspectRatio(float FOV,float ratio) {
+	if (FOV >= 0)
+		PosNrot->FoV = FOV;
+	if (ratio != -1)
+		PosNrot->Ratio = ratio;
+}
+void Camera::CameraProp::show() {
+	ImGui::DragFloat2("Camera Rotation", rotation, 0.1f);
+	ImGui::DragFloat3("Camera Position", postion, 0.1f);
+	ImGui::DragFloat("Fov", &FoV, 1.0f, 30.f, 270);
 }

@@ -42,6 +42,8 @@ class NVPhysx{
 private:
 	static physx::PxDefaultAllocator allocator;
 	static physx::PxDefaultErrorCallback errorCallback;
+	static physx::PxPvdTransport* transport;
+	static physx::PxPvd* pvd;
 public:
 	PHYSICS_API static ImGuiContext* privateCtx;
 	PHYSICS_API static void CreateNewScene(physx::PxScene*& Scene);

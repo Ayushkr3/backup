@@ -119,19 +119,84 @@ Graphic::Graphic(HWND hwnd){
 	CHECK_ERROR(pDevice->CreateDepthStencilView(pDepthStencil.Get(), &stencil_view_desc, &pDs));
 	pContext->OMSetRenderTargets(1, pTarget.GetAddressOf(),pDs.Get());
 	pContext->RSSetState(WireFrame.Get());
+
 }
 Graphic::~Graphic(){
 	NVPhysx::Destroy();
+	//if (Globals::isFullscreen) {
+	//	ImGui_ImplDX11_Shutdown();
+	//	ImGui_ImplWin32_Shutdown();
+	//	ImGui::DestroyContext();
+	//}
+}
+void Graphic::Resize(short sizeX,short sizeY) {
+	pTarget.Reset();
+	pDs.Reset();
+	
+	auto hr = DXGetErrorString(pSwap->ResizeBuffers(1, sizeX, sizeY, DXGI_FORMAT_UNKNOWN,0));
+	ID3D11Resource* pBackBuffer = nullptr;
+	pSwap->GetBuffer(0, __uuidof(ID3D11Resource), reinterpret_cast<void**>(&pBackBuffer));
+	pDevice->CreateRenderTargetView(pBackBuffer, nullptr, pTarget.GetAddressOf());
+	pBackBuffer->Release();
+
+
+	D3D11_DEPTH_STENCIL_DESC dsDesc = {};
+	dsDesc.DepthEnable = true;
+	dsDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
+	dsDesc.DepthFunc = D3D11_COMPARISON_LESS;
+	Microsoft::WRL::ComPtr<ID3D11DepthStencilState> pDSState;
+	CHECK_ERROR(pDevice->CreateDepthStencilState(&dsDesc, &pDSState));
+	pContext->OMSetDepthStencilState(pDSState.Get(), 0);
+	Microsoft::WRL::ComPtr<ID3D11Texture2D> pDepthStencil;
+	D3D11_TEXTURE2D_DESC descDepth = {};
+	descDepth.Width = sizeX;
+	descDepth.Height = sizeY;
+	descDepth.MipLevels = 1u;
+	descDepth.ArraySize = 1u;
+	descDepth.Format = DXGI_FORMAT_D32_FLOAT;
+	descDepth.SampleDesc.Count = 1u;
+	descDepth.SampleDesc.Quality = 0u;
+	descDepth.Usage = D3D11_USAGE_DEFAULT;
+	descDepth.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+	descDepth.CPUAccessFlags = 0;
+	descDepth.MiscFlags = 0;
+	pDevice->CreateTexture2D(&descDepth, nullptr, &pDepthStencil);
+
+
+	D3D11_DEPTH_STENCIL_VIEW_DESC stencil_view_desc;
+	stencil_view_desc.Flags = 0;
+	stencil_view_desc.Format = DXGI_FORMAT_D32_FLOAT;
+	stencil_view_desc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+	stencil_view_desc.Texture2D.MipSlice = 0u;
+
+	CHECK_ERROR(pDevice->CreateDepthStencilView(pDepthStencil.Get(), &stencil_view_desc, &pDs));
+	pContext->OMSetRenderTargets(1,pTarget.GetAddressOf(), pDs.Get());
+	D3D11_VIEWPORT vp;
+	vp.Width = descDepth.Width;
+	vp.Height = descDepth.Height;
+	vp.MinDepth = 0;
+	vp.MaxDepth = 1;
+	vp.TopLeftX = 0;
+	vp.TopLeftY = 0;
+	pContext->RSSetViewports(1u, &vp);
 }
 void Graphic::EndFrame() {
+	if (Globals::isFullscreen) {
+		ImGui::Render();
+		ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+	}
 	pSwap->Present(1u,0);
 }
 void Graphic::ClearBuffer(float rgba[4]) {
 	pContext->ClearRenderTargetView(pTarget.Get(),rgba);
 	pContext->ClearDepthStencilView(pDs.Get(), D3D11_CLEAR_DEPTH , 1.0f, 0);
+	if (Globals::isFullscreen) {
+		ImGui_ImplDX11_NewFrame();
+		ImGui_ImplWin32_NewFrame();
+		ImGui::NewFrame();
+	}
 }
 void Graphic::TestFrames() {
-	
 	pContext->PSGetShader(&pLastShader,nullptr,0);
 	//pContext->RSSetState(WireFrame.Get());
 	pSc->Render();

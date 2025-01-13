@@ -9,6 +9,7 @@
 #ifdef ImGUI_ENABLED
 #include "ImGui/imgui_impl_dx11.h"
 #include "ImGui/imgui.h"
+#include "ImGui/imgui_impl_win32.h"
 #endif
 #include <dxgidebug.h>
 
@@ -34,6 +35,7 @@ public:
 	Scene* GetCurrentScene();
 	bool showvalue = true;
 	int t = 0;
+	void Resize(short sizeX,short sizeY);
 #ifdef ImGUI_ENABLED
 	Microsoft::WRL::ComPtr<ID3D11RasterizerState> WireFrame;
 	Microsoft::WRL::ComPtr<ID3D11RasterizerState> Solid;

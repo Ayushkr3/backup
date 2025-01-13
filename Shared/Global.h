@@ -12,6 +12,7 @@
 #include <thread>
 #include <queue>
 #include <mutex>
+#include <DirectXMath.h>
 static std::string WorkingDirectory = "D:\\program\\Eng";
 struct ObjectProperties;
 struct TransformStruct;
@@ -49,16 +50,18 @@ struct ObjectProperties {
 };
 struct TransformStruct :public ObjectProperties {
 	TransformStruct(Objects* obj);
-
+private:
+	DirectX::XMFLOAT4 EulerToQuat(float yaw,float pitch,float roll);
 public:
+	void QuatToEuler(float x,float y,float z,float w, float eulerAngles[3]);
 	bool isChangedExternally;
-	float l_position[3] = { 0,0,0 }; //last position
+	float EulerRot[3] = {0,0,0};
 public:
 	ObjectProperties* GetPropertyRef();
 	const std::type_info& GetPropertyType();
 	bool isMoving;
 	void Update();
-	float rotation[3] = { 0,0,0 };
+	float rotation[4] = { 0,0,0,1.0f };
 	float position[3] = { 0,0,0 };
 	float Scale[3] = { 1,1,1 };
 	void show();
@@ -67,6 +70,7 @@ class Globals {
 public:
 	static bool* inPlayMode;
 	static float* dT;
+	static bool isFullscreen;
 };
 struct Vertex {
 	struct {

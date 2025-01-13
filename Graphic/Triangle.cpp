@@ -38,9 +38,7 @@ Triangle::Triangle(Microsoft::WRL::ComPtr<ID3D11Device> pDevice, Microsoft::WRL:
 	Transformation.Rotation = ConstantBuffer::ConvertMatrixToFloat4x4(XMMatrixRotationRollPitchYaw(XMConvertToRadians(Trans->rotation[0]), XMConvertToRadians(Trans->rotation[1]), XMConvertToRadians(Trans->rotation[2])));
 	Transformation.Translation = ConstantBuffer::ConvertMatrixToFloat4x4(XMMatrixTranslation(Trans->position[0]+(Inheritence.InheritedTrans)->position[0], Trans->position[1] + (Inheritence.InheritedTrans)->position[1], Trans->position[2] + (Inheritence.InheritedTrans)->position[2]));
 	Transformation.Scale = ConstantBuffer::ConvertMatrixToFloat4x4(XMMatrixScaling(Trans->Scale[0], Trans->Scale[1], Trans->Scale[2]));
-	//pCB = std::make_unique<ConstantBuffer>(&Transformation, pDevice,n);
-	//pCB->GetData(vertices);
-	//pCB->Transform(Trans,rn);
+
 	Mat->CreateCBuffer(0, sizeof(PerObjectData), Primitives::DOMAIN_SHADER);
 	pContext->IASetVertexBuffers(0, 1, pVertexBuffer.GetAddressOf(), &strides, &offset);
 
@@ -48,7 +46,6 @@ Triangle::Triangle(Microsoft::WRL::ComPtr<ID3D11Device> pDevice, Microsoft::WRL:
 	CHECK_ERROR(pDevice->CreateBuffer(&IndexBufferDesc, &index_subr, &pIndexBuffer));
 	///////////////////////////////////////////////////////////
 	
-	//pCB->BindToVSshader(pContext);
 	Microsoft::WRL::ComPtr<ID3D11InputLayout>pIL;
 	D3D11_INPUT_ELEMENT_DESC IL[] = {
 		{ "Position",0, DXGI_FORMAT_R32G32B32_FLOAT,0,0,D3D11_INPUT_PER_VERTEX_DATA,0 },
@@ -70,10 +67,10 @@ void Triangle::Draw() {
 	pContext->Draw(vertices.size(), 0);
 }
 void Triangle::UpdateBuffers() {
-	Transformation.Rotation = ConstantBuffer::ConvertMatrixToFloat4x4(XMMatrixRotationRollPitchYaw((Trans->rotation[0]), (Trans->rotation[1]), (Trans->rotation[2])));
+	Transformation.Rotation = ConstantBuffer::ConvertMatrixToFloat4x4(XMMatrixRotationQuaternion(XMVectorSet(Trans->rotation[0],Trans->rotation[1],Trans->rotation[2],Trans->rotation[3])));
 	Transformation.Translation = ConstantBuffer::ConvertMatrixToFloat4x4(XMMatrixTranslation(Trans->position[0] + (Inheritence.InheritedTrans)->position[0], Trans->position[1] + (Inheritence.InheritedTrans)->position[1], Trans->position[2] + (Inheritence.InheritedTrans)->position[2]));
 	Transformation.Scale = ConstantBuffer::ConvertMatrixToFloat4x4(XMMatrixScaling(Trans->Scale[0], Trans->Scale[1], Trans->Scale[2]));
-	//pCB->UpdateBuffer(pContext, &Transformation);
+
 	Mat->ds.BindAssociatedBuffer((void*)&Transformation,0,pContext.Get());
 }
 void Triangle::inPlayMode() {

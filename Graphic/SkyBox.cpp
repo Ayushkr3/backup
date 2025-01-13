@@ -2,7 +2,7 @@
 
 SkyBox::SkyBox(ID3D11Device*& pDevice, ID3D11DeviceContext*& pContext, std::vector<Vertex> vertice, std::vector<unsigned int>indi, short id, float rgba[3], short globalID, std::vector<NormalPerObject>nor,Camera* cam):Triangle(pDevice,pContext,vertice,indi,id,rgba,globalID),cam(cam) {
 	D3D11_RASTERIZER_DESC rasDesc;
-	rasDesc.CullMode = D3D11_CULL_BACK;
+	rasDesc.CullMode = D3D11_CULL_NONE;
 	rasDesc.FillMode = D3D11_FILL_SOLID;
 	rasDesc.FrontCounterClockwise = false;
 	rasDesc.DepthClipEnable = false;
@@ -49,8 +49,8 @@ SkyBox::SkyBox(ID3D11Device*& pDevice, ID3D11DeviceContext*& pContext, std::vect
 }
 
 void SkyBox::Draw() {
-	ID3D11RasterizerState* pPreviousState;
-	ID3D11DepthStencilState* pPreviousDSS;
+	Microsoft::WRL::ComPtr<ID3D11RasterizerState> pPreviousState;
+	Microsoft::WRL::ComPtr<ID3D11DepthStencilState> pPreviousDSS;
 	pContext->RSGetState(&pPreviousState); //Get last state
 	pContext->RSSetState(rasterState.Get()); // Set it to counter ClockWise
 	pContext->OMGetDepthStencilState(&pPreviousDSS,0);
@@ -67,6 +67,6 @@ void SkyBox::Draw() {
 	pContext->OMSetDepthStencilState(this->DSS.Get(), 0);
 	pContext->DrawIndexed((UINT)index.size(),0,0);  
 	//-------------------------------------------------------------------//
-	pContext->RSSetState(pPreviousState); // Revert back to last to state
-	pContext->OMSetDepthStencilState(pPreviousDSS,0);
+	pContext->RSSetState(pPreviousState.Get()); // Revert back to last to state
+	pContext->OMSetDepthStencilState(pPreviousDSS.Get(),0);
 }

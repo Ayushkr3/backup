@@ -9,6 +9,7 @@ DXGI_SWAP_CHAIN_DESC UIElements::UIscd;
 ImGuiIO* UIElements::io = nullptr;
 namespace  fs=std::filesystem ;
 Scene* SceneManager::currentScene = nullptr;
+bool PropertiesWindow::closable = true;
 UIWindows::UIWindows(std::string className, HWND Phwnd, HINSTANCE hint,short x ,short y,short w,short b,int windowsN) {
 	cHwnd = CreateWindowEx(
 		0,                          // Optional window styles.
@@ -24,6 +25,18 @@ UIWindows::UIWindows(std::string className, HWND Phwnd, HINSTANCE hint,short x ,
 		hint,			  // Instance handle
 		NULL			 // Additional application data
 	);
+}
+ void UIElements::ContainerStart()
+{
+	if (Globals::isFullscreen) {
+		ImGui::Begin("Container",nullptr,ImGuiWindowFlags_NoDecoration|ImGuiWindowFlags_AlwaysAutoResize);
+		ImGui::SetWindowFontScale(0.7f);
+	}
+}
+void UIElements::ContainerEnd() {
+	if (Globals::isFullscreen) {
+		ImGui::End();
+	}
 }
 UIElements::UIElements(std::string className, HWND Phwnd, HINSTANCE hint, short x, short y, short w, short b, int windowsN) {
 	if (pUIDevice == nullptr) {
@@ -79,13 +92,18 @@ UIElements::UIElements(std::string className, HWND Phwnd, HINSTANCE hint, short 
 		ImGui_ImplDX11_Init(pUIDevice.Get(), pUIContext.Get());
 	}
 }
+void UIWindows::SetFullScreen(LPRECT rect) {
+	SetWindowLongPtr(cHwnd, GWL_STYLE, WS_CHILD | WS_VISIBLE | WS_BORDER| WS_CLIPSIBLINGS);
+	SetWindowPos(cHwnd, HWND_TOP, 0, 0, rect->right-rect->left, rect->bottom-rect->top, SWP_SHOWWINDOW);
+}
 void UIElements::UpdateUI() {
-	float rgba[4] = { 0.0f,0.0f,0.0f,1.0f };
-	pUIContext->OMSetRenderTargets(1, pUIRenderTarget.GetAddressOf(), nullptr);
-	pUIContext->ClearRenderTargetView(pUIRenderTarget.Get(), rgba);
-	ImGui_ImplDX11_NewFrame();
-	ImGui_ImplWin32_NewFrame();
-	ImGui::NewFrame();
+	if (Globals::isFullscreen) { return; }
+		float rgba[4] = { 0.0f,0.0f,0.0f,1.0f };
+		pUIContext->OMSetRenderTargets(1, pUIRenderTarget.GetAddressOf(), nullptr);
+		pUIContext->ClearRenderTargetView(pUIRenderTarget.Get(), rgba);
+		ImGui_ImplDX11_NewFrame();
+		ImGui_ImplWin32_NewFrame();
+		ImGui::NewFrame();
 }
 UIElements::~UIElements() {
 	ImGui_ImplDX11_Shutdown();
@@ -93,9 +111,10 @@ UIElements::~UIElements() {
 	ImGui::DestroyContext();
 }
 void UIElements::Swap() {
-	ImGui::Render();
-	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
-	pUISwapChain->Present(1u, 0);
+	if (Globals::isFullscreen) return;
+		ImGui::Render();
+		ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+		pUISwapChain->Present(1u, 0);
 }
 void UIElements::SetSizenWidth(int w, int b)
 {
@@ -145,7 +164,12 @@ void SceneManager::Content() {
 	if (currentScene == nullptr)
 		return;
 	static int selected = -1;
-	ImGui::Begin("Scene Objects",nullptr,ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoResize);
+	if (!Globals::isFullscreen) {
+		ImGui::Begin("Scene Objects", nullptr, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize);
+	}
+	else {
+		if (!ImGui::CollapsingHeader("Scene Objects", nullptr))return;
+	}
 	if (ImGui::BeginPopupContextItem("Scene Menu")) {
 		if (ImGui::Button("Add Object")) {
 			/*Triangle* newTriangle = new Triangle();
@@ -162,6 +186,7 @@ void SceneManager::Content() {
 		std::string selectableLabel = Tri->ObjName + std::to_string(Tri->Id);
 		if (ImGui::Selectable(selectableLabel.c_str(), selected == Tri->Id)) {
 			PropertiesWindow::Obj = Tri;
+			PropertiesWindow::closable = true;
 			selected = Tri->Id;
 			Tri->Highlight();
 			if (last_object != Tri) {
@@ -201,21 +226,37 @@ void SceneManager::Content() {
 	}
 	if (ImGui::IsMouseDown(ImGuiMouseButton_Right) && ImGui::IsWindowHovered() && !ImGui::IsAnyItemHovered())
 		ImGui::OpenPopup("Scene Menu");
-	ImGui::End();
+	if (!Globals::isFullscreen) {
+		ImGui::End();
+	}
 }
 Objects* PropertiesWindow::Obj = nullptr;
 PropertiesWindow::PropertiesWindow(int posX, int posY, int widthX, int widthY) :posX(posX), posY(posY), widthX(widthX), widthY(widthY)
 {
 }
 void PropertiesWindow::SetSizenWidth() {
-	ImGui::Begin("Properties");
+	ImGui::Begin("Properties",&closable);
 	ImGui::SetWindowFontScale(0.7f);
 	ImGui::SetWindowSize(ImVec2((float)widthX, (float)widthY));
 	ImGui::SetWindowPos(ImVec2((float)posX, (float)posY));
 	ImGui::End();
 }
 void PropertiesWindow::Content() {
-	ImGui::Begin("Properties", nullptr, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize);
+	if (!Globals::isFullscreen) {
+		ImGui::Begin("Properties", &closable, 0/*ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize*/);
+	}
+	else {
+		if (closable) {
+			ImGui::Begin("Properties", &closable, ImGuiWindowFlags_AlwaysAutoResize);
+			if (closable == false) {
+				ImGui::End();
+				return;
+			}
+		}
+		else {
+			return;
+		}
+	}
 	if (PropertiesWindow::Obj != nullptr) {
 		for (auto& obj : *PropertiesWindow::Obj->GetProperties()) {
 			obj->show();
@@ -247,6 +288,7 @@ void PropertiesWindow::Content() {
 	}
 	ImGui::Text((std::string(1,InputManager::GetLastKeyPress())).c_str());
 	ImGui::End();
+	return;
 }
 
 void Files::SetSizenWidth()
@@ -265,7 +307,12 @@ Files::Files(int posX, int posY, int widthX, int widthY ,Microsoft::WRL::ComPtr<
 
 void Files::Content()
 {
-	ImGui::Begin("Files",nullptr,ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize);
+	if (!Globals::isFullscreen) {
+		ImGui::Begin("Files", nullptr);
+	}
+	else {
+		if(!ImGui::CollapsingHeader("Files",0))return;
+	}
 	static fs::directory_entry fileSelected;
 	if (working != WorkingDirectory && ImGui::Selectable(ICON_FA_FOLDER_O " ../")) {
 		working = working.parent_path();
@@ -351,9 +398,11 @@ void Files::Content()
 			working = fileSelected;
 		}
 	}
-	ImGui::End();
+	if (!Globals::isFullscreen) {
+		ImGui::End();
+	}
 }
-ControlMenu::ControlMenu(int posX, int posY, int widthX, int widthY) :posX(posX), posY(posY), widthX(widthX), widthY(widthY)
+ControlMenu::ControlMenu(int posX, int posY, int widthX, int widthY, std::unique_ptr<UIElements>& UIWindow, std::unique_ptr<UIWindows>& win, std::unique_ptr<Graphic>& pgfx) :posX(posX), posY(posY), widthX(widthX), widthY(widthY),win(win),UIWindow(UIWindow),pgfx(pgfx)
 {
 }
 void ControlMenu::SetSizenWidth()
@@ -365,7 +414,13 @@ void ControlMenu::SetSizenWidth()
 	ImGui::End();
 }
 void ControlMenu::Content() {
-	ImGui::Begin("Control",nullptr,ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoResize);
+	if (!Globals::isFullscreen) {
+		ImGui::Begin("Control", nullptr, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize);
+	}
+	else {
+		ImGui::Begin("Control", nullptr,ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize);
+	}
+	
 	if (ImGui::Button(ICON_FA_PLAY"Play/Pause")) {
 		*Globals::inPlayMode = !(*Globals::inPlayMode);
 		if (*Globals::inPlayMode) {
@@ -378,6 +433,50 @@ void ControlMenu::Content() {
 	}
 	ImGui::SameLine();
 	ImGui::Text(("inPlayMode"+std::to_string(*Globals::inPlayMode)).c_str());
+	ImGui::SameLine();
+	if (ImGui::Button("FullScreen")) {
+		RECT rect;
+		Globals::isFullscreen = !Globals::isFullscreen;
+		GetWindowRect(UIWindow->cHwnd,&rect);
+		SetWindowLongPtr(UIWindow->cHwnd,GWL_STYLE,WS_CHILD| WS_BORDER);
+		SetWindowPos(UIWindow->cHwnd, HWND_BOTTOM, 0, 0,0, 0, SWP_HIDEWINDOW);
+		UIWindow->~UIElements();
+		auto ctx = ImGui::CreateContext();
+		auto io = &ImGui::GetIO();
+		io->FontGlobalScale = 1.4f;
+		io->WantCaptureMouse = true;
+		io->WantCaptureKeyboard = true;
+		io->WantTextInput = true;
+		io->Fonts->AddFontDefault();
+		static const ImWchar icon_ranges[] = { ICON_MIN_FA, ICON_MAX_FA, 0 };
+		ImFontConfig config;
+		config.MergeMode = true;
+		config.GlyphMinAdvanceX = 13.0f;
+		io->Fonts->AddFontFromFileTTF("D:/program/vs/graphic/Graphic/font/fontawesome-webfont.ttf", 13.0f, &config, icon_ranges);
+		io->ConfigFlags = ImGuiConfigFlags_NavEnableSetMousePos;
+		ImguiContextFactory::Init(ctx);
+		ImGui::SetCurrentContext(ctx);
+		ImGui_ImplWin32_Init(win->cHwnd);
+		ImGui_ImplDX11_Init(pgfx->pDevice.Get(), pgfx->pContext.Get());
+		ImGui_ImplDX11_NewFrame();
+		ImGui_ImplWin32_NewFrame();
+		ImGui::NewFrame();
+		ImGui::Begin("Container");
+		ImGui::SetWindowFontScale(0.7f);
+		ImGui::End();
+		ImGui::Begin("Properties",&PropertiesWindow::closable);
+		ImGui::SetWindowFontScale(0.7f);
+		ImGui::End();
+		ImGui::Begin("Control");
+		ImGui::SetWindowFontScale(0.7f);
+		ImGui::End();
+		ImGui::EndFrame();
+		win->SetFullScreen(&rect);
+		pgfx->Resize(rect.right - rect.left, rect.bottom - rect.top);
+		float ratio = (((float)(rect.right - rect.left)) / (float)((rect.bottom - rect.top)));
+		pgfx->pSc->cam.SetFOVnAspectRatio(60, ratio);
+		return;
+	}
 	ImGui::End();
 }
 //----------------------------------------------------------------------//
@@ -412,7 +511,7 @@ void Files::SetSizenWidth(int width, int height) {
 void PropertiesWindow::SetSizenWidth(UINT width, UINT height) {
 	ImGui::SetCurrentContext(UIElements::ctx);
 	ImGui::NewFrame();
-	ImGui::Begin("Properties");
+	ImGui::Begin("Properties",&closable);
 	ImGui::SetWindowFontScale(0.7f);
 	//posX += width / 2;
 	/*widthX = widthX + width;

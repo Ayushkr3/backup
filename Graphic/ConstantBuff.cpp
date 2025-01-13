@@ -44,7 +44,7 @@ XMFLOAT4X4 ConstantBuffer::ConvertMatrixToFloat4x4(XMMATRIX mat) {
 void ConstantBuffer::Transform(TransformStruct* t,/*output normals*/ std::vector<NormalPerObject>& on)
 {
 	AABB aabbijk;
-	XMMATRIX ro = XMMatrixTranspose(XMMatrixRotationRollPitchYaw((t->rotation[0]), (t->rotation[1]), (t->rotation[2])));
+	XMMATRIX ro = XMMatrixTranspose(XMMatrixRotationRollPitchYaw(XMConvertToRadians(t->rotation[0]), XMConvertToRadians(t->rotation[1]), XMConvertToRadians(t->rotation[2])));
 	XMMATRIX po = XMMatrixTranspose(XMMatrixTranslation(t->position[0], t->position[1], t->position[2]));
 	XMMATRIX so = XMMatrixTranspose(XMMatrixScaling(t->Scale[0], t->Scale[1], t->Scale[2]));
 	XMMATRIX view = (DirectX::XMLoadFloat4x4(&viewmat));

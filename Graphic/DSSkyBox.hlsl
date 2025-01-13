@@ -93,7 +93,7 @@ DS_OUTPUT main(HS_CONSTANT_DATA_OUTPUT input,
 	//https://carmencincotti.com/2022-05-02/homogeneous-coordinates-clip-space-ndc/
 	//-----------------------------------------------------------------------------//
 	float3 pos = mul(TransformedMat.xyz, (float3x3)view);
-	Output.vPosition = mul(float4(pos,1.0f),projection); 
+	Output.vPosition = mul(pos,projection); 
 	Output.IP = vPosition.xyz;
 	Output.uv = patch[0].uv * domain.x + patch[1].uv * domain.y + patch[2].uv * domain.z;
 	return Output;

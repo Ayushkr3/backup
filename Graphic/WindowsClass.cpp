@@ -70,7 +70,7 @@ window::window():
 	);
 #endif // ImGUI_ENABLED
 	DebugConsole::InitDebugConsole();
-	UIwindow = std::make_unique<UIElements>(className, hwnd, hint, 0, 0, MulDiv(1600, 96, 144), MulDiv(900, 96, 144), 1);
+	UIwindow = std::make_unique<UIElements>(className, hwnd, hint, 0, 0, MulDiv(1600,96,144), MulDiv(900,96,144), 1);
 	RenderTargetWindows = std::make_unique<UIWindows>(className, hwnd, hint, MulDiv(300, 96, 144), MulDiv(70, 96, 144), MulDiv(1024, 96, 144), MulDiv(576, 96, 144),2);
 	pGfx = std::make_unique<Graphic>(RenderTargetWindows.get()->cHwnd);
 	//D3DFactory::Init(pGfx->pDevice,pGfx->pContext);
@@ -78,7 +78,7 @@ window::window():
 	SceneManager::currentScene = pGfx->GetCurrentScene();
 	Properties = std::make_unique<PropertiesWindow>(MulDiv(1324, 96, 144), MulDiv(70, 96, 144), MulDiv(280, 96, 144), MulDiv(830, 96, 144));
 	file = std::make_unique<Files>(MulDiv(300, 96, 144), MulDiv(646, 96, 144), MulDiv(1024, 96, 144), MulDiv(254, 96, 144),pGfx->pDevice,pGfx->pContext);
-	Control = std::make_unique<ControlMenu>(0, 0, MulDiv(1600, 96, 144), MulDiv(70, 96, 144));
+	Control = std::make_unique<ControlMenu>(0, 0, MulDiv(1600, 96, 144), MulDiv(70, 96, 144),UIwindow,RenderTargetWindows,pGfx);
 	UIwindow->UpdateUI();
 	Scene->SetSizenWidth();
 	Properties->SetSizenWidth();

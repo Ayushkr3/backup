@@ -153,8 +153,12 @@ void NVPhysx::BoxCollider::InitPlayMode() {
 		if (rb == nullptr)
 			throw 1;
 		rb->InitPlayMode();
-		this->Material = physicsObj->createMaterial(0.5f, 0.5f, 0.5f);
-		this->shape = physicsObj->createShape(PxBoxGeometry(1.0f, 1.0f, 1.0f), *this->Material);
+		if (this->Material == nullptr) {
+			this->Material = physicsObj->createMaterial(0.5f, 0.5f, 0.5f);
+		}
+		if (this->shape == nullptr) {
+			this->shape = physicsObj->createShape(PxBoxGeometry(1.0f, 1.0f, 1.0f), *this->Material);
+		}
 		if (rb->DynamicActor == rb->GetCurrentActor()) {
 			rb->DynamicActor->attachShape(*this->shape);
 		}

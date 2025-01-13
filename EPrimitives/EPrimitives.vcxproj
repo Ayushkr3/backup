@@ -110,7 +110,7 @@ xcopy /y /d  "$(ProjectDir)Texture.h" "$(SolutionDir)EngineDependency"
 xcopy /y /d  "$(ProjectDir)PropertiesRequirment.h" "$(SolutionDir)EngineDependency"
 xcopy /y /d  "$(ProjectDir)WIC.h" "$(SolutionDir)EngineDependency"
 xcopy /y /d  "$(ProjectDir)Microsoft_wic.h" "$(SolutionDir)EngineDependency"
-</Command>
+xcopy /y /d  "$(ProjectDir)Shapes.h" "$(SolutionDir)EngineDependency"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -176,6 +176,7 @@ xcopy /y /d  "$(ProjectDir)Microsoft_wic.h" "$(SolutionDir)EngineDependency"
     <ClInclude Include="pch.h" />
     <ClInclude Include="Primitives.h" />
     <ClInclude Include="PropertiesRequirment.h" />
+    <ClInclude Include="Shapes.h" />
     <ClInclude Include="Texture.h" />
     <ClInclude Include="WIC.h" />
   </ItemGroup>
@@ -191,6 +192,7 @@ xcopy /y /d  "$(ProjectDir)Microsoft_wic.h" "$(SolutionDir)EngineDependency"
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="Shaders.cpp" />
+    <ClCompile Include="Shapes.cpp" />
     <ClCompile Include="Texture.cpp" />
     <ClCompile Include="WIC.cpp" />
   </ItemGroup>

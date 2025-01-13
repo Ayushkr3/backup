@@ -7,6 +7,9 @@ physx::PxDefaultAllocator NVPhysx::allocator;
 physx::PxDefaultErrorCallback NVPhysx::errorCallback;
 physx::PxFoundation* NVPhysx::foundation = nullptr;
 physx::PxPhysics* NVPhysx::physicsObj = nullptr;
+PxPvdSceneClient* pvdClient = nullptr;
+physx::PxPvd* NVPhysx::pvd = nullptr;
+physx::PxPvdTransport* NVPhysx::transport = nullptr;
 void SharedVarInit(float*&dT, bool*& inPlayMode) {
 	Globals::dT = dT;
 	Globals::inPlayMode = inPlayMode;
@@ -108,11 +111,19 @@ void SharedVarInit(float*&dT, bool*& inPlayMode) {
 //}
 void NVPhysx::Init() {
 	foundation = PxCreateFoundation(PX_PHYSICS_VERSION,allocator,errorCallback);
-	physicsObj = PxCreatePhysics(PX_PHYSICS_VERSION, *foundation, PxTolerancesScale(), true, nullptr);
+	foundation->setErrorLevel(PxErrorCode::eDEBUG_INFO);
+	pvd = PxCreatePvd(*NVPhysx::foundation);
+	transport = PxDefaultPvdSocketTransportCreate("127.0.0.1", 5425,10000);
+	pvd->connect(*transport, PxPvdInstrumentationFlag::eDEBUG);
+	physicsObj = PxCreatePhysics(PX_PHYSICS_VERSION, *foundation, PxTolerancesScale(), true,pvd);
 }
 void NVPhysx::Destroy() {
 	foundation->release();
 	physicsObj->release();
+	pvd->disconnect();
+	pvd->release();
+	transport->disconnect();
+	transport->release();
 }
 void NVPhysx::CreateNewScene(PxScene*& Scene) {
 	physx::PxSceneDesc* physcenedesc = new physx::PxSceneDesc(NVPhysx::physicsObj->getTolerancesScale());
@@ -121,6 +132,7 @@ void NVPhysx::CreateNewScene(PxScene*& Scene) {
 	physcenedesc->filterShader = PxDefaultSimulationFilterShader;
 	physcenedesc->cpuDispatcher = PxDefaultCpuDispatcherCreate(2);
 	Scene = physicsObj->createScene(*physcenedesc);
+	Scene->getScenePvdClient()->setScenePvdFlags(PxPvdSceneFlag::eTRANSMIT_CONTACTS | PxPvdSceneFlag::eTRANSMIT_SCENEQUERIES | PxPvdSceneFlag::eTRANSMIT_CONSTRAINTS);
 }
 NVPhysx::RigidBody::RigidBody(Objects* obj) :ObjectProperties(obj),trans(nulltrans){
 
@@ -150,17 +162,18 @@ void NVPhysx::RigidBody::InitPlayMode() {
 	if (DynamicActor == nullptr&&StaticActor == nullptr) {
 		DynamicActor = physicsObj->createRigidDynamic(physx::PxTransform(physx::PxVec3(trans->position[0], trans->position[1], trans->position[2])));
 		StaticActor = physicsObj->createRigidStatic(physx::PxTransform(physx::PxVec3(trans->position[0], trans->position[1], trans->position[2])));
+		DynamicActor->setActorFlag(PxActorFlag::eVISUALIZATION, true);
 	}
 	SKIP_CREATION:
 	if (DynamicActor != nullptr) {
 		DynamicActor->setActorFlag(PxActorFlag::eDISABLE_GRAVITY, !isAffectedbyGravity);
-		DynamicActor->setGlobalPose(physx::PxTransform(physx::PxVec3(trans->position[0], trans->position[1], trans->position[2]), EulerToQuaternion(trans->rotation[2], trans->rotation[1], trans->rotation[0])));
+		DynamicActor->setGlobalPose(physx::PxTransform(physx::PxVec3(trans->position[0], trans->position[1], trans->position[2]), PxQuat(trans->rotation[0], trans->rotation[1], trans->rotation[2],trans->rotation[3])));
 		DynamicActor->setLinearVelocity(PxVec3(0.0f, 0.0f, 0.0f));
 		DynamicActor->setAngularVelocity(PxVec3(0.0f, 0.0f, 0.0f));
 	}
 	if (StaticActor != nullptr) {
 		StaticActor->setActorFlag(PxActorFlag::eDISABLE_GRAVITY, !isAffectedbyGravity);
-		StaticActor->setGlobalPose(physx::PxTransform(physx::PxVec3(trans->position[0], trans->position[1], trans->position[2]), EulerToQuaternion(trans->rotation[2], trans->rotation[1], trans->rotation[0])));
+		StaticActor->setGlobalPose(physx::PxTransform(physx::PxVec3(trans->position[0], trans->position[1], trans->position[2]), PxQuat(trans->rotation[0], trans->rotation[1], trans->rotation[2], trans->rotation[3])));
 	}
 	isInitalized = true;
 }
@@ -194,14 +207,14 @@ void NVPhysx::RigidBody::show() {
 				PxScene* CurrentScene = DynamicActor->getScene();
 				CurrentScene->removeActor(*DynamicActor);
 				CurrentScene->addActor(*StaticActor);
-				StaticActor->setGlobalPose(physx::PxTransform(physx::PxVec3(trans->position[0], trans->position[1], trans->position[2]),EulerToQuaternion(trans->rotation[2], trans->rotation[1], trans->rotation[0])));
+				StaticActor->setGlobalPose(physx::PxTransform(physx::PxVec3(trans->position[0], trans->position[1], trans->position[2]),PxQuat(trans->rotation[0], trans->rotation[1], trans->rotation[2],trans->rotation[3])));
 			}
 			else {
 				if (StaticActor != nullptr&& *Globals::inPlayMode) {
 				PxScene* CurrentScene = StaticActor->getScene();
 				CurrentScene->removeActor(*StaticActor);
 				CurrentScene->addActor(*DynamicActor);
-				DynamicActor->setGlobalPose(physx::PxTransform(physx::PxVec3(trans->position[0], trans->position[1], trans->position[2]), EulerToQuaternion(trans->rotation[2], trans->rotation[1], trans->rotation[0])));
+				DynamicActor->setGlobalPose(physx::PxTransform(physx::PxVec3(trans->position[0], trans->position[1], trans->position[2]), PxQuat(trans->rotation[0], trans->rotation[1], trans->rotation[2], trans->rotation[3])));
 				}
 			}
 		}
@@ -215,6 +228,7 @@ void NVPhysx::RigidBody::show() {
 			ImGui::Text(("X Rot" + std::to_string((DynamicActor->getGlobalPose()).q.x)).c_str());
 			ImGui::Text(("Y Rot" + std::to_string((DynamicActor->getGlobalPose()).q.y)).c_str());
 			ImGui::Text(("Z Rot" + std::to_string((DynamicActor->getGlobalPose()).q.z)).c_str());
+			ImGui::Text(("W Rot" + std::to_string((DynamicActor->getGlobalPose()).q.w)).c_str());
 		}
 		else {
 			ImGui::Text(("X " + std::to_string((StaticActor->getGlobalPose()).p.x)).c_str());
@@ -233,13 +247,13 @@ void NVPhysx::RigidBody::UpdatePhysics() {
 			trans->position[0] = updateTrans.p.x;
 			trans->position[1] = updateTrans.p.y;
 			trans->position[2] = updateTrans.p.z;
-			updatedAngle = FromQuaternionToEuler(Quaternion(updateTrans.q));
-			trans->rotation[0] = updatedAngle.x;
-			trans->rotation[1] = updatedAngle.y;
-			trans->rotation[2] = updatedAngle.z;
+			trans->rotation[0] = updateTrans.q.x;
+			trans->rotation[1] = updateTrans.q.y;
+			trans->rotation[2] = updateTrans.q.z;
+			trans->rotation[3] = updateTrans.q.w;
 		}
 		else {
-			DynamicActor->setGlobalPose(physx::PxTransform(physx::PxVec3(trans->position[0], trans->position[1], trans->position[2]), EulerToQuaternion(trans->rotation[2], trans->rotation[1], trans->rotation[0])));
+			DynamicActor->setGlobalPose(physx::PxTransform(physx::PxVec3(trans->position[0], trans->position[1], trans->position[2]), PxQuat(trans->rotation[0], trans->rotation[1], trans->rotation[2], trans->rotation[3])));
 		}
 	}
 }
