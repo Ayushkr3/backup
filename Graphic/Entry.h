@@ -24,7 +24,7 @@ void DoFrame(window* Skeleton) {
 #endif
 	Skeleton->UIwindow->Swap();
 	Skeleton->pGfx->EndFrame();
-
+	Mouse::ResetDelta();
 }
 
 int ApplicationGo(window* Skeleton) {

@@ -12,11 +12,14 @@ Scene::Scene(Microsoft::WRL::ComPtr<ID3D11Device> pDevice, Microsoft::WRL::ComPt
 	pDumbContext = pContext.Get();
 	NVPhysx::CreateNewScene(physScene);
 	LoadSkyBox();
+	cam.CamProperties.push_back(&dc);
+	dc.SetCameraProp(cam.PosNrot);
 	AllObject.push_back(&cam);
 }
 Scene::~Scene() {
 }
 void Scene::Render() {
+	dc.DebugCamMovement();
 	cam.calculateProjection(pContext, &(cam.GetViewMatrix()));
 	//TODO: Fix proper lighting
 	pSkyBox->Draw();

@@ -166,7 +166,7 @@ LRESULT window::HandleMsg(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) noe
 		PostQuitMessage(0);
 		return 0;
 	case WM_INPUT:
-		InputManager::Start(lParam);
+		InputManager::Read(lParam);
 #ifdef ImGUI_ENABLED
 		/*if (io.WantCaptureMouse) {
 			Mouse::deltaMouseX = 0;

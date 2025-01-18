@@ -3,12 +3,14 @@
 #include <stdlib.h>
 #include <thread>
 Keyboard InputManager::kb;
+Mouse InputManager::Ms;
 PRAWINPUT InputManager::data;
 UINT InputManager::cbSize;
 void InputManager::Init() {
 	kb.Init();
+	Ms.Init();
 }
-void InputManager::Start(LPARAM lparam) {
+void InputManager::Read(LPARAM lparam) {
 	GetRawInputData((HRAWINPUT)lparam, RID_INPUT, NULL, &cbSize, sizeof(RAWINPUTHEADER));
 	LPBYTE lpbyte = new BYTE[cbSize];
 
@@ -17,6 +19,9 @@ void InputManager::Start(LPARAM lparam) {
 	RAWINPUT* raw = (RAWINPUT*)lpbyte;
 	if (raw->header.dwType == RIM_TYPEKEYBOARD) {
 		kb.Read(raw);
+	}
+	if (raw->header.dwType == RIM_TYPEMOUSE) {
+		Ms.Read(raw);
 	}
 }
 

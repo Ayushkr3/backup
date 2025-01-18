@@ -4,6 +4,7 @@
 #include "Global.h"
 #include "ImGui/imgui.h"
 #include "ImGui/imgui_impl_dx11.h"
+#include "EInputManager.h"
 class Camera:public Objects {
 public:
 	struct CameraProp:public ObjectProperties {
@@ -15,6 +16,7 @@ public:
 		void show();
 		ObjectProperties* GetPropertyRef() { return this; }
 		const std::type_info& GetPropertyType() { return typeid(CameraProp); };
+		DirectX::XMVECTOR forwardDirection;
 	};
 	Camera(Microsoft::WRL::ComPtr<ID3D11Device> pDevice);
 	CameraProp* PosNrot;
@@ -25,7 +27,18 @@ public:
 	PerFrameData GetViewMatrix();
 	XMMATRIX viewmatrix;
 	XMMATRIX projection;
+	
 	void SetFOVnAspectRatio(float FOV,float ratio);
+	class DebugCamera :public ObjectProperties {
+	private:
+		CameraProp* Iprop = nullptr;
+	public:
+		void SetCameraProp(CameraProp* prop);
+		void show() {};
+		void DebugCamMovement();
+		ObjectProperties* GetPropertyRef();
+		const std::type_info& GetPropertyType();
+	};
 private:
 	PerFrameData viewXprojection;
 	Microsoft::WRL::ComPtr<ID3D11Buffer> pFrameConstantBuffer;

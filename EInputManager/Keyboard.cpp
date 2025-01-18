@@ -6,7 +6,7 @@ void Keyboard::Init() {
 	rwK.hwndTarget = 0;
 	rwK.usUsage = 0x06;
 	rwK.usUsagePage = 0x01;
-	BOOL TEST = RegisterRawInputDevices(&rwK, 1, sizeof(rwK));
+	RegisterRawInputDevices(&rwK, 1, sizeof(rwK));
 }
 void Keyboard::Read(RAWINPUT* raw) {
 	if (raw->data.keyboard.Flags == RI_KEY_MAKE) {

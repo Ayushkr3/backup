@@ -113,12 +113,23 @@ xcopy /y /d  "$(OutDir)EInputManager.lib" "$(SolutionDir)EngineDependency" </Com
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpp17</LanguageStandard>
+      <AdditionalIncludeDirectories>D:\program\vs\graphic\Shared\include;D:\program\vs\graphic\Shared;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
+      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command>xcopy /y /d  "$(OutDir)EInputManager.dll" "$(SolutionDir)EngineDependency" 
+xcopy /y /d  "$(OutDir)EInputManager.lib" "$(SolutionDir)EngineDependency" 
+xcopy /y /d  "$(ProjectDir)EInputManager.h" "$(SolutionDir)EngineDependency"
+xcopy /y /d  "$(ProjectDir)Keyboard.h" "$(SolutionDir)EngineDependency"
+xcopy /y /d  "$(ProjectDir)Mouse.h" "$(SolutionDir)EngineDependency"
+xcopy /y /d  "$(ProjectDir)MACROS.h" "$(SolutionDir)EngineDependency"
+</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -165,12 +176,14 @@ xcopy /y /d  "$(OutDir)EInputManager.lib" "$(SolutionDir)EngineDependency" </Com
     <ClInclude Include="framework.h" />
     <ClInclude Include="Keyboard.h" />
     <ClInclude Include="MACROS.h" />
+    <ClInclude Include="Mouse.h" />
     <ClInclude Include="pch.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="EInputManager.cpp" />
     <ClCompile Include="Keyboard.cpp" />
+    <ClCompile Include="Mouse.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>

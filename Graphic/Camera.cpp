@@ -37,29 +37,23 @@ void Camera::calculateProjection(Microsoft::WRL::ComPtr<ID3D11DeviceContext> pCo
 }
 PerFrameData Camera::GetViewMatrix() {
 	//////////////////////////
-	if (PosNrot->rotation[0] > 90) {
-		PosNrot->rotation[0] = 89;
-	}
-	if (PosNrot->rotation[0] < -90) {
-		PosNrot->rotation[0] = -89;
-	}
 	if (PosNrot->rotation[1] > 360) {
 		PosNrot->rotation[1] = 0;
 	}
 	if (PosNrot->rotation[1] < 0) {
 		PosNrot->rotation[1] = 359;
 	}
+	PosNrot->rotation[0] = std::clamp(PosNrot->rotation[0], -89.0f, 89.0f);
 	//////////////////////////
 	XMVECTOR pos = XMVectorSet(PosNrot->postion[0], PosNrot->postion[1], PosNrot->postion[2], 1.0f);
 	XMMATRIX Rotation = XMMatrixRotationRollPitchYaw(XMConvertToRadians(PosNrot->rotation[0]), XMConvertToRadians(PosNrot->rotation[1]), 0.0f);
-	XMVECTOR forwardDirection = XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f);
-	forwardDirection = XMVector3TransformCoord(forwardDirection, Rotation);
+	PosNrot->forwardDirection = XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f);
+	PosNrot->forwardDirection = XMVector3TransformCoord(PosNrot->forwardDirection, Rotation);
 
 	viewmatrix = XMMatrixTranspose(XMMatrixLookAtLH(
 		pos,
-		pos + forwardDirection,
+		pos + PosNrot->forwardDirection,
 		XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f)));
-
 	projection = XMMatrixTranspose(XMMatrixPerspectiveFovLH(XMConvertToRadians(PosNrot->FoV),PosNrot->Ratio, 0.1f, 100.0f));
 
 	viewXprojection.viewMat = ConstantBuffer::ConvertMatrixToFloat4x4(projection*viewmatrix );
@@ -76,4 +70,42 @@ void Camera::CameraProp::show() {
 	ImGui::DragFloat2("Camera Rotation", rotation, 0.1f);
 	ImGui::DragFloat3("Camera Position", postion, 0.1f);
 	ImGui::DragFloat("Fov", &FoV, 1.0f, 30.f, 270);
+}
+ObjectProperties* Camera::DebugCamera::GetPropertyRef() {
+	return this;
+}
+const std::type_info& Camera::DebugCamera::GetPropertyType() {
+	return typeid(DebugCamera);
+}
+void Camera::DebugCamera::SetCameraProp(CameraProp* prop) {
+	Iprop = prop;
+}
+void Camera::DebugCamera::DebugCamMovement() {
+	if (!ImGui::IsWindowHovered(ImGuiHoveredFlags_AnyWindow)&&!ImGui::IsAnyItemHovered()&&!ImGui::IsAnyItemActive()&&!ImGui::IsAnyItemFocused()) {
+		if (Mouse::isRightButtonHeld) {
+			Iprop->rotation[0] += ((float)(Mouse::deltaY)) / 2;
+			Iprop->rotation[1] += ((float)(Mouse::deltaX)) / 2;
+		}
+		if (Mouse::isLeftButtonHeld) {
+			XMFLOAT3 rightDir, upDir;
+			XMFLOAT3 forwardDir;
+			XMStoreFloat3(&forwardDir, Iprop->forwardDirection);
+			XMFLOAT3 worldUp = XMFLOAT3(0.0f, 1.0f, 0.0f); 
+			XMStoreFloat3(&rightDir, XMVector3Normalize(XMVector3Cross(XMLoadFloat3(&forwardDir), XMLoadFloat3(&worldUp))));
+			XMStoreFloat3(&upDir, XMVector3Normalize(XMVector3Cross(XMLoadFloat3(&rightDir), XMLoadFloat3(&forwardDir))));
+			Iprop->postion[0] += ((float)(Mouse::deltaX)) * rightDir.x*0.05f;
+			Iprop->postion[1] += ((float)(-Mouse::deltaX)) * rightDir.y*0.05f;
+			Iprop->postion[2] += ((float)(Mouse::deltaX)) * rightDir.z*0.05f;
+			Iprop->postion[0] += ((float)(Mouse::deltaY)) * upDir.x*0.05f;
+			Iprop->postion[1] += ((float)(Mouse::deltaY)) * upDir.y*0.05f;
+			Iprop->postion[2] += ((float)(Mouse::deltaY)) * upDir.z*0.05f;
+		}
+		if (Mouse::isMouseWheelScrolling) {
+			XMFLOAT3 forwardDir;
+			XMStoreFloat3(&forwardDir,Iprop->forwardDirection);
+			Iprop->postion[0] += ((float)(Mouse::WheelDelta)/120) *forwardDir.x*0.4f;
+			Iprop->postion[1] += ((float)(Mouse::WheelDelta)/120) *forwardDir.y*0.4f;
+			Iprop->postion[2] += ((float)(Mouse::WheelDelta)/120) *forwardDir.z*0.4f;
+		}
+	}
 }

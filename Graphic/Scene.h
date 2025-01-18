@@ -14,6 +14,7 @@ private:
 	std::vector<Triangle*>::iterator LookUp(Triangle* Tri, std::vector<Triangle*>& vec);
 	std::unique_ptr<SkyBox> pSkyBox;
 	void LoadSkyBox();
+	Camera::DebugCamera dc;
 public:
 	void SaveScene();
 	static short currentOBJID;
