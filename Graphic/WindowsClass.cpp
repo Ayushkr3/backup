@@ -70,10 +70,15 @@ window::window():
 	);
 #endif // ImGUI_ENABLED
 	DebugConsole::InitDebugConsole();
+	ObjectPropertiesFactory::Init();
 	UIwindow = std::make_unique<UIElements>(className, hwnd, hint, 0, 0, MulDiv(1600,96,144), MulDiv(900,96,144), 1);
+	ObjectPropertiesFactory::InitModule();
 	RenderTargetWindows = std::make_unique<UIWindows>(className, hwnd, hint, MulDiv(300, 96, 144), MulDiv(70, 96, 144), MulDiv(1024, 96, 144), MulDiv(576, 96, 144),2);
 	pGfx = std::make_unique<Graphic>(RenderTargetWindows.get()->cHwnd);
 	//D3DFactory::Init(pGfx->pDevice,pGfx->pContext);
+	/*Instantly set with engine device and context if not 
+	 UI device made resource will not be binded with engine context*/
+	IPC::SetD3D(pGfx->pDevice, pGfx->pContext);
 	Scene = std::make_unique<SceneManager>(0, MulDiv(70, 96, 144), MulDiv(300, 96, 144), MulDiv(830, 96, 144));
 	SceneManager::currentScene = pGfx->GetCurrentScene();
 	Properties = std::make_unique<PropertiesWindow>(MulDiv(1324, 96, 144), MulDiv(70, 96, 144), MulDiv(280, 96, 144), MulDiv(830, 96, 144));
@@ -92,7 +97,7 @@ window::window():
 	winRef->Additional_Param.ptrElem = &UIwindow;
 	InputManager::Init();
 	Globals::inPlayMode = new bool;
-	ObjectPropertiesFactory::Init();
+	
 	*Globals::inPlayMode = false;
 	SharedVarInit(Globals::dT,Globals::inPlayMode);
 	ShowWindow(hwnd, SW_SHOWDEFAULT);
@@ -276,5 +281,6 @@ window::~window() {
 	D3DFactory::DeInit();
 	DestroyWindow(hwnd);
 	UnregisterClass("OI",hint);
+	ObjectPropertiesFactory::DeInit();
 	//mouse_cont.DestroyRawInput();
 }

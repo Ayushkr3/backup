@@ -75,8 +75,9 @@ public:
 		PHYSICS_API ObjectProperties* GetPropertyRef();
 		PHYSICS_API physx::PxActor* GetCurrentActor();
 		PHYSICS_API const std::type_info& GetPropertyType();
+		PHYSICS_API std::string GetPropertyClassName() { return "RigidBody"; }
 	};
-	class BoxCollider:public ObjectProperties{
+	class Collider:public ObjectProperties{
 		RigidBody* rb;
 		physx::PxMaterial* Material;
 		physx::PxShape* shape;
@@ -89,8 +90,9 @@ public:
 		PHYSICS_API void DeInitPlayMode();
 		PHYSICS_API void show();
 		PHYSICS_API void UpdateDependency(const void* ptr);
-		PHYSICS_API BoxCollider(Objects* obj);
+		PHYSICS_API Collider(Objects* obj);
+		PHYSICS_API std::string GetPropertyClassName() { return "Collider"; }
 	};
 };
-PHYSICS_API ObjectProperties* CreateRigidBody(Objects* obj);
+extern "C" PHYSICS_API ObjectProperties* CreateRigidBody(Objects* obj);
 PHYSICS_API ObjectProperties* CreateCollider(Objects* obj);

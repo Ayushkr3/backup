@@ -7,7 +7,7 @@ bool* Globals::inPlayMode = nullptr;
 float* Globals::dT = 0;
 bool Globals::isFullscreen = false;
 std::multimap<std::string,std::function<ObjectProperties*(Objects*)>> ObjectProperties::GlobalPropertiesPool = {};
-ObjectProperties::ObjectProperties(Objects* obj) :associatedObj(obj) {
+ObjectProperties::ObjectProperties(Objects* obj) :associatedObj(obj){
 
 }
 TransformStruct::TransformStruct(Objects* obj) : ObjectProperties(obj) {
@@ -18,11 +18,19 @@ void ObjectProperties::PushToObjectPropertyPool(std::string name, std::function<
 }
 Objects::Objects(short id, std::string ObjName) :Id(id), ObjName(ObjName) {
 	float i = 0;
-	Inheritence.InheritedTrans = t;
+	Inheritence.InheritedTrans = new TransformStruct(nullptr);
+	Inheritence.AbsoluteTrans = new TransformStruct(nullptr);
 	(Inheritence.InheritedTrans)->position[0] = 0;
 	(Inheritence.InheritedTrans)->position[1] = 0;
 	(Inheritence.InheritedTrans)->position[2] = 0;
+	(Inheritence.AbsoluteTrans)->position[0] = 0;
+	(Inheritence.AbsoluteTrans)->position[1] = 0;
+	(Inheritence.AbsoluteTrans)->position[2] = 0;
 };
+Objects::~Objects() {
+	delete Inheritence.AbsoluteTrans;
+	delete Inheritence.InheritedTrans;
+}
 DirectX::XMFLOAT4 TransformStruct::EulerToQuat(float yaw,float pitch,float roll) {
 	yaw = DirectX::XMConvertToRadians(yaw);
 	pitch = DirectX::XMConvertToRadians(pitch);
@@ -105,14 +113,22 @@ void TransformStruct::Update() {
 	isMoving = false;
 }
 void Objects::SetInheritence(Objects*& o) {
-	for (auto& op : *o->GetProperties()) {
+	delete this->Inheritence.InheritedTrans;
+	this->Inheritence.InheritedTrans = o->Inheritence.AbsoluteTrans;
+	this->Inheritence.inheritedFrom = o;
+	TransformStruct* b = nullptr;
+	for (auto& op : *this->GetProperties()) {
 		if (dynamic_cast<TransformStruct*>(op) != nullptr) {
-			TransformStruct* b = (dynamic_cast<TransformStruct*>(op));
-			this->Inheritence.InheritedTrans = b;
+			b = (dynamic_cast<TransformStruct*>(op));
 		}
 	}
-	this->Inheritence.inheritedFrom = o;
-
+	b->position[0] = b->position[0] - o->Inheritence.AbsoluteTrans->position[0];
+	b->position[1] = b->position[1] - o->Inheritence.AbsoluteTrans->position[1];
+	b->position[2] = b->position[2] - o->Inheritence.AbsoluteTrans->position[2];
+}
+void Objects::RemoveHeritence(){
+	this->Inheritence.InheritedTrans = new TransformStruct(nullptr);
+	this->Inheritence.inheritedFrom = nullptr;
 }
 std::string GetMemAddress(void* ptr) {
 	std::ostringstream oss; oss << ptr; return oss.str().substr(oss.str().size()-7, 7);
@@ -120,3 +136,53 @@ std::string GetMemAddress(void* ptr) {
 const std::type_info& TransformStruct::GetPropertyType() {
 	return typeid(TransformStruct);
 }
+
+
+HANDLE IPC::hMapFile;
+LPVOID IPC::ptrToMem;
+IPC::SharedData* IPC::Data = nullptr;
+
+//------------------------------------------------------------------------------------------//
+void IPC::Init(Microsoft::WRL::ComPtr<ID3D11Device>& pDevice,
+	Microsoft::WRL::ComPtr<ID3D11DeviceContext>& pContext, ImGuiContext* ctx) {
+	hMapFile = CreateFileMapping(INVALID_HANDLE_VALUE, NULL, PAGE_READWRITE, NULL, sizeof(SharedData), L"IPC");
+	ptrToMem = MapViewOfFile(hMapFile,
+		FILE_MAP_ALL_ACCESS,
+		0,
+		0,
+		sizeof(SharedData));
+	if (Data == nullptr)
+		Data = new SharedData;
+	Data->ctx = ctx;
+	//Data->pDevice = pDevice;
+	//Data->pContext = pContext;
+	CopyMemory(ptrToMem, Data, sizeof(SharedData));
+}
+void IPC::GetInstance() {
+	hMapFile = OpenFileMapping(FILE_MAP_ALL_ACCESS, 0, L"IPC");
+	if (hMapFile == nullptr)
+		return;
+	if (ptrToMem == nullptr) {
+		ptrToMem = MapViewOfFile(hMapFile, FILE_MAP_ALL_ACCESS, 0, 0, sizeof(SharedData));
+		IPC::Data = (SharedData*)(ptrToMem);
+	}
+	if (ImGui::GetCurrentContext() == nullptr)
+		ImGui::SetCurrentContext(((SharedData*)(ptrToMem))->ctx);
+}
+void IPC::DeInit() {
+	if (ptrToMem != nullptr) {
+		UnmapViewOfFile(ptrToMem);
+	}
+	if (hMapFile) {
+		CloseHandle(hMapFile);
+	}
+}
+void IPC::SetScene(void* Scene) {
+	((SharedData*)(ptrToMem))->Scene = Scene;
+}
+void IPC::SetD3D(Microsoft::WRL::ComPtr<ID3D11Device>& pDevice,
+	Microsoft::WRL::ComPtr<ID3D11DeviceContext>& pContext) {
+	((SharedData*)(ptrToMem))->pDevice = pDevice;
+	((SharedData*)(ptrToMem))->pContext = pContext;
+}
+//------------------------------------------------------------------------------------------------//

@@ -122,12 +122,12 @@ xcopy /y /d  "$(OutDir)EInputManager.lib" "$(SolutionDir)EngineDependency" </Com
       <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy /y /d  "$(OutDir)EInputManager.dll" "$(SolutionDir)EngineDependency" 
-xcopy /y /d  "$(OutDir)EInputManager.lib" "$(SolutionDir)EngineDependency" 
-xcopy /y /d  "$(ProjectDir)EInputManager.h" "$(SolutionDir)EngineDependency"
-xcopy /y /d  "$(ProjectDir)Keyboard.h" "$(SolutionDir)EngineDependency"
-xcopy /y /d  "$(ProjectDir)Mouse.h" "$(SolutionDir)EngineDependency"
-xcopy /y /d  "$(ProjectDir)MACROS.h" "$(SolutionDir)EngineDependency"
+      <Command>xcopy /y /d  "$(OutDir)EInputManager.dll" "$(SolutionDir)Shared\lib" 
+xcopy /y /d  "$(OutDir)EInputManager.lib" "$(SolutionDir)Shared\lib" 
+xcopy /y /d  "$(ProjectDir)EInputManager.h" "$(SolutionDir)Shared\EngInc"
+xcopy /y /d  "$(ProjectDir)Keyboard.h" "$(SolutionDir)Shared\EngInc"
+xcopy /y /d  "$(ProjectDir)Mouse.h" "$(SolutionDir)Shared\EngInc"
+xcopy /y /d  "$(ProjectDir)MACROS.h" "$(SolutionDir)Shared\EngInc"
 </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>

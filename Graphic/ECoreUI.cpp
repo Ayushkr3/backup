@@ -41,8 +41,8 @@ void UIElements::ContainerEnd() {
 UIElements::UIElements(std::string className, HWND Phwnd, HINSTANCE hint, short x, short y, short w, short b, int windowsN) {
 	if (pUIDevice == nullptr) {
 		ctx = (ImGui::CreateContext());
-		ImguiContextFactory::Init(ctx);
 		UIElements::io = &ImGui::GetIO();
+		((HotReloading::SharedData*)HotReloading::ptrToMem)->ctx = ctx;
 		io->FontGlobalScale = 1.4f;
 		io->WantCaptureMouse = true;
 		io->WantCaptureKeyboard = true;
@@ -90,6 +90,7 @@ UIElements::UIElements(std::string className, HWND Phwnd, HINSTANCE hint, short 
 		pBackBuffer->Release();
 		ImGui_ImplWin32_Init(cHwnd);
 		ImGui_ImplDX11_Init(pUIDevice.Get(), pUIContext.Get());
+		ImguiContextFactory::Init(pUIDevice, pUIContext, ctx);
 	}
 }
 void UIWindows::SetFullScreen(LPRECT rect) {
@@ -153,12 +154,37 @@ std::vector<Objects*>::iterator SceneManager::LookUp(short id, std::vector<Objec
 	}
 	return currentScene->AllObject.end();
 }
-std::vector<Triangle*>::iterator SceneManager::LookUp(Triangle* Tri, std::vector<Triangle*>& vec) {
+std::vector<Prefab*>::iterator SceneManager::LookUp(Prefab* Tri, std::vector<Prefab*>& vec) {
 	for (auto it = currentScene->Triangles.begin(); it != currentScene->Triangles.end(); it++) {
 		if ((*it)->id == Tri->id)
 			return it;
 	}
 	return currentScene->Triangles.end();
+}
+void SceneManager::RecursiveTree(Objects*& obj,int* selected) {
+	if (obj->Inheritence.InheritedObj.empty()) {
+		std::string selectableLabel = obj->ObjName + std::to_string(obj->Id);
+		if (ImGui::Selectable(selectableLabel.c_str(), *selected == obj->Id)) {
+			PropertiesWindow::Obj = obj;
+			PropertiesWindow::closable = true;
+			*selected = obj->Id;
+		}
+		return;
+	}
+	else {
+   		std::string selectableLabel = obj->ObjName + std::to_string(obj->Id);
+		if(ImGui::TreeNodeEx(selectableLabel.c_str(),*selected == obj->Id ? ImGuiTreeNodeFlags_Selected : 0)) {
+			if (ImGui::IsItemClicked()) {
+				PropertiesWindow::Obj = obj;
+				PropertiesWindow::closable = true;
+				*selected = obj->Id;
+			}
+			for (int i = 0; i < obj->Inheritence.InheritedObj.size(); i++) {
+				RecursiveTree(obj->Inheritence.InheritedObj[i],selected);
+			}
+			ImGui::TreePop();
+		}
+	}
 }
 void SceneManager::Content() {
 	if (currentScene == nullptr)
@@ -171,57 +197,67 @@ void SceneManager::Content() {
 		if (!ImGui::CollapsingHeader("Scene Objects", nullptr))return;
 	}
 	if (ImGui::BeginPopupContextItem("Scene Menu")) {
-		if (ImGui::Button("Add Object")) {
-			/*Triangle* newTriangle = new Triangle();
-			currentScene->AllObject.push_back(newTriangle);
-			currentScene->Triangles.push_back(newTriangle);
-			currentScene->CContoller->AddTriangle(newTriangle);
-			currentScene->CContoller->InitalizePosition();*/
-			ImGui::CloseCurrentPopup();
+		if (ImGui::BeginMenu("Add Object")) {
+			ImGui::SetWindowFontScale(0.7f);
+			if (ImGui::MenuItem("Null Object")) {
+				NullObject* no = new NullObject(Scene::GetCurrentID());
+				SceneManager::currentScene->AddObject(no, false);
+			}
+			ImGui::EndMenu();
+			
 		}
 		ImGui::EndPopup();
 	}
 	static Objects* last_object = nullptr;
-	for (auto& Tri : currentScene->AllObject) {
-		std::string selectableLabel = Tri->ObjName + std::to_string(Tri->Id);
-		if (ImGui::Selectable(selectableLabel.c_str(), selected == Tri->Id)) {
-			PropertiesWindow::Obj = Tri;
-			PropertiesWindow::closable = true;
-			selected = Tri->Id;
-			Tri->Highlight();
-			if (last_object != Tri) {
-				if (last_object != nullptr)
-					last_object->Restore();
-				last_object = Tri;
-			}
+	for (int i = 0; i < currentScene->AllObject.size();i++) {
+		/*if (currentScene->AllObject[i]->Inheritence.inheritedFrom != nullptr)
+			continue;*/
+		//RecursiveTree(currentScene->AllObject[i], &selected);
+		std::string selectableLabel = currentScene->AllObject[i]->ObjName + std::to_string(currentScene->AllObject[i]->Id);
+		if (ImGui::Selectable(selectableLabel.c_str(), selected == currentScene->AllObject[i]->Id)) {
+				PropertiesWindow::Obj = currentScene->AllObject[i];
+				PropertiesWindow::closable = true;
+				selected = currentScene->AllObject[i]->Id;
+				currentScene->AllObject[i]->Highlight();
+				if (last_object != currentScene->AllObject[i]) {
+					if (last_object != nullptr)
+						last_object->Restore();
+					last_object = currentScene->AllObject[i];
+				}
 		}
 		if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None)) {
-			ImGui::SetDragDropPayload("Objects",&Tri,sizeof(Tri));
+			ImGui::SetDragDropPayload("Objects",&currentScene->AllObject[i],sizeof(currentScene->AllObject[i]));
 			ImGui::EndDragDropSource();
 		}
 		if (ImGui::BeginDragDropTarget()) {
 			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("Objects")) {
 				Objects* data = *static_cast<Objects**>(payload->Data);
-				Tri->Inheritence.InheritedObj.push_back(data);
-				data->SetInheritence(Tri);
+				currentScene->AllObject[i]->Inheritence.InheritedObj.push_back(data);
+				data->SetInheritence(currentScene->AllObject[i]);
 				ImGui::EndDragDropTarget();
 			}
 		}
-		if (ImGui::BeginPopupContextItem(std::to_string(Tri->Id).c_str())) {
+		if (ImGui::BeginPopupContextItem(std::to_string(currentScene->AllObject[i]->Id).c_str())) {
 			if (ImGui::Button("Delete")) {
-				Triangle* t = dynamic_cast<Triangle*>(Tri);
-				Scene::globalCurrentOBJID.push_back(t->id);
-				Objects::GlobalIdPool.push_back(t->Id);
+				Prefab* t = dynamic_cast<Prefab*>(currentScene->AllObject[i]);
 				if (Globals::inPlayMode) {}
 					//currentScene->CContoller->deleteObject(t);
 				if (last_object == t)
 					last_object = nullptr;
-				currentScene->DeleteObject(Tri);
+				currentScene->DeleteObject(currentScene->AllObject[i]);
 				
 				//ImGui::CloseCurrentPopup();
 				PropertiesWindow::Obj = nullptr;
 			}
 			ImGui::EndPopup();
+		}
+	}
+	ImGui::Dummy(ImGui::GetContentRegionAvail());
+	if (ImGui::BeginDragDropTarget()) {
+		if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("Objects")) {
+			Objects* data = *static_cast<Objects**>(payload->Data);
+			data->RemoveHeritence();
+			ImGui::EndDragDropTarget();
 		}
 	}
 	if (ImGui::IsMouseDown(ImGuiMouseButton_Right) && ImGui::IsWindowHovered() && !ImGui::IsAnyItemHovered())
@@ -361,32 +397,10 @@ void Files::Content()
 						if (i < ObjNormals.size())
 							n.emplace_back(ObjNormals[i][0], ObjNormals[i][1], ObjNormals[i][2]);
 					}
-					float rgba[3] = {1.0f,0.0f,0.0f};
-					Triangle* newTriangle; 
-					short globalID;
-					short ObjectID;
-					if (!Objects::GlobalIdPool.empty()) {
-						globalID = Objects::GlobalIdPool[0];
-						Objects::GlobalIdPool.erase(Objects::GlobalIdPool.begin());
-					}
-					else {
-						globalID = ++Objects::count;
-					}
-					if (!Scene::globalCurrentOBJID.empty()) {
-						ObjectID = Scene::globalCurrentOBJID[0];
-						Scene::globalCurrentOBJID.erase(Scene::globalCurrentOBJID.begin());
-					}
-					else {
-						ObjectID = SceneManager::currentScene->currentOBJID++;
-					}
-					newTriangle = new Triangle(pDevice, pContext, newVert, indi, ObjectID, rgba,globalID,n);
-					if (Globals::inPlayMode) {
-						//SceneManager::currentScene->CContoller->AddTriangle(newTriangle);
-						//SceneManager::currentScene->CContoller->InitalizePosition(newTriangle);
-					}
-					SceneManager::currentScene->AllObject.push_back(newTriangle);
-					SceneManager::currentScene->Triangles.push_back(newTriangle);
-					//SceneManager::currentScene->physScene->addActor(*newTriangle->rb->DynamicActor);
+					PathToFile* ptf = new PathToFile(it.path().string(), it.path().filename().string());
+					Mesh newMesh(pDevice, pContext, Scene::GetCurrentID() , newVert, indi,ptf);
+					SceneManager::currentScene->AddObject(&newMesh);
+					
 					ImGui::CloseCurrentPopup();
 				}
 				ImGui::EndPopup();
@@ -432,7 +446,22 @@ void ControlMenu::Content() {
 		}
 	}
 	ImGui::SameLine();
-	ImGui::Text(("inPlayMode"+std::to_string(*Globals::inPlayMode)).c_str());
+	ImGui::Text(("inPlayMode" + std::to_string(*Globals::inPlayMode)).c_str());
+	ImGui::SameLine();
+	if (ImGui::Button(ICON_FA_REPEAT"Reload")) {
+		FreeLibrary(ObjectPropertiesFactory::Userlib);
+		ObjectPropertiesFactory::Userlib = LoadLibrary("Module_1.dll");
+		if (ObjectPropertiesFactory::Userlib == nullptr)
+			DebugConsole::Log("User module not loaded");
+	}
+	ImGui::SameLine();
+	if (ImGui::Button(ICON_FA_FLOPPY_O"Save Scene")) {
+		SceneManager::currentScene->SaveScene();
+	}
+	ImGui::SameLine();
+	if (ImGui::Button(ICON_FA_REPEAT"Load Scene")) {
+		SceneManager::currentScene->LoadScene();
+	}
 	ImGui::SameLine();
 	if (ImGui::Button("FullScreen")) {
 		RECT rect;
@@ -454,7 +483,7 @@ void ControlMenu::Content() {
 		config.GlyphMinAdvanceX = 13.0f;
 		io->Fonts->AddFontFromFileTTF("D:/program/vs/graphic/Graphic/font/fontawesome-webfont.ttf", 13.0f, &config, icon_ranges);
 		io->ConfigFlags = ImGuiConfigFlags_NavEnableSetMousePos;
-		ImguiContextFactory::Init(ctx);
+		((IPC::SharedData*)IPC::ptrToMem)->ctx = ctx;
 		ImGui::SetCurrentContext(ctx);
 		ImGui_ImplWin32_Init(win->cHwnd);
 		ImGui_ImplDX11_Init(pgfx->pDevice.Get(), pgfx->pContext.Get());

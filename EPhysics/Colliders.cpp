@@ -144,9 +144,9 @@ using namespace physx;
 //{
 //	return new BoxCollider(trans,vertices,Normals,obj);
 //}
-NVPhysx::BoxCollider::BoxCollider(Objects* obj):ObjectProperties(obj) {
+NVPhysx::Collider::Collider(Objects* obj):ObjectProperties(obj) {
 }
-void NVPhysx::BoxCollider::InitPlayMode() {
+void NVPhysx::Collider::InitPlayMode() {
 	try {
 		if (isInitalized)
 			return;
@@ -171,7 +171,7 @@ void NVPhysx::BoxCollider::InitPlayMode() {
 		assert(Error);
 	}
 }
-void NVPhysx::BoxCollider::show() {
+void NVPhysx::Collider::show() {
 	ImGuiContext* c = privateCtx;
 	ImGui::SetCurrentContext(privateCtx);
 	if (ImGui::CollapsingHeader("Box Collider", ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_CollapsingHeader)) {
@@ -185,30 +185,30 @@ void NVPhysx::BoxCollider::show() {
 		
 	}
 }
-void NVPhysx::BoxCollider::UpdateDependency(const void* ptr) {
+void NVPhysx::Collider::UpdateDependency(const void* ptr) {
 	RefrencePassing* ref = (RefrencePassing*)(ptr);
 	if (ref->id == typeid(RigidBody)) {
 		rb = (RigidBody*)(ref->ObjectPtr);
 	}
 }
-void NVPhysx::BoxCollider::DeInitPlayMode() {
+void NVPhysx::Collider::DeInitPlayMode() {
 	isInitalized = false;
 }
 //-------------------------------------------------------------------------------//
 //---------------------------------Factroy functions----------------------------//
 //-------------------------------------------------------------------------------//
 ObjectProperties* CreateCollider(Objects* obj) {
-	return new NVPhysx::BoxCollider(obj);
+	return new NVPhysx::Collider(obj);
 }
-ObjectProperties* NVPhysx::BoxCollider::GetPropertyRef() {
+ObjectProperties* NVPhysx::Collider::GetPropertyRef() {
 	return this;
 }
-void NVPhysx::BoxCollider::RegisterFactory(std::multimap<std::string, std::function<ObjectProperties*(Objects*)>>& GlobalPropertiesPoolL) {
+void NVPhysx::Collider::RegisterFactory(std::multimap<std::string, std::function<ObjectProperties*(Objects*)>>& GlobalPropertiesPoolL) {
 	std::function<ObjectProperties*(Objects*)> f = CreateCollider;
 	ObjectProperties::PushToObjectPropertyPool("Collider",f,GlobalPropertiesPoolL);
 }
-const std::type_info& NVPhysx::BoxCollider::GetPropertyType() {
-	return typeid(NVPhysx::BoxCollider);
+const std::type_info& NVPhysx::Collider::GetPropertyType() {
+	return typeid(NVPhysx::Collider);
 }
 //-------------------------------------------------------------------------------//
 //-------------------------------------------------------------------------------//

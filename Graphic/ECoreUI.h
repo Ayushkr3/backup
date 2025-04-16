@@ -47,7 +47,8 @@ class SceneManager {
 	int widthX;
 	int widthY;
 	std::vector<Objects*>::iterator LookUp(short id, std::vector<Objects*>& vec);
-	std::vector<Triangle*>::iterator LookUp(Triangle* Tri, std::vector<Triangle*>& vec);
+	std::vector<Prefab*>::iterator LookUp(Prefab* Tri, std::vector<Prefab*>& vec);
+	void RecursiveTree(Objects *& obj, int* selected);
 public:
 	static Scene* currentScene;
 	void SetSizenWidth();

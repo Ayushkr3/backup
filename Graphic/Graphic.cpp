@@ -33,7 +33,7 @@ Graphic::Graphic(HWND hwnd){
 	pDevice->CreateRenderTargetView(pBackBuffer, nullptr, pTarget.GetAddressOf());
 	pBackBuffer->Release();
 	NVPhysx::Init();
-	pSc = std::make_unique<Scene>(pDevice,pContext);
+	pSc = new Scene(pDevice,pContext);
 
 	DXGI_SWAP_CHAIN_DESC DESC;
 	pSwap->GetDesc(&DESC);
@@ -119,10 +119,11 @@ Graphic::Graphic(HWND hwnd){
 	CHECK_ERROR(pDevice->CreateDepthStencilView(pDepthStencil.Get(), &stencil_view_desc, &pDs));
 	pContext->OMSetRenderTargets(1, pTarget.GetAddressOf(),pDs.Get());
 	pContext->RSSetState(WireFrame.Get());
-
+	IPC::SetScene((void*)pSc);
 }
 Graphic::~Graphic(){
 	NVPhysx::Destroy();
+	//delete pSc;
 	//if (Globals::isFullscreen) {
 	//	ImGui_ImplDX11_Shutdown();
 	//	ImGui_ImplWin32_Shutdown();
@@ -212,5 +213,5 @@ void Graphic::TestFrames() {
 }
 Scene* Graphic::GetCurrentScene() {
 	
-	return pSc.get();
+	return pSc;
 }

@@ -5,6 +5,7 @@
 #include "ImGui/imgui.h"
 #include <functional>
 #include <map>
+#include <any>
 #include <sstream>
 #include <Windows.h>
 #include <string>
@@ -13,10 +14,34 @@
 #include <queue>
 #include <mutex>
 #include <DirectXMath.h>
+#include <d3d11.h>
+#include <wrl.h>
+#pragma warning(disable : 4244)
 static std::string WorkingDirectory = "D:\\program\\Eng";
 struct ObjectProperties;
 struct TransformStruct;
 inline ImGuiContext* Globalctx = nullptr;
+#define REFLECT_BEGIN(CLASS_NAME) \
+    auto reflect() { \
+        using ThisClass = CLASS_NAME; \
+        return std::tuple(
+#define REFLECT_VAR(VAR) \
+    std::make_pair(Serial(#VAR,(void*)&VAR,typeid(VAR)), ThisClass::VAR)
+
+#define REFLECT_END() \
+        ); \
+    }
+#define REFLECT_BEGIN_ADDR(CLASS_NAME) \
+    auto reflect_addr() { \
+        using ThisClass = CLASS_NAME; \
+		int i = 0;\
+        return std::tuple(
+#define REFLECT_ADDR(VAR) \
+    std::make_pair(i++,(void*)&VAR)
+
+#define REFLECT_END_ADDR() \
+        ); \
+    }
 class Objects {
 public:
 	virtual void Highlight() {}; // If item is selected then do stuff
@@ -27,26 +52,39 @@ public:
 		Objects* inheritedFrom = nullptr;
 		std::vector<Objects*>InheritedObj;//list of all inherited objects;
 		TransformStruct* InheritedTrans;
+		TransformStruct* AbsoluteTrans;
 	}Inheritence;
 	Objects(short id, std::string ObjName);
+	~Objects();
 	short Id;
 	std::string ObjName;
 	void SetInheritence(Objects*& o);
+	void RemoveHeritence();
 	virtual std::vector<ObjectProperties*>* GetProperties() = 0;
+	virtual std::string Serialize() { return ""; };
+	virtual void inPlayMode() {};
+	virtual void InitializePlayMode() {};
+	virtual void DeInitializePlayMode() {};
+
 };
 struct ObjectProperties {
 	static void PushToObjectPropertyPool(std::string name,std::function<ObjectProperties*(Objects*)> f, std::multimap<std::string, std::function<ObjectProperties*(Objects*)>>& GlobalPropertiesPoolL);
 	static std::multimap<std::string,std::function<ObjectProperties*(Objects*)>> GlobalPropertiesPool; //Implement this
 	Objects* associatedObj;
 	ObjectProperties(Objects* obj);
-	ObjectProperties() {}; //Should never used directly
+	ObjectProperties() {} //Should never used directly
+	//Called at start of play mode
 	virtual void InitPlayMode() {};
 	virtual void DeInitPlayMode() {};
 	virtual void show() = 0;
+	//Called everyframe in playmode
 	virtual void inPlayMode() {};
 	virtual void UpdateDependency(const void*& ptr) {};
 	virtual ObjectProperties* GetPropertyRef() = 0;
 	virtual const std::type_info& GetPropertyType() = 0;
+	virtual std::string Serialize() { return ""; };
+	virtual void DeSerialize(std::string block) {};
+	virtual std::string GetPropertyClassName() = 0;
 };
 struct TransformStruct :public ObjectProperties {
 	TransformStruct(Objects* obj);
@@ -65,6 +103,7 @@ public:
 	float position[3] = { 0,0,0 };
 	float Scale[3] = { 1,1,1 };
 	void show();
+	std::string GetPropertyClassName() { return "Transform"; };
 };
 class Globals {
 public:
@@ -110,6 +149,8 @@ struct RefrencePassing {
 struct PathToFile {
 	std::string Path;
 	std::string FileName = "Default";
+	PathToFile() {};
+	PathToFile(std::string path,std::string filename ):Path(path),FileName(filename){}
 };
 std::string GetMemAddress(void* ptr);
 //---------------------------------Console Stuff------------------------------//
@@ -125,7 +166,7 @@ private:
 	static std::condition_variable cv;                  ///________--------------------------------------_______________///
 	static bool Pushed;									///____________________________|________________________________///
 	static bool isFinished;								///_______________________|Shared Queue & mutex|________________///
-	static std::thread DebugThread;
+	static std::thread DebugThread;						//Absolute dogshit CPU usage increased by 15%
 	static void RunThread();
 	static std::queue<std::string>* Message_q;
 	//-----------Shared Paging------------// 
@@ -140,3 +181,52 @@ public:
 };
 #define CONSOLE_PRINT(str) DebugConsole::GetInstance()->Log(str)
 //---------------------------------------------------------------------------//
+
+//-----------------------------Hot Reloading---------------------------------//
+
+class HotReloading {
+private:
+	static HANDLE hMapFile;
+	
+public:
+	static LPVOID ptrToMem;
+	struct SharedData {
+		std::multimap<std::string, std::function<ObjectProperties*(Objects*)>>* GlobalPropertiesPool;
+		ImGuiContext* ctx;
+	};
+	static SharedData* Data;
+	static std::multimap<std::string, std::function<ObjectProperties*(Objects*)>>* PropertiesPool;
+	static std::multimap<std::string, std::function<ObjectProperties*(Objects*)>> InternalPool;
+	static ImGuiContext* IMctx;
+	static void Init(std::multimap<std::string, std::function<ObjectProperties*(Objects*)>>* GlobalPropertiesPool = &ObjectProperties::GlobalPropertiesPool,ImGuiContext* ctx = ImGui::GetCurrentContext());
+	static void DeInit();
+	static void GetInstance();
+	static void RegClass(std::string ClassName, std::function<ObjectProperties*(Objects*)>ptrToFactoryFunction);
+	static void NukeClass();
+};
+//---------------------------------------------------------------------------//
+
+
+//-----------------------------All Shared Data-------------------------------//
+class IPC {
+private:
+public:
+	struct SharedData {
+		float time;
+		ImGuiContext* ctx;
+		Microsoft::WRL::ComPtr<ID3D11Device> pDevice;
+		Microsoft::WRL::ComPtr<ID3D11DeviceContext> pContext;
+		void* Scene;
+	};
+	static void SetScene(void* Scene);
+	static void SetD3D(Microsoft::WRL::ComPtr<ID3D11Device>& pDevice,
+		Microsoft::WRL::ComPtr<ID3D11DeviceContext>& pContext);
+	static HANDLE hMapFile;
+	static LPVOID ptrToMem;
+	static SharedData* Data;
+	static void Init(Microsoft::WRL::ComPtr<ID3D11Device>& pDevice,
+	Microsoft::WRL::ComPtr<ID3D11DeviceContext>& pContext, ImGuiContext* ctx = ImGui::GetCurrentContext());
+	static void DeInit();
+	static void GetInstance();
+};
+//------------------------------------------------------------------------------------------------------//

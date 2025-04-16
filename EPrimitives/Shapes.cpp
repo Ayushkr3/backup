@@ -89,3 +89,65 @@ void BasicShapes::Circle::GetCircleofLongNLat(short Lat, short Long, std::vector
 	index[k + 2] = NumSphereVertices - 2;
 
 }
+void BasicShapes::Cube::GetBox(std::vector<Vertex>& vertices, std::vector<unsigned int>& index) {
+	std::vector<Vertex> vertice = { {-1.0f, -1.0f, -1.0f, 0.0f, 1.0f}, // Bottom-left
+	{ 1.0f, -1.0f, -1.0f, 1.0f, 1.0f}, // Bottom-right
+	{ 1.0f,  1.0f, -1.0f, 1.0f, 0.0f}, // Top-right
+	{-1.0f,  1.0f, -1.0f, 0.0f, 0.0f}, // Top-left
+
+	// Back face
+	{-1.0f, -1.0f,  1.0f, 1.0f, 1.0f}, // Bottom-left
+	{ 1.0f, -1.0f,  1.0f, 0.0f, 1.0f}, // Bottom-right
+	{ 1.0f,  1.0f,  1.0f, 0.0f, 0.0f}, // Top-right
+	{-1.0f,  1.0f,  1.0f, 1.0f, 0.0f}, // Top-left
+
+	// Left face
+	{-1.0f, -1.0f,  1.0f, 0.0f, 1.0f}, // Bottom-left
+	{-1.0f, -1.0f, -1.0f, 1.0f, 1.0f}, // Bottom-right
+	{-1.0f,  1.0f, -1.0f, 1.0f, 0.0f}, // Top-right
+	{-1.0f,  1.0f,  1.0f, 0.0f, 0.0f}, // Top-left
+
+	// Right face
+	{ 1.0f, -1.0f, -1.0f, 0.0f, 1.0f}, // Bottom-left
+	{ 1.0f, -1.0f,  1.0f, 1.0f, 1.0f}, // Bottom-right
+	{ 1.0f,  1.0f,  1.0f, 1.0f, 0.0f}, // Top-right
+	{ 1.0f,  1.0f, -1.0f, 0.0f, 0.0f}, // Top-left
+
+	// Top face
+	{-1.0f,  1.0f, -1.0f, 0.0f, 1.0f}, // Bottom-left
+	{ 1.0f,  1.0f, -1.0f, 1.0f, 1.0f}, // Bottom-right
+	{ 1.0f,  1.0f,  1.0f, 1.0f, 0.0f}, // Top-right
+	{-1.0f,  1.0f,  1.0f, 0.0f, 0.0f}, // Top-left
+
+	// Bottom face
+	{-1.0f, -1.0f,  1.0f, 0.0f, 1.0f}, // Bottom-left
+	{ 1.0f, -1.0f,  1.0f, 1.0f, 1.0f}, // Bottom-right
+	{ 1.0f, -1.0f, -1.0f, 1.0f, 0.0f}, // Top-right
+	{-1.0f, -1.0f, -1.0f, 0.0f, 0.0f} };
+	std::vector<unsigned int> indices = { 0, 2, 1,  0, 3, 2,
+		// Back face
+		4, 5, 6,  4, 6, 7,
+		// Left face
+		8, 10, 9, 8, 11, 10,
+		// Right face
+		12, 14, 13, 12, 15, 14,
+		// Top face
+		16, 18, 17, 16, 19, 18,
+		// Bottom face
+		20, 22, 21, 20, 23, 22 };
+	vertices = vertice;
+	index = indices;
+}
+
+void Primitives::BasicShapes::Plane::GetPlane(std::vector<Vertex>& vertices, std::vector<unsigned int>& index)
+{
+	std::vector<Vertex> vertice = { {1.0f,0.0f,1.0f,1.0f,0.0f},
+	{-1.0f,0.0f,-1.0f,0.0f,1.0f },
+	{-1.0f,0.0f,1.0f,0.0f,0.0f },
+	{1.0f,0.0f,1.0f,1.0f,0.0f },
+	{1.f,0.f,-1.f,1.f,1.f},
+	{-1.0f,0.0f,-1.0f,0.0f,1.0f } };
+	std::vector<unsigned int> indi = { 0,1,2,3,4,5 };
+	vertices = vertice;
+	index = indi;
+}

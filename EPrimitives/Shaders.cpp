@@ -261,3 +261,7 @@ void Primitives::DomainShader::BindShaderToPipeLine(ID3D11DeviceContext*& pICont
 	 pDS.Reset();
 	 pDSBlob.Reset();
 }
+ HullShader::HullShader() {
+	 path = std::make_unique<PathToFile>();
+	 //path->Path = "D:\\program\\vs\\graphic\\x64\\Debug\\GeometryShader.cso"; //remove this
+ }

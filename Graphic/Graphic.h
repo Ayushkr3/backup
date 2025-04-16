@@ -26,7 +26,7 @@ public:
 	DXGI_SWAP_CHAIN_DESC scd;
 	Graphic(HWND hwnd);
 	~Graphic();
-	std::unique_ptr<Scene> pSc;
+	Scene* pSc;
 	void EndFrame();
 	void ClearBuffer(float rgba[4]);
 	//void ToDoFrame();

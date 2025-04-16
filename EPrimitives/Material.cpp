@@ -63,6 +63,13 @@ void Primitives::Material::DeInitalizeD3D11Factory()
 void Material::show() {
 	ImGui::SetCurrentContext(privateCtx);
 	if (ImGui::CollapsingHeader("Material", ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_CollapsingHeader)) {
+		ImGui::Button("Material P");
+		if (ImGui::BeginDragDropSource()) {
+			std::unique_ptr<RefrencePassing> ref = std::make_unique<RefrencePassing>((void*)this, typeid(*this));
+			//RefrencePassing* ref = new RefrencePassing(this, typeid(*this));
+			ImGui::SetDragDropPayload("Material", ref.get(), sizeof(RefrencePassing));
+			ImGui::EndDragDropSource();
+		}
 		if (ImGui::BeginDragDropTarget()) {
 			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("Shader")) {
 				UpdateDependency(payload->Data);
@@ -87,7 +94,7 @@ void Material::show() {
 		}
 	}
 }
-Material::Material(){
+Material::Material(Objects* obj):ObjectProperties(obj){
 	vs.AssignShader(pDVS, pDVSBlob);
 
 	ps.AssignShader(pDPS,pDPSBlob);
@@ -159,4 +166,93 @@ ObjectProperties* Material::GetPropertyRef() {
 }
 const std::type_info& Material::GetPropertyType() {
 	return typeid(Material);
+}
+std::string Material::Serialize() {
+	std::string mat;
+	mat += "0:vs:" + vs.path->Path+"\n";
+	mat += "1:vs:" + vs.path->FileName + "\n";
+	mat += "2:ps:" + ps.path->Path + "\n";
+	mat += "3:ps:" + ps.path->FileName + "\n";
+	mat += "4:hs:" + hs.path->Path + "\n";
+	mat += "5:hs:" + hs.path->FileName + "\n";
+	mat += "6:ds:" + ds.path->Path + "\n";
+	mat += "7:ds:" + ds.path->FileName + "\n";
+	mat += "8:gs:" + gs.path->Path + "\n";
+	mat += "9:gs:" + gs.path->FileName + "\n";
+	return Serialization::SerializeProperty(*this, mat);
+}
+void Material::DeSerialize(std::string block) {
+	std::istringstream iss(block);
+	std::string line;
+	std::getline(iss, line);
+	while (std::getline(iss, line)) {
+		size_t off = line.find(":");
+		std::string type = line.substr(0, off);
+		if (line._Starts_with("{/")) break;
+		switch (std::stoi(type))
+		{
+		case 0:
+			off = line.find(":",off+1);
+			vs.path->Path = line.substr(off + 1, line.size() - 2);
+			break;
+		case 1:
+			off = line.find(":",off+1);
+			vs.path->FileName = line.substr(off + 1, line.size() - 2);
+			break;
+		case 2:
+			off = line.find(":",off+1);
+			ps.path->Path = line.substr(off + 1, line.size() - 2);
+			break;
+		case 3:
+			off = line.find(":",off+1);
+			ps.path->FileName = line.substr(off + 1, line.size() - 2);
+			break;
+		case 4:
+			off = line.find(":",off+1);
+			hs.path->Path = line.substr(off + 1, line.size() - 2);
+			break;
+		case 5:
+			off = line.find(":",off+1);
+			hs.path->FileName = line.substr(off + 1, line.size() - 2);
+			break;
+		case 6:
+			off = line.find(":",off+1);
+			ds.path->Path = line.substr(off + 1, line.size() - 2);
+			break;
+		case 7:
+			off = line.find(":",off+1);
+			ds.path->FileName = line.substr(off + 1, line.size() - 2);
+			break;
+		case 8:
+			off = line.find(":",off+1);
+			gs.path->Path = line.substr(off + 1, line.size() - 2);
+			break;
+		case 9:
+			off = line.find(":",off+1);
+			gs.path->FileName = line.substr(off + 1, line.size() - 2);
+			break;
+		}
+	}
+	bool found = false;
+	for (auto it = associatedObj->GetProperties()->begin(); it != associatedObj->GetProperties()->end();it++) {
+		if ((*it)->GetPropertyType() == typeid(Material)) {
+			Material* m = dynamic_cast<Material*>(*it);
+			delete m;
+			*it = this;
+			found = true;
+			break;
+		}
+		else {
+			found = false;
+		}
+	}
+	if (!found) associatedObj->GetProperties()->push_back(this);
+}
+void Primitives::Material::RegisterFactory(std::multimap<std::string, std::function<ObjectProperties*(Objects*)>>& GlobalPropertiesPoolL)
+{
+	std::function<ObjectProperties*(Objects*)> f = CreateMaterial;
+	ObjectProperties::PushToObjectPropertyPool("Material", f, GlobalPropertiesPoolL);
+}
+ObjectProperties* CreateMaterial(Objects* obj) {
+	return new Material(obj);
 }

@@ -30,9 +30,9 @@ namespace Primitives {
 	};
 	class VertexShader {
 		Microsoft::WRL::ComPtr<ID3D10Blob> pVSBlob;
-		Microsoft::WRL::ComPtr<ID3D11VertexShader> pVS;
 		Microsoft::WRL::ComPtr<ID3D11ShaderReflection> pSReflector;
 	public:
+		Microsoft::WRL::ComPtr<ID3D11VertexShader> pVS;
 		std::unique_ptr<PathToFile> path;
 		PRIMITVE_API VertexShader();
 		PRIMITVE_API void CreateShader(ID3D11Device*& pIDevice);
