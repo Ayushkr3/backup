@@ -166,7 +166,7 @@ private:
 	static std::condition_variable cv;                  ///________--------------------------------------_______________///
 	static bool Pushed;									///____________________________|________________________________///
 	static bool isFinished;								///_______________________|Shared Queue & mutex|________________///
-	static std::thread DebugThread;
+	static std::thread DebugThread;						//Absolute dogshit CPU usage increased by 15%
 	static void RunThread();
 	static std::queue<std::string>* Message_q;
 	//-----------Shared Paging------------// 

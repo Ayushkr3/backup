@@ -113,6 +113,8 @@ void TransformStruct::Update() {
 	isMoving = false;
 }
 void Objects::SetInheritence(Objects*& o) {
+	if (this->Inheritence.inheritedFrom == o)
+		return; //already inherited by object
 	delete this->Inheritence.InheritedTrans;
 	this->Inheritence.InheritedTrans = o->Inheritence.AbsoluteTrans;
 	this->Inheritence.inheritedFrom = o;
@@ -127,6 +129,14 @@ void Objects::SetInheritence(Objects*& o) {
 	b->position[2] = b->position[2] - o->Inheritence.AbsoluteTrans->position[2];
 }
 void Objects::RemoveHeritence(){
+	if (this->Inheritence.inheritedFrom != nullptr) {
+		for (auto it = this->Inheritence.inheritedFrom->Inheritence.InheritedObj.begin(); it != this->Inheritence.inheritedFrom->Inheritence.InheritedObj.end(); ++it) {
+			if (*it == this) {
+				this->Inheritence.inheritedFrom->Inheritence.InheritedObj.erase(it);
+				break;
+			}
+		}
+	}
 	this->Inheritence.InheritedTrans = new TransformStruct(nullptr);
 	this->Inheritence.inheritedFrom = nullptr;
 }

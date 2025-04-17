@@ -169,20 +169,55 @@ void SceneManager::RecursiveTree(Objects*& obj,int* selected) {
 			PropertiesWindow::closable = true;
 			*selected = obj->Id;
 		}
+		if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None)) {
+			ImGui::SetDragDropPayload("Objects", &obj, sizeof(obj));
+			ImGui::EndDragDropSource();
+		}
+		if (ImGui::BeginDragDropTarget()) {
+			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("Objects")) {
+				Objects* data = *static_cast<Objects**>(payload->Data);
+				data->RemoveHeritence();
+				obj->Inheritence.InheritedObj.push_back(data);
+				data->SetInheritence(obj);
+			}
+			ImGui::EndDragDropTarget();
+		}
 		return;
 	}
 	else {
    		std::string selectableLabel = obj->ObjName + std::to_string(obj->Id);
-		if(ImGui::TreeNodeEx(selectableLabel.c_str(),*selected == obj->Id ? ImGuiTreeNodeFlags_Selected : 0)) {
-			if (ImGui::IsItemClicked()) {
+		if(ImGui::TreeNodeEx(selectableLabel.c_str()/*,selected == obj->Id ? ImGuiTreeNodeFlags_Selected : 0*/)) {
+			if (ImGui::IsItemClicked(ImGuiMouseButton_Left) && !ImGui::IsMouseDragging(ImGuiMouseButton_Left)) {
 				PropertiesWindow::Obj = obj;
 				PropertiesWindow::closable = true;
 				*selected = obj->Id;
+			}
+			if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None)) {
+				ImGui::SetDragDropPayload("Objects", &obj, sizeof(obj));
+				ImGui::EndDragDropSource();
+			}
+			if (ImGui::BeginDragDropTarget()) {
+				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("Objects")) {
+					Objects* data = *static_cast<Objects**>(payload->Data);
+					data->RemoveHeritence();
+					obj->Inheritence.InheritedObj.push_back(data);
+					data->SetInheritence(obj);
+				}
+				ImGui::EndDragDropTarget();
 			}
 			for (int i = 0; i < obj->Inheritence.InheritedObj.size(); i++) {
 				RecursiveTree(obj->Inheritence.InheritedObj[i],selected);
 			}
 			ImGui::TreePop();
+		}
+		if (ImGui::BeginDragDropTarget()) {
+			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("Objects")) {
+				Objects* data = *static_cast<Objects**>(payload->Data);
+				data->RemoveHeritence();
+				obj->Inheritence.InheritedObj.push_back(data);
+				data->SetInheritence(obj);
+			}
+			ImGui::EndDragDropTarget();
 		}
 	}
 }
@@ -210,11 +245,11 @@ void SceneManager::Content() {
 	}
 	static Objects* last_object = nullptr;
 	for (int i = 0; i < currentScene->AllObject.size();i++) {
-		/*if (currentScene->AllObject[i]->Inheritence.inheritedFrom != nullptr)
-			continue;*/
-		//RecursiveTree(currentScene->AllObject[i], &selected);
+		if (currentScene->AllObject[i]->Inheritence.inheritedFrom != nullptr)
+			continue;
+		RecursiveTree(currentScene->AllObject[i], &selected);
 		std::string selectableLabel = currentScene->AllObject[i]->ObjName + std::to_string(currentScene->AllObject[i]->Id);
-		if (ImGui::Selectable(selectableLabel.c_str(), selected == currentScene->AllObject[i]->Id)) {
+		/*if (ImGui::Selectable(selectableLabel.c_str(), selected == currentScene->AllObject[i]->Id)) {
 				PropertiesWindow::Obj = currentScene->AllObject[i];
 				PropertiesWindow::closable = true;
 				selected = currentScene->AllObject[i]->Id;
@@ -224,19 +259,19 @@ void SceneManager::Content() {
 						last_object->Restore();
 					last_object = currentScene->AllObject[i];
 				}
-		}
-		if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None)) {
+		}*/
+		/*if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None)) {
 			ImGui::SetDragDropPayload("Objects",&currentScene->AllObject[i],sizeof(currentScene->AllObject[i]));
 			ImGui::EndDragDropSource();
-		}
-		if (ImGui::BeginDragDropTarget()) {
+		}*/
+		/*if (ImGui::BeginDragDropTarget()) {
 			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("Objects")) {
 				Objects* data = *static_cast<Objects**>(payload->Data);
 				currentScene->AllObject[i]->Inheritence.InheritedObj.push_back(data);
 				data->SetInheritence(currentScene->AllObject[i]);
 				ImGui::EndDragDropTarget();
 			}
-		}
+		}*/
 		if (ImGui::BeginPopupContextItem(std::to_string(currentScene->AllObject[i]->Id).c_str())) {
 			if (ImGui::Button("Delete")) {
 				Prefab* t = dynamic_cast<Prefab*>(currentScene->AllObject[i]);
@@ -257,8 +292,8 @@ void SceneManager::Content() {
 		if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("Objects")) {
 			Objects* data = *static_cast<Objects**>(payload->Data);
 			data->RemoveHeritence();
-			ImGui::EndDragDropTarget();
 		}
+		ImGui::EndDragDropTarget();
 	}
 	if (ImGui::IsMouseDown(ImGuiMouseButton_Right) && ImGui::IsWindowHovered() && !ImGui::IsAnyItemHovered())
 		ImGui::OpenPopup("Scene Menu");
