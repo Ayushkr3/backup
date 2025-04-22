@@ -3,7 +3,8 @@ HMODULE ObjectPropertiesFactory::Userlib;
 void ObjectPropertiesFactory::Init() {
 	HotReloading::Init();
 	NVPhysx::RigidBody::RegisterFactory();
-	NVPhysx::Collider::RegisterFactory();
+	NVPhysx::Collider::BoxCollider::RegisterFactory();
+	NVPhysx::Collider::PlaneCollider::RegisterFactory();
 	Primitives::Material::RegisterFactory();
 	
 }

@@ -144,9 +144,12 @@ using namespace physx;
 //{
 //	return new BoxCollider(trans,vertices,Normals,obj);
 //}
-NVPhysx::Collider::Collider(Objects* obj):ObjectProperties(obj) {
+NVPhysx::BaseCollider::BaseCollider() {
+
 }
-void NVPhysx::Collider::InitPlayMode() {
+NVPhysx::Collider::BoxCollider::BoxCollider(Objects* obj):BaseCollider(),ObjectProperties(obj) {
+}
+void NVPhysx::Collider::BoxCollider::InitPlayMode() {
 	try {
 		if (isInitalized)
 			return;
@@ -171,7 +174,7 @@ void NVPhysx::Collider::InitPlayMode() {
 		assert(Error);
 	}
 }
-void NVPhysx::Collider::show() {
+void NVPhysx::Collider::BoxCollider::show() {
 	ImGuiContext* c = privateCtx;
 	ImGui::SetCurrentContext(privateCtx);
 	if (ImGui::CollapsingHeader("Box Collider", ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_CollapsingHeader)) {
@@ -185,30 +188,100 @@ void NVPhysx::Collider::show() {
 		
 	}
 }
-void NVPhysx::Collider::UpdateDependency(const void* ptr) {
+void NVPhysx::Collider::BoxCollider::UpdateDependency(const void* ptr) {
 	RefrencePassing* ref = (RefrencePassing*)(ptr);
 	if (ref->id == typeid(RigidBody)) {
 		rb = (RigidBody*)(ref->ObjectPtr);
 	}
 }
-void NVPhysx::Collider::DeInitPlayMode() {
+void NVPhysx::Collider::BoxCollider::DeInitPlayMode() {
 	isInitalized = false;
+}
+NVPhysx::Collider::PlaneCollider::PlaneCollider(Objects* obj):ObjectProperties(obj) {
+
+}
+const std::type_info & NVPhysx::Collider::PlaneCollider::GetPropertyType()
+{
+	return typeid(NVPhysx::Collider::PlaneCollider);
+}
+ObjectProperties * NVPhysx::Collider::PlaneCollider::GetPropertyRef()
+{
+	return this;
+}
+void NVPhysx::Collider::PlaneCollider::InitPlayMode() {
+	try {
+		if (isInitalized)
+			return;
+		if (rb == nullptr)
+			throw 1;
+		rb->InitPlayMode();
+		if (this->Material == nullptr) {
+			this->Material = physicsObj->createMaterial(0.5f, 0.5f, 0.5f);
+		}
+		if (this->shape == nullptr) {
+			this->shape = physicsObj->createShape(PxBoxGeometry(1.0f, 0.001f, 1.0f), *this->Material);
+		}
+		if (rb->DynamicActor == rb->GetCurrentActor()) {
+			rb->DynamicActor->attachShape(*this->shape);
+		}
+		if (rb->StaticActor == rb->GetCurrentActor()) {
+			rb->StaticActor->attachShape(*this->shape);
+		}
+		isInitalized = true;
+	}
+	catch (int Error) {
+		assert(Error);
+	}
+}
+void NVPhysx::Collider::PlaneCollider::DeInitPlayMode()
+{
+	isInitalized = false;
+}
+void NVPhysx::Collider::PlaneCollider::show()
+{
+	ImGuiContext* c = privateCtx;
+	ImGui::SetCurrentContext(privateCtx);
+	if (ImGui::CollapsingHeader("Plane Collider", ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_CollapsingHeader)) {
+		ImGui::Text("RigidBody"); ImGui::SameLine(); ImGui::Button(GetMemAddress((void*)rb).c_str());
+		if (ImGui::BeginDragDropTarget()) {
+			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("RigidBody")) {
+				UpdateDependency((void*)payload->Data);
+				ImGui::EndDragDropTarget();
+			}
+		}
+
+	}
+}
+void NVPhysx::Collider::PlaneCollider::UpdateDependency(const void * ptr)
+{
+	RefrencePassing* ref = (RefrencePassing*)(ptr);
+	if (ref->id == typeid(RigidBody)) {
+		rb = (RigidBody*)(ref->ObjectPtr);
+	}
 }
 //-------------------------------------------------------------------------------//
 //---------------------------------Factroy functions----------------------------//
 //-------------------------------------------------------------------------------//
-ObjectProperties* CreateCollider(Objects* obj) {
-	return new NVPhysx::Collider(obj);
+ObjectProperties* CreateBoxCollider(Objects* obj) {
+	return new NVPhysx::Collider::BoxCollider(obj);
 }
-ObjectProperties* NVPhysx::Collider::GetPropertyRef() {
+ObjectProperties* CreatePlaneCollider(Objects* obj) {
+	return new NVPhysx::Collider::PlaneCollider(obj);
+}
+ObjectProperties* NVPhysx::Collider::BoxCollider::GetPropertyRef() {
 	return this;
 }
-void NVPhysx::Collider::RegisterFactory(std::multimap<std::string, std::function<ObjectProperties*(Objects*)>>& GlobalPropertiesPoolL) {
-	std::function<ObjectProperties*(Objects*)> f = CreateCollider;
-	ObjectProperties::PushToObjectPropertyPool("Collider",f,GlobalPropertiesPoolL);
+void NVPhysx::Collider::BoxCollider::RegisterFactory(std::multimap<std::string, std::function<ObjectProperties*(Objects*)>>& GlobalPropertiesPoolL) {
+	std::function<ObjectProperties*(Objects*)> f = CreateBoxCollider;
+	ObjectProperties::PushToObjectPropertyPool("Box Collider",f,GlobalPropertiesPoolL);
 }
-const std::type_info& NVPhysx::Collider::GetPropertyType() {
-	return typeid(NVPhysx::Collider);
+void NVPhysx::Collider::PlaneCollider::RegisterFactory(std::multimap<std::string, std::function<ObjectProperties*(Objects*)>>& GlobalPropertiesPoolL)
+{
+	std::function<ObjectProperties*(Objects*)> f = CreatePlaneCollider;
+	ObjectProperties::PushToObjectPropertyPool("Plane Collider", f, GlobalPropertiesPoolL);
+}
+const std::type_info& NVPhysx::Collider::BoxCollider::GetPropertyType() {
+	return typeid(NVPhysx::Collider::BoxCollider);
 }
 //-------------------------------------------------------------------------------//
 //-------------------------------------------------------------------------------//

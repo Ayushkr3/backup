@@ -1,16 +1,16 @@
 #include "pch.h"
 #include "Mouse.h"
 
-short Mouse::deltaX;
-short Mouse::deltaY;
-bool Mouse::LeftButtonDown;
-bool Mouse::LeftButtonUp;
-bool Mouse::isLeftButtonHeld;
-bool Mouse::RightButtonDown;
-bool Mouse::RightButtonUp;
-bool Mouse::isRightButtonHeld;
-bool Mouse::isMouseWheelScrolling;
-short Mouse::WheelDelta;
+//short Mouse::deltaX;
+//short Mouse::deltaY;
+//bool Mouse::LeftButtonDown;
+//bool Mouse::LeftButtonUp;
+//bool Mouse::isLeftButtonHeld;
+//bool Mouse::RightButtonDown;
+//bool Mouse::RightButtonUp;
+//bool Mouse::isRightButtonHeld;
+//bool Mouse::isMouseWheelScrolling;
+//short Mouse::WheelDelta;
 void Mouse::Init() {
 	rwM.dwFlags = 0;
 	rwM.hwndTarget = 0;

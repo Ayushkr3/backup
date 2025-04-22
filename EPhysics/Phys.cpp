@@ -48,7 +48,7 @@ void SharedVarInit(float*&dT, bool*& inPlayMode) {
 //	velocity[2] = ((((*acceleration)[2]) * (*dt)) + (*last_velocity)[2]);
 //}
 //void Physics_Body::Update() {
-//	if (associatedObj->Inheritence.inheritedFrom == nullptr)
+//	if (associatedObj-->Inheritence.inheritedFrom == nullptr)
 //		return;
 //	last_velocity = {velocity[0],velocity[1],velocity[2]}; //last velocity
 //	DirectX::XMFLOAT3 res = DirectX::XMFLOAT3(0, 0, 0); //resultant vector
@@ -160,20 +160,20 @@ void NVPhysx::RigidBody::InitPlayMode() {
 	if (trans == nullptr)
 		assert("UnInitialized");
 	if (DynamicActor == nullptr&&StaticActor == nullptr) {
-		DynamicActor = physicsObj->createRigidDynamic(physx::PxTransform(physx::PxVec3(trans->position[0], trans->position[1], trans->position[2])));
-		StaticActor = physicsObj->createRigidStatic(physx::PxTransform(physx::PxVec3(trans->position[0], trans->position[1], trans->position[2])));
+		DynamicActor = physicsObj->createRigidDynamic(physx::PxTransform(physx::PxVec3(this->associatedObj->Inheritence.AbsoluteTrans->position[0], this->associatedObj->Inheritence.AbsoluteTrans->position[1], this->associatedObj->Inheritence.AbsoluteTrans->position[2])));
+		StaticActor = physicsObj->createRigidStatic(physx::PxTransform(physx::PxVec3(this->associatedObj->Inheritence.AbsoluteTrans->position[0], this->associatedObj->Inheritence.AbsoluteTrans->position[1], this->associatedObj->Inheritence.AbsoluteTrans->position[2])));
 		DynamicActor->setActorFlag(PxActorFlag::eVISUALIZATION, true);
 	}
 	SKIP_CREATION:
 	if (DynamicActor != nullptr) {
 		DynamicActor->setActorFlag(PxActorFlag::eDISABLE_GRAVITY, !isAffectedbyGravity);
-		DynamicActor->setGlobalPose(physx::PxTransform(physx::PxVec3(trans->position[0], trans->position[1], trans->position[2]), PxQuat(trans->rotation[0], trans->rotation[1], trans->rotation[2],trans->rotation[3])));
+		DynamicActor->setGlobalPose(physx::PxTransform(physx::PxVec3(this->associatedObj->Inheritence.AbsoluteTrans->position[0], this->associatedObj->Inheritence.AbsoluteTrans->position[1], this->associatedObj->Inheritence.AbsoluteTrans->position[2]), PxQuat(trans->rotation[0], trans->rotation[1], trans->rotation[2],trans->rotation[3])));
 		DynamicActor->setLinearVelocity(PxVec3(0.0f, 0.0f, 0.0f));
 		DynamicActor->setAngularVelocity(PxVec3(0.0f, 0.0f, 0.0f));
 	}
 	if (StaticActor != nullptr) {
 		StaticActor->setActorFlag(PxActorFlag::eDISABLE_GRAVITY, !isAffectedbyGravity);
-		StaticActor->setGlobalPose(physx::PxTransform(physx::PxVec3(trans->position[0], trans->position[1], trans->position[2]), PxQuat(trans->rotation[0], trans->rotation[1], trans->rotation[2], trans->rotation[3])));
+		StaticActor->setGlobalPose(physx::PxTransform(physx::PxVec3(this->associatedObj->Inheritence.AbsoluteTrans->position[0], this->associatedObj->Inheritence.AbsoluteTrans->position[1], this->associatedObj->Inheritence.AbsoluteTrans->position[2]), PxQuat(trans->rotation[0], trans->rotation[1], trans->rotation[2], trans->rotation[3])));
 	}
 	isInitalized = true;
 }
@@ -207,14 +207,14 @@ void NVPhysx::RigidBody::show() {
 				PxScene* CurrentScene = DynamicActor->getScene();
 				CurrentScene->removeActor(*DynamicActor);
 				CurrentScene->addActor(*StaticActor);
-				StaticActor->setGlobalPose(physx::PxTransform(physx::PxVec3(trans->position[0], trans->position[1], trans->position[2]),PxQuat(trans->rotation[0], trans->rotation[1], trans->rotation[2],trans->rotation[3])));
+				StaticActor->setGlobalPose(physx::PxTransform(physx::PxVec3(this->associatedObj->Inheritence.AbsoluteTrans->position[0], this->associatedObj->Inheritence.AbsoluteTrans->position[1], this->associatedObj->Inheritence.AbsoluteTrans->position[2]),PxQuat(trans->rotation[0], trans->rotation[1], trans->rotation[2],trans->rotation[3])));
 			}
 			else {
 				if (StaticActor != nullptr&& *Globals::inPlayMode) {
 				PxScene* CurrentScene = StaticActor->getScene();
 				CurrentScene->removeActor(*StaticActor);
 				CurrentScene->addActor(*DynamicActor);
-				DynamicActor->setGlobalPose(physx::PxTransform(physx::PxVec3(trans->position[0], trans->position[1], trans->position[2]), PxQuat(trans->rotation[0], trans->rotation[1], trans->rotation[2], trans->rotation[3])));
+				DynamicActor->setGlobalPose(physx::PxTransform(physx::PxVec3(this->associatedObj->Inheritence.AbsoluteTrans->position[0], this->associatedObj->Inheritence.AbsoluteTrans->position[1], this->associatedObj->Inheritence.AbsoluteTrans->position[2]), PxQuat(trans->rotation[0], trans->rotation[1], trans->rotation[2], trans->rotation[3])));
 				}
 			}
 		}
@@ -244,16 +244,16 @@ void NVPhysx::RigidBody::UpdatePhysics() {
 	if (DynamicActor->getScene()!=nullptr) {
 		if (trans->isChangedExternally == false) {
 			physx::PxTransform updateTrans = DynamicActor->getGlobalPose();
-			trans->position[0] = updateTrans.p.x;
-			trans->position[1] = updateTrans.p.y;
-			trans->position[2] = updateTrans.p.z;
+			trans->position[0] = updateTrans.p.x - this->associatedObj->Inheritence.InheritedTrans->position[0];
+			trans->position[1] = updateTrans.p.y - this->associatedObj->Inheritence.InheritedTrans->position[1];
+			trans->position[2] = updateTrans.p.z - this->associatedObj->Inheritence.InheritedTrans->position[2];
 			trans->rotation[0] = updateTrans.q.x;
 			trans->rotation[1] = updateTrans.q.y;
 			trans->rotation[2] = updateTrans.q.z;
 			trans->rotation[3] = updateTrans.q.w;
 		}
 		else {
-			DynamicActor->setGlobalPose(physx::PxTransform(physx::PxVec3(trans->position[0], trans->position[1], trans->position[2]), PxQuat(trans->rotation[0], trans->rotation[1], trans->rotation[2], trans->rotation[3])));
+			DynamicActor->setGlobalPose(physx::PxTransform(physx::PxVec3(this->associatedObj->Inheritence.AbsoluteTrans->position[0],this->associatedObj->Inheritence.AbsoluteTrans->position[1], this->associatedObj->Inheritence.AbsoluteTrans->position[2]), PxQuat(trans->rotation[0], trans->rotation[1], trans->rotation[2], trans->rotation[3])));
 		}
 	}
 }

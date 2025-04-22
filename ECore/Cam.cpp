@@ -1,10 +1,7 @@
 #include "pch.h"
 #include "Cam.h"
 #include "EInputManager.h"
-#include "Mouse.h"
-#include "Keyboard.h"
 #include "MACROS.h"
-#pragma comment(lib,"D:/program/vs/graphic/Shared/lib/EInputManager.lib")
 using namespace DirectX;
 Camera::CameraProp::CameraProp(Objects* obj) :ObjectProperties(obj) {
 
@@ -76,6 +73,8 @@ void Camera::CameraProp::show() {
 	ImGui::DragFloat2("Camera Rotation", rotation, 0.1f);
 	ImGui::DragFloat3("Camera Position", postion, 0.1f);
 	ImGui::DragFloat("Fov", &FoV, 1.0f, 30.f, 270);
+	ImGui::Text(std::to_string(InputManager::GetInputDevices()->Ms->MouseX).c_str());
+	ImGui::Text(std::to_string(InputManager::GetInputDevices()->Ms->MouseY).c_str());
 }
 ObjectProperties* Camera::DebugCamera::GetPropertyRef() {
 	return this;
@@ -88,11 +87,12 @@ void Camera::DebugCamera::SetCameraProp(CameraProp* prop) {
 }
 std::string Camera::CameraProp::GetPropertyClassName() { return "CameraProp"; }
 void Camera::DebugCamera::DebugCamMovement() {
+	auto x = InputManager::GetInputDevices();
 	if (!ImGui::IsWindowHovered(ImGuiHoveredFlags_AnyWindow) && !ImGui::IsAnyItemHovered() && !ImGui::IsAnyItemActive() && !ImGui::IsAnyItemFocused()) {
-		//if (Mouse::isRightButtonHeld) {
-		//	Iprop->rotation[0] += ((float)(Mouse::deltaY)) / 2;
-		//	Iprop->rotation[1] += ((float)(Mouse::deltaX)) / 2;
-		//}
+		if (InputManager::GetInputDevices()->Ms->isRightButtonHeld) {
+			Iprop->rotation[0] += ((float)(InputManager::GetInputDevices()->Ms->deltaY)) / 2;
+			Iprop->rotation[1] += ((float)(InputManager::GetInputDevices()->Ms->deltaX)) / 2;
+		}
 		/*
 		if (Mouse::isLeftButtonHeld) {
 			XMFLOAT3 rightDir, upDir;

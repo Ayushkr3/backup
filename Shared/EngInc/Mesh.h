@@ -53,6 +53,7 @@ public:
 	CORE_EXP bool operator<(const Prefab& secondObj)const;
 	CORE_EXP bool operator==(const Prefab& secondObj)const;
 	CORE_EXP std::vector<Vertex> GetVertices();
+	CORE_EXP void DeInitializePlayMode();
 protected:
 	UINT strides = sizeof(Vertex);
 	UINT offset = 0u;

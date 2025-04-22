@@ -78,6 +78,7 @@ void Scene::DeleteObject(Objects* obj) {
 	if(t!=nullptr)
 		globalCurrentOBJID.push_back(t->id); //local push back
 	Objects::GlobalIdPool.push_back(obj->Id); //global push back
+	obj->RemoveHeritence();
 	AllObject.erase(LookUp(obj->Id, AllObject));
 	if (t != nullptr) {
 		for (auto& prop : t->ObjProperties) {
@@ -98,7 +99,11 @@ void Scene::DeleteObject(Objects* obj) {
 		}
 		Triangles.erase(LookUp(t, Triangles));
 	}
-	delete t;
+	//delete t;
+	if (obj != nullptr) {
+		delete obj;
+		obj = nullptr;
+	}
 	t = nullptr;
 }
 void Scene::DeInitalizePlayMode() {
@@ -108,7 +113,6 @@ void Scene::DeInitalizePlayMode() {
 		AllObject[i]->DeInitializePlayMode();
 		if (!Triangle)continue;
 		for (auto& prop : Triangle->ObjProperties) {
-			prop->DeInitPlayMode();
 			if (auto* rb = dynamic_cast<NVPhysx::RigidBody*>(prop)) {
 				physScene->removeActor(*rb->GetCurrentActor());
 			}
@@ -146,8 +150,9 @@ void Scene::LoadSkyBox() {
 	//Set position of sky box to Camera
 	pSkyBox = std::make_unique<SkyBox>(pDumbDevice, pDumbContext, vertices, indices, currentOBJID++, color, ++Objects::count, n, &cam);
 }
-void Scene::AddObject(Objects* ob,bool isRenderable) {
+Objects* Scene::AddObject(Objects* ob,bool isRenderable) {
 	short ObjectID;
+	Objects* ret = nullptr;
 	if (!Scene::globalCurrentOBJID.empty()) {
 		ObjectID = Scene::globalCurrentOBJID[0];
 		Scene::globalCurrentOBJID.erase(Scene::globalCurrentOBJID.begin());
@@ -160,15 +165,22 @@ void Scene::AddObject(Objects* ob,bool isRenderable) {
 		Prefab* obj = new Prefab(*mesh, ObjectID);
 		Triangles.push_back(obj);
 		AllObject.push_back(obj);
+		ret = obj;
+#ifdef WIN32_DEBUG
+		if (inPlayMode) {
+			DeleteAfterPlay.push_back(obj);
+		}
+#endif
 	}
 	else {
 		AllObject.push_back(ob);
-	}
 #ifdef WIN32_DEBUG
-	if (inPlayMode) {
-		DeleteAfterPlay.push_back(ob);
+		if (inPlayMode) {
+			DeleteAfterPlay.push_back(ob);
+		}
+#endif
 	}
-#endif 
+	return ret;
 }
 short Scene::GetCurrentID() {
 	short globalID;

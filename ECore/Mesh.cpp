@@ -3,7 +3,7 @@
 #include "Mesh.h"
 using namespace CB;
 using namespace DirectX;
-Prefab::Prefab(Mesh& mesh,short ObjectId):Objects(mesh.Id,mesh.ObjName),id(ObjectId) {
+Prefab::Prefab(Mesh& mesh,short ObjectId):Objects(mesh),id(ObjectId) {
 	HRESULT hr;
 	pDevice = mesh.pDevice;
 	pContext = mesh.pContext;
@@ -12,10 +12,11 @@ Prefab::Prefab(Mesh& mesh,short ObjectId):Objects(mesh.Id,mesh.ObjName),id(Objec
 	color[0] = 1.0f;
 	color[1] = 0.0f;
 	color[2] = 0.0f;
-	Trans = mesh.Trans;
+	Trans = new TransformStruct(this);
 	//Mat = mesh.Mat;
 	objectPath = mesh.objectPath;
 	ObjProperties = mesh.ObjProperties;
+	ObjProperties[0] = (Trans);
 	Transformation = mesh.Transformation;
 	
 	D3D11_BUFFER_DESC IndexBufferDesc;
@@ -126,6 +127,9 @@ void Prefab::UpdateBuffers() {
 	Inheritence.AbsoluteTrans->position[0] = Trans->position[0] + (Inheritence.InheritedTrans)->position[0];
 	Inheritence.AbsoluteTrans->position[1] = Trans->position[1] + (Inheritence.InheritedTrans)->position[1];
 	Inheritence.AbsoluteTrans->position[2] = Trans->position[2] + (Inheritence.InheritedTrans)->position[2];
+	Inheritence.AbsoluteTrans->rotation[0] = Trans->rotation[0] + (Inheritence.InheritedTrans)->rotation[0];
+	Inheritence.AbsoluteTrans->rotation[1] = Trans->rotation[1] + (Inheritence.InheritedTrans)->rotation[1];
+	Inheritence.AbsoluteTrans->rotation[2] = Trans->rotation[2] + (Inheritence.InheritedTrans)->rotation[2];
 	Transformation.Rotation = ConvertMatrixToFloat4x4(XMMatrixRotationQuaternion(XMVectorSet(Trans->rotation[0], Trans->rotation[1], Trans->rotation[2], Trans->rotation[3])));
 	Transformation.Translation = ConvertMatrixToFloat4x4(XMMatrixTranslation(Inheritence.AbsoluteTrans->position[0], Inheritence.AbsoluteTrans->position[1], Inheritence.AbsoluteTrans->position[2]));
 	Transformation.Scale = ConvertMatrixToFloat4x4(XMMatrixScaling(Trans->Scale[0], Trans->Scale[1], Trans->Scale[2]));
@@ -160,6 +164,12 @@ void Prefab::Restore()
 std::vector<Vertex> Prefab::GetVertices() {
 	return vertices;
 }
+void Prefab::DeInitializePlayMode()
+{
+	for (auto& o : ObjProperties) {
+		o->DeInitPlayMode();
+	}
+}
 bool Prefab::operator<(const Prefab& secondObj) const {
 	return (id < secondObj.id) ? id : secondObj.id;
 }
@@ -179,16 +189,15 @@ std::vector<ObjectProperties*>* Mesh::GetProperties() {
 }
 Mesh::Mesh(Microsoft::WRL::ComPtr<ID3D11Device>& pDevice, Microsoft::WRL::ComPtr<ID3D11DeviceContext>& pContext,short id, std::vector<Vertex> vertice, std::vector<unsigned int> indi,PathToFile* ptf):Objects(id,"Object"),pDevice(pDevice),pContext(pContext) {
 	Objects* obj = dynamic_cast<Objects*>(this);
-	Trans = new TransformStruct(obj);
 	Primitives::Material* Mat = new Primitives::Material(obj);
 	ObjProperties.push_back(Trans);
 	ObjProperties.push_back(Mat);
 	vertices = vertice;
 	index = indi;
 	objectPath = ptf;
-	Transformation.Rotation = ConvertMatrixToFloat4x4(XMMatrixRotationRollPitchYaw(XMConvertToRadians(Trans->rotation[0]), XMConvertToRadians(Trans->rotation[1]), XMConvertToRadians(Trans->rotation[2])));
-	Transformation.Translation = ConvertMatrixToFloat4x4(XMMatrixTranslation(Trans->position[0] + (Inheritence.InheritedTrans)->position[0], Trans->position[1] + (Inheritence.InheritedTrans)->position[1], Trans->position[2] + (Inheritence.InheritedTrans)->position[2]));
-	Transformation.Scale = ConvertMatrixToFloat4x4(XMMatrixScaling(Trans->Scale[0], Trans->Scale[1], Trans->Scale[2]));
+	//Transformation.Rotation = ConvertMatrixToFloat4x4(XMMatrixRotationRollPitchYaw(XMConvertToRadians(Trans->rotation[0]), XMConvertToRadians(Trans->rotation[1]), XMConvertToRadians(Trans->rotation[2])));
+	//Transformation.Translation = ConvertMatrixToFloat4x4(XMMatrixTranslation(Trans->position[0] + (Inheritence.InheritedTrans)->position[0], Trans->position[1] + (Inheritence.InheritedTrans)->position[1], Trans->position[2] + (Inheritence.InheritedTrans)->position[2]));
+	//Transformation.Scale = ConvertMatrixToFloat4x4(XMMatrixScaling(Trans->Scale[0], Trans->Scale[1], Trans->Scale[2]));
 
 	Mat->CreateCBuffer(0, sizeof(PerObjectData), Primitives::DOMAIN_SHADER);
 	///////////////////////////////////////////////////////////
@@ -210,6 +219,9 @@ NullObject::~NullObject() {
 	delete t;
 }
 void NullObject::inPlayMode() {
+	Inheritence.AbsoluteTrans->position[0] = t->position[0] + (Inheritence.InheritedTrans)->position[0];
+	Inheritence.AbsoluteTrans->position[1] = t->position[1] + (Inheritence.InheritedTrans)->position[1];
+	Inheritence.AbsoluteTrans->position[2] = t->position[2] + (Inheritence.InheritedTrans)->position[2];
 	for (auto& o : objProp) {
 		o->inPlayMode();
 	}

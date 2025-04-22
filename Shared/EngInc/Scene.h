@@ -18,7 +18,7 @@ private:
 public:
 	CORE_EXP void SaveScene();
 	CORE_EXP void LoadScene();
-	CORE_EXP void AddObject(Objects* ob,bool isRenderable = true);
+	CORE_EXP Objects* AddObject(Objects* ob,bool isRenderable = true);
 	CORE_EXP static short currentOBJID;
 	CORE_EXP static std::vector<short> globalCurrentOBJID;
 	CORE_EXP Scene(Microsoft::WRL::ComPtr<ID3D11Device> pDevice, Microsoft::WRL::ComPtr<ID3D11DeviceContext> pContext);

@@ -54,6 +54,7 @@ public:
 		TransformStruct* InheritedTrans;
 		TransformStruct* AbsoluteTrans;
 	}Inheritence;
+	Objects(Objects & O);
 	Objects(short id, std::string ObjName);
 	~Objects();
 	short Id;

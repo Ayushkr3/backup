@@ -177,7 +177,6 @@ void SceneManager::RecursiveTree(Objects*& obj,int* selected) {
 			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("Objects")) {
 				Objects* data = *static_cast<Objects**>(payload->Data);
 				data->RemoveHeritence();
-				obj->Inheritence.InheritedObj.push_back(data);
 				data->SetInheritence(obj);
 			}
 			ImGui::EndDragDropTarget();
@@ -200,7 +199,6 @@ void SceneManager::RecursiveTree(Objects*& obj,int* selected) {
 				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("Objects")) {
 					Objects* data = *static_cast<Objects**>(payload->Data);
 					data->RemoveHeritence();
-					obj->Inheritence.InheritedObj.push_back(data);
 					data->SetInheritence(obj);
 				}
 				ImGui::EndDragDropTarget();
@@ -214,7 +212,6 @@ void SceneManager::RecursiveTree(Objects*& obj,int* selected) {
 			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("Objects")) {
 				Objects* data = *static_cast<Objects**>(payload->Data);
 				data->RemoveHeritence();
-				obj->Inheritence.InheritedObj.push_back(data);
 				data->SetInheritence(obj);
 			}
 			ImGui::EndDragDropTarget();
@@ -483,11 +480,16 @@ void ControlMenu::Content() {
 	ImGui::SameLine();
 	ImGui::Text(("inPlayMode" + std::to_string(*Globals::inPlayMode)).c_str());
 	ImGui::SameLine();
-	if (ImGui::Button(ICON_FA_REPEAT"Reload")) {
-		FreeLibrary(ObjectPropertiesFactory::Userlib);
+	if (ImGui::Button(ICON_FA_REPEAT"Reload Module")) {
+		if(ObjectPropertiesFactory::Userlib==nullptr)
 		ObjectPropertiesFactory::Userlib = LoadLibrary("Module_1.dll");
 		if (ObjectPropertiesFactory::Userlib == nullptr)
 			DebugConsole::Log("User module not loaded");
+	}
+	ImGui::SameLine();
+	if (ImGui::Button(ICON_FA_REPEAT"Discard Module")) {
+		if (ObjectPropertiesFactory::Userlib != nullptr)
+		FreeLibrary(ObjectPropertiesFactory::Userlib);
 	}
 	ImGui::SameLine();
 	if (ImGui::Button(ICON_FA_FLOPPY_O"Save Scene")) {

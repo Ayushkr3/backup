@@ -16,8 +16,27 @@ static TransformStruct* t = new TransformStruct(nullptr);
 void ObjectProperties::PushToObjectPropertyPool(std::string name, std::function<ObjectProperties*(Objects*)> f, std::multimap<std::string, std::function<ObjectProperties*(Objects*)>>& GlobalPropertiesPoolL = ObjectProperties::GlobalPropertiesPool) {
 	GlobalPropertiesPoolL.insert({name,f});
 }
+Objects::Objects(Objects& O):Id(O.Id),ObjName(O.ObjName) {
+	if (O.Inheritence.inheritedFrom!=nullptr) {
+		Inheritence.InheritedTrans = O.Inheritence.InheritedTrans;
+		Inheritence.AbsoluteTrans = O.Inheritence.AbsoluteTrans;
+		Inheritence.inheritedFrom = O.Inheritence.inheritedFrom;
+		Inheritence.InheritedObj = O.Inheritence.InheritedObj;
+	}
+	else {
+		Inheritence.InheritedTrans = new TransformStruct(nullptr);
+		Inheritence.AbsoluteTrans = new TransformStruct(nullptr);
+	}
+	(Inheritence.InheritedTrans)->position[0] = 0;
+	(Inheritence.InheritedTrans)->position[1] = 0;
+	(Inheritence.InheritedTrans)->position[2] = 0;
+	(Inheritence.AbsoluteTrans)->position[0] = 0;
+	(Inheritence.AbsoluteTrans)->position[1] = 0;
+	(Inheritence.AbsoluteTrans)->position[2] = 0;
+	//Inheritence.InheritedObj = O.Inheritence.InheritedObj;
+	//Inheritence.inheritedFrom = O.Inheritence.inheritedFrom;
+}
 Objects::Objects(short id, std::string ObjName) :Id(id), ObjName(ObjName) {
-	float i = 0;
 	Inheritence.InheritedTrans = new TransformStruct(nullptr);
 	Inheritence.AbsoluteTrans = new TransformStruct(nullptr);
 	(Inheritence.InheritedTrans)->position[0] = 0;
@@ -28,8 +47,12 @@ Objects::Objects(short id, std::string ObjName) :Id(id), ObjName(ObjName) {
 	(Inheritence.AbsoluteTrans)->position[2] = 0;
 };
 Objects::~Objects() {
-	delete Inheritence.AbsoluteTrans;
-	delete Inheritence.InheritedTrans;
+	if (this->Inheritence.inheritedFrom == nullptr) {
+		delete this->Inheritence.AbsoluteTrans;
+		delete this->Inheritence.InheritedTrans;
+	}
+	this->RemoveHeritence();
+	delete this->Inheritence.InheritedTrans;
 }
 DirectX::XMFLOAT4 TransformStruct::EulerToQuat(float yaw,float pitch,float roll) {
 	yaw = DirectX::XMConvertToRadians(yaw);
@@ -85,6 +108,7 @@ void TransformStruct::show() {
 		if (ImGui::DragFloat3("Rotation",EulerRot, 0.1f))
 		{
 			isChangedExternally = true;
+			associatedObj->Inheritence.AbsoluteTrans->isChangedExternally = true;
 			auto vec = EulerToQuat(EulerRot[0], EulerRot[1], EulerRot[2]);
 			rotation[0] = vec.x;
 			rotation[1] = vec.y;
@@ -94,13 +118,16 @@ void TransformStruct::show() {
 		else {
 			QuatToEuler(rotation[0], rotation[1], rotation[2], rotation[3], EulerRot);
 			isChangedExternally = false;
+			associatedObj->Inheritence.AbsoluteTrans->isChangedExternally = false;
 		}
 		if(ImGui::DragFloat3("Position", position, 0.1f))
 		{
 			isChangedExternally = true;
+			associatedObj->Inheritence.AbsoluteTrans->isChangedExternally = true;
 		}
 		else {
 			isChangedExternally = false;
+			associatedObj->Inheritence.AbsoluteTrans->isChangedExternally = false;
 		}
 		ImGui::DragFloat3("Scale", Scale, 0.1f);
 		
@@ -124,6 +151,7 @@ void Objects::SetInheritence(Objects*& o) {
 			b = (dynamic_cast<TransformStruct*>(op));
 		}
 	}
+	o->Inheritence.InheritedObj.push_back(this);
 	b->position[0] = b->position[0] - o->Inheritence.AbsoluteTrans->position[0];
 	b->position[1] = b->position[1] - o->Inheritence.AbsoluteTrans->position[1];
 	b->position[2] = b->position[2] - o->Inheritence.AbsoluteTrans->position[2];

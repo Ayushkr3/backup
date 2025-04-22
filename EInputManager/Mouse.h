@@ -3,18 +3,20 @@
 #include "MACROS.h"
 class Mouse {
 public:
-	INPUT_API static bool isLeftButtonHeld;
-	INPUT_API static bool LeftButtonDown;
-	INPUT_API static bool LeftButtonUp;
-	INPUT_API static bool isRightButtonHeld;
-	INPUT_API static bool RightButtonDown;
-	INPUT_API static bool RightButtonUp;
-	INPUT_API static short deltaX;
-	INPUT_API static short deltaY;
-	INPUT_API static bool isMouseWheelScrolling;
-	INPUT_API static short WheelDelta;
+	bool isLeftButtonHeld = false;
+	bool LeftButtonDown = false;
+	bool LeftButtonUp = false;
+	bool isRightButtonHeld = false;
+	bool RightButtonDown = false;
+	bool RightButtonUp = false;
+	short deltaX = 0;
+	short deltaY = 0;
+	bool isMouseWheelScrolling = false;
+	short WheelDelta = 0;
+	short MouseX=0;
+	short MouseY=0;
 	RAWINPUTDEVICE rwM;
 	INPUT_API void Init();
 	INPUT_API void Read(RAWINPUT* raw);
-	INPUT_API static void ResetDelta();
+	INPUT_API void ResetDelta();
 };

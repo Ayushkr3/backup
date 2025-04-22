@@ -1,5 +1,5 @@
 #pragma once
-#include "PxPhysicsAPI.h"
+#include "NvPhysx/PxPhysicsAPI.h"
 #include "EPhysics.h"
 #include "ImGui/imgui.h"
 #include "Global.h"
@@ -77,22 +77,43 @@ public:
 		PHYSICS_API const std::type_info& GetPropertyType();
 		PHYSICS_API std::string GetPropertyClassName() { return "RigidBody"; }
 	};
-	class Collider:public ObjectProperties{
+	class BaseCollider{
+	protected:
 		RigidBody* rb;
 		physx::PxMaterial* Material;
 		physx::PxShape* shape;
 		bool isInitalized = false;
 	public:
-		PHYSICS_API const std::type_info& GetPropertyType();
-		PHYSICS_API ObjectProperties* GetPropertyRef();
-		PHYSICS_API static void RegisterFactory(std::multimap<std::string, std::function<ObjectProperties*(Objects*)>>& GlobalPropertiesPoolL = ObjectProperties::GlobalPropertiesPool);
-		PHYSICS_API void InitPlayMode();
-		PHYSICS_API void DeInitPlayMode();
-		PHYSICS_API void show();
-		PHYSICS_API void UpdateDependency(const void* ptr);
-		PHYSICS_API Collider(Objects* obj);
-		PHYSICS_API std::string GetPropertyClassName() { return "Collider"; }
+		PHYSICS_API BaseCollider();
+	};
+	class Collider {
+	public:
+		class BoxCollider :public ObjectProperties, public BaseCollider {
+		public:
+			PHYSICS_API const std::type_info& GetPropertyType();
+			PHYSICS_API ObjectProperties* GetPropertyRef();
+			PHYSICS_API static void RegisterFactory(std::multimap<std::string, std::function<ObjectProperties*(Objects*)>>& GlobalPropertiesPoolL = ObjectProperties::GlobalPropertiesPool);
+			PHYSICS_API void InitPlayMode();
+			PHYSICS_API void DeInitPlayMode();
+			PHYSICS_API void show();
+			PHYSICS_API void UpdateDependency(const void* ptr);
+			PHYSICS_API BoxCollider(Objects* obj);
+			PHYSICS_API std::string GetPropertyClassName() { return "Collider"; }
+		};
+		class PlaneCollider :public ObjectProperties, public BaseCollider {
+		public:
+			PHYSICS_API const std::type_info& GetPropertyType();
+			PHYSICS_API ObjectProperties* GetPropertyRef();
+			PHYSICS_API static void RegisterFactory(std::multimap<std::string, std::function<ObjectProperties*(Objects*)>>& GlobalPropertiesPoolL = ObjectProperties::GlobalPropertiesPool);
+			PHYSICS_API void InitPlayMode();
+			PHYSICS_API void DeInitPlayMode();
+			PHYSICS_API void show();
+			PHYSICS_API void UpdateDependency(const void* ptr);
+			PHYSICS_API PlaneCollider(Objects* obj);
+			PHYSICS_API std::string GetPropertyClassName() { return "Collider"; }
+		};
 	};
 };
 extern "C" PHYSICS_API ObjectProperties* CreateRigidBody(Objects* obj);
-PHYSICS_API ObjectProperties* CreateCollider(Objects* obj);
+PHYSICS_API ObjectProperties* CreateBoxCollider(Objects* obj);
+PHYSICS_API ObjectProperties* CreatePlaneCollider(Objects* obj);

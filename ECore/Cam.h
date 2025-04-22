@@ -20,6 +20,7 @@ public:
 		REFLECT_END()
 	public:
 		CORE_EXP CameraProp(Objects* obj);
+		CORE_EXP ScreenSpaceToWorld(Objects* obj);
 		CORE_EXP void show();
 		DirectX::XMVECTOR forwardDirection;
 		CORE_EXP ObjectProperties* GetPropertyRef() { return this; }

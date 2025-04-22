@@ -69,6 +69,7 @@ window::window():
 		NULL			 // Additional application data
 	);
 #endif // ImGUI_ENABLED
+	InputManager::Init();
 	DebugConsole::InitDebugConsole();
 	ObjectPropertiesFactory::Init();
 	UIwindow = std::make_unique<UIElements>(className, hwnd, hint, 0, 0, MulDiv(1600,96,144), MulDiv(900,96,144), 1);
@@ -95,7 +96,6 @@ window::window():
 	winRef->Additional_Param.ptrFiles = &file;
 	winRef->Additional_Param.ptrProp = &Properties;
 	winRef->Additional_Param.ptrElem = &UIwindow;
-	InputManager::Init();
 	Globals::inPlayMode = new bool;
 	
 	*Globals::inPlayMode = false;
@@ -265,11 +265,11 @@ LRESULT window::HandleMsg(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) noe
 		}*/
 #endif
 		return 0;
-	/*case WM_MOUSEMOVE:
-			Mouse::mouse_xpos = GET_X_LPARAM(lParam);
-			Mouse::mouse_ypos = GET_Y_LPARAM(lParam);
+	case WM_MOUSEMOVE:
+			InputManager::Ms.MouseX = GET_X_LPARAM(lParam);
+			InputManager::Ms.MouseY = GET_Y_LPARAM(lParam);
 		
-		return 0;*/
+	return 0;
 	}
 	return DefWindowProc(hWnd, msg, wParam, lParam);
 }
@@ -279,6 +279,7 @@ window::~window() {
 #endif // ImGUI_ENABLED
 	DebugConsole::DestroyConsole();
 	D3DFactory::DeInit();
+	InputManager::DeInit();
 	DestroyWindow(hwnd);
 	UnregisterClass("OI",hint);
 	ObjectPropertiesFactory::DeInit();
