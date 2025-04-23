@@ -38,6 +38,18 @@ void __cdecl Camera::calculateProjection(Microsoft::WRL::ComPtr<ID3D11DeviceCont
 	pContext->UpdateSubresource(pFrameConstantBuffer.Get(), 0, nullptr, ViewMatrix, 0, 0);
 	pContext->GSSetConstantBuffers(1, 1, pFrameConstantBuffer.GetAddressOf());
 }
+XMVECTOR Camera::ProjectRayCast() {
+	float xNDC = (2.0f * InputManager::GetInputDevices()->Ms->MouseX / (MulDiv(1600, 96, 144)))-1.0f;
+	float yNDC = (1.0f - 2.0f * InputManager::GetInputDevices()->Ms->MouseY / (MulDiv(900, 96, 144)));
+	XMVECTOR rayNDC = XMVectorSet(xNDC, yNDC, 1.0f, 1.0f);
+	XMMATRIX invViewProj = XMMatrixInverse(nullptr,XMLoadFloat4x4(&viewXprojection.viewMat));
+	XMVECTOR worldRayEnd = XMVector4Transform(rayNDC, invViewProj);
+	XMVECTOR rayOrigin = XMVectorSet(PosNrot->postion[0], PosNrot->postion[1], PosNrot->postion[2],0.0f);
+	XMVECTOR rayDir = XMVector3Normalize(worldRayEnd - rayOrigin);
+	//CONSOLE_PRINT(std::to_string(XMVectorGetX(rayDir))+ "\t"+std::to_string(XMVectorGetX(rayDir))+"\t"+std::to_string(XMVectorGetX(rayDir)));
+	CONSOLE_PRINT(std::to_string(xNDC) + "\t" + std::to_string(yNDC));
+	return rayDir;
+}
 CB::PerFrameData __cdecl Camera::GetViewMatrix() {
 	//////////////////////////
 	if (PosNrot->rotation[1] > 360) {
@@ -61,7 +73,6 @@ CB::PerFrameData __cdecl Camera::GetViewMatrix() {
 
 	viewXprojection.viewMat = CB::ConvertMatrixToFloat4x4(projection*viewmatrix);
 	return viewXprojection;
-
 }
 void Camera::SetFOVnAspectRatio(float FOV, float ratio) {
 	if (FOV >= 0)

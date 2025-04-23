@@ -32,7 +32,7 @@ window::window():
 
 	winRef = new WindowRef;
 	scaledWidth = MulDiv(1620, 96, 144);
-	scaledHeight = MulDiv(960, 96, 144);
+	scaledHeight = MulDiv(940, 96, 144);
 	winRef->Additional_Param.heightY = &scaledHeight;
 	winRef->Additional_Param.widthX = &scaledWidth;
 

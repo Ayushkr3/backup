@@ -133,6 +133,7 @@ void NVPhysx::CreateNewScene(PxScene*& Scene) {
 	physcenedesc->cpuDispatcher = PxDefaultCpuDispatcherCreate(2);
 	Scene = physicsObj->createScene(*physcenedesc);
 	Scene->getScenePvdClient()->setScenePvdFlags(PxPvdSceneFlag::eTRANSMIT_CONTACTS | PxPvdSceneFlag::eTRANSMIT_SCENEQUERIES | PxPvdSceneFlag::eTRANSMIT_CONSTRAINTS);
+	delete physcenedesc;
 }
 NVPhysx::RigidBody::RigidBody(Objects* obj) :ObjectProperties(obj),trans(nulltrans){
 

@@ -20,7 +20,6 @@ public:
 		REFLECT_END()
 	public:
 		CORE_EXP CameraProp(Objects* obj);
-		CORE_EXP ScreenSpaceToWorld(Objects* obj);
 		CORE_EXP void show();
 		DirectX::XMVECTOR forwardDirection;
 		CORE_EXP ObjectProperties* GetPropertyRef() { return this; }
@@ -28,6 +27,7 @@ public:
 		CORE_EXP std::string Serialize();
 		CORE_EXP std::string GetPropertyClassName();
 	};
+	CORE_EXP DirectX::XMVECTOR ProjectRayCast();
 	CORE_EXP Camera(Microsoft::WRL::ComPtr<ID3D11Device> pDevice);
 	CameraProp* PosNrot;
 	std::vector<ObjectProperties*> CamProperties;

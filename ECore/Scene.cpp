@@ -21,6 +21,7 @@ Scene::Scene(Microsoft::WRL::ComPtr<ID3D11Device> pDevice, Microsoft::WRL::ComPt
 	AllObject.push_back(&cam);
 }
 Scene::~Scene() {
+	physScene->release();
 }
 void Scene::Render() {
 	dc.DebugCamMovement();
