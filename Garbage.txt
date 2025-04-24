@@ -1,0 +1,5 @@
+../garbage
+Camera.cpp
+Camera.h
+Scene.h
+Scene.cpp
