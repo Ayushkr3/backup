@@ -39,15 +39,18 @@ void __cdecl Camera::calculateProjection(Microsoft::WRL::ComPtr<ID3D11DeviceCont
 	pContext->GSSetConstantBuffers(1, 1, pFrameConstantBuffer.GetAddressOf());
 }
 XMVECTOR Camera::ProjectRayCast() {
-	float xNDC = (2.0f * InputManager::GetInputDevices()->Ms->MouseX / (MulDiv(1600, 96, 144)))-1.0f;
-	float yNDC = (1.0f - 2.0f * InputManager::GetInputDevices()->Ms->MouseY / (MulDiv(900, 96, 144)));
+	float xNDC = (2.0f * InputManager::GetInputDevices()->Ms->MouseX / 1062)-1.0f; //TODO:Change this
+	float yNDC = (1.0f - 2.0f * InputManager::GetInputDevices()->Ms->MouseY / 584);//TODO: Change this
 	XMVECTOR rayNDC = XMVectorSet(xNDC, yNDC, 1.0f, 1.0f);
 	XMMATRIX invViewProj = XMMatrixInverse(nullptr,XMLoadFloat4x4(&viewXprojection.viewMat));
-	XMVECTOR worldRayEnd = XMVector4Transform(rayNDC, invViewProj);
+	XMVECTOR worldRayEnd = XMVector4Transform(rayNDC, XMMatrixTranspose(invViewProj));
+	worldRayEnd /=XMVectorGetW(worldRayEnd);
 	XMVECTOR rayOrigin = XMVectorSet(PosNrot->postion[0], PosNrot->postion[1], PosNrot->postion[2],0.0f);
 	XMVECTOR rayDir = XMVector3Normalize(worldRayEnd - rayOrigin);
 	//CONSOLE_PRINT(std::to_string(XMVectorGetX(rayDir))+ "\t"+std::to_string(XMVectorGetX(rayDir))+"\t"+std::to_string(XMVectorGetX(rayDir)));
-	CONSOLE_PRINT(std::to_string(xNDC) + "\t" + std::to_string(yNDC));
+
+	auto x = XMConvertToDegrees(XMVectorGetX(XMVector3AngleBetweenVectors(XMVectorSet(0.0f, 0.0f, 1.0f,0.0f), rayDir)));
+	CONSOLE_PRINT(std::to_string(x));
 	return rayDir;
 }
 CB::PerFrameData __cdecl Camera::GetViewMatrix() {
