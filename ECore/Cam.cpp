@@ -39,7 +39,7 @@ void __cdecl Camera::calculateProjection(Microsoft::WRL::ComPtr<ID3D11DeviceCont
 	pContext->GSSetConstantBuffers(1, 1, pFrameConstantBuffer.GetAddressOf());
 }
 XMVECTOR Camera::ProjectRayCast() {
-	float xNDC = (2.0f * InputManager::GetInputDevices()->Ms->MouseX / 1066)-1.0f; //TODO:Change this
+	float xNDC = -(2.0f * InputManager::GetInputDevices()->Ms->MouseX / 1066)-1.0f; //TODO:Change this
 	float yNDC = (1.0f - 2.0f * InputManager::GetInputDevices()->Ms->MouseY / 600);//TODO: Change this
 	XMVECTOR rayNDC = XMVectorSet(xNDC, yNDC, 1.0f, 1.0f);
 	XMMATRIX invViewProj = XMMatrixInverse(nullptr,XMLoadFloat4x4(&viewXprojection.viewMat));
