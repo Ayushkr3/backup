@@ -29,9 +29,10 @@ void Scene::Render() {
 	//TODO: Fix proper lighting
 	pSkyBox->Draw();
 	for (auto& Triangle : Triangles) {
+		Triangle->UpdateBuffers();
 		Triangle->Draw();
 #ifndef WIREFRAME_ENABLED
-		Triangle->UpdateBuffers();
+		
 #endif // !WIREFRAME_ENABLED
 	}
 }

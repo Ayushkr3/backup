@@ -164,6 +164,8 @@ void NVPhysx::RigidBody::InitPlayMode() {
 		DynamicActor = physicsObj->createRigidDynamic(physx::PxTransform(physx::PxVec3(this->associatedObj->Inheritence.AbsoluteTrans->position[0], this->associatedObj->Inheritence.AbsoluteTrans->position[1], this->associatedObj->Inheritence.AbsoluteTrans->position[2])));
 		StaticActor = physicsObj->createRigidStatic(physx::PxTransform(physx::PxVec3(this->associatedObj->Inheritence.AbsoluteTrans->position[0], this->associatedObj->Inheritence.AbsoluteTrans->position[1], this->associatedObj->Inheritence.AbsoluteTrans->position[2])));
 		DynamicActor->setActorFlag(PxActorFlag::eVISUALIZATION, true);
+		DynamicActor->userData = associatedObj;
+		StaticActor->userData = associatedObj;
 	}
 	SKIP_CREATION:
 	if (DynamicActor != nullptr) {
@@ -174,7 +176,7 @@ void NVPhysx::RigidBody::InitPlayMode() {
 	}
 	if (StaticActor != nullptr) {
 		StaticActor->setActorFlag(PxActorFlag::eDISABLE_GRAVITY, !isAffectedbyGravity);
-		StaticActor->setGlobalPose(physx::PxTransform(physx::PxVec3(this->associatedObj->Inheritence.AbsoluteTrans->position[0], this->associatedObj->Inheritence.AbsoluteTrans->position[1], this->associatedObj->Inheritence.AbsoluteTrans->position[2]), PxQuat(trans->rotation[0], trans->rotation[1], trans->rotation[2], trans->rotation[3])));
+		StaticActor->setGlobalPose(physx::PxTransform(physx::PxVec3(this->associatedObj->Inheritence.InheritedTrans->position[0]+trans->position[0], this->associatedObj->Inheritence.InheritedTrans->position[1] + trans->position[1], this->associatedObj->Inheritence.InheritedTrans->position[2] + trans->position[2]), PxQuat(trans->rotation[0], trans->rotation[1], trans->rotation[2], trans->rotation[3])));
 	}
 	isInitalized = true;
 }

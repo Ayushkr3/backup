@@ -57,10 +57,10 @@ public:
 		TransformStruct* nulltrans;
 		Euler updatedAngle;
 	private:
-		bool isAffectedbyGravity = true;
-		bool isStaticObject = false;
 		physx::PxMaterial* objectMaterial;
 	public:
+		bool isAffectedbyGravity = true;
+		bool isStaticObject = false;
 		TransformStruct* trans;
 		PHYSICS_API void InitPlayMode();
 		PHYSICS_API void DeInitPlayMode();

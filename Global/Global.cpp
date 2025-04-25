@@ -11,6 +11,11 @@ ObjectProperties::ObjectProperties(Objects* obj) :associatedObj(obj){
 
 }
 TransformStruct::TransformStruct(Objects* obj) : ObjectProperties(obj) {
+	if (obj != nullptr&&obj->Inheritence.inheritedFrom!=nullptr) {
+		obj->Inheritence.AbsoluteTrans->position[0] = position[0] + obj->Inheritence.InheritedTrans->position[0];
+		obj->Inheritence.AbsoluteTrans->position[1] = position[1] + obj->Inheritence.InheritedTrans->position[1];
+		obj->Inheritence.AbsoluteTrans->position[2] = position[2] + obj->Inheritence.InheritedTrans->position[2];
+	}
 }
 static TransformStruct* t = new TransformStruct(nullptr);
 void ObjectProperties::PushToObjectPropertyPool(std::string name, std::function<ObjectProperties*(Objects*)> f, std::multimap<std::string, std::function<ObjectProperties*(Objects*)>>& GlobalPropertiesPoolL = ObjectProperties::GlobalPropertiesPool) {
