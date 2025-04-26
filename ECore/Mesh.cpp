@@ -44,6 +44,10 @@ Prefab::Prefab(Mesh& mesh,short ObjectId):Objects(mesh),id(ObjectId) {
 	hr = (pDevice->CreateBuffer(&IndexBufferDesc, &index_subr, &pIndexBuffer));
 	pContext->IASetVertexBuffers(0, 1, pVertexBuffer.GetAddressOf(), &strides, &offset);
 	pContext->IASetIndexBuffer(pIndexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
+	Transformation.Rotation = ConvertMatrixToFloat4x4(XMMatrixRotationRollPitchYaw(XMConvertToRadians(Trans->rotation[0]), XMConvertToRadians(Trans->rotation[1]), XMConvertToRadians(Trans->rotation[2])));
+	Transformation.Translation = ConvertMatrixToFloat4x4(XMMatrixTranslation(Trans->position[0] + (Inheritence.InheritedTrans)->position[0], Trans->position[1] + (Inheritence.InheritedTrans)->position[1], Trans->position[2] + (Inheritence.InheritedTrans)->position[2]));
+	Transformation.Scale = ConvertMatrixToFloat4x4(XMMatrixScaling(Trans->Scale[0], Trans->Scale[1], Trans->Scale[2]));
+	dynamic_cast<Primitives::Material*>(ObjProperties[1])->ds.BindAssociatedBuffer((void*)&Transformation, 0, pContext.Get());
 	///////////////////////////////////////////////////////////
 
 	Microsoft::WRL::ComPtr<ID3D11InputLayout>pIL;
@@ -96,8 +100,8 @@ Prefab::Prefab(Microsoft::WRL::ComPtr<ID3D11Device> pDevice, Microsoft::WRL::Com
 	Transformation.Rotation = ConvertMatrixToFloat4x4(XMMatrixRotationRollPitchYaw(XMConvertToRadians(Trans->rotation[0]), XMConvertToRadians(Trans->rotation[1]), XMConvertToRadians(Trans->rotation[2])));
 	Transformation.Translation = ConvertMatrixToFloat4x4(XMMatrixTranslation(Trans->position[0] + (Inheritence.InheritedTrans)->position[0], Trans->position[1] + (Inheritence.InheritedTrans)->position[1], Trans->position[2] + (Inheritence.InheritedTrans)->position[2]));
 	Transformation.Scale = ConvertMatrixToFloat4x4(XMMatrixScaling(Trans->Scale[0], Trans->Scale[1], Trans->Scale[2]));
-
 	Mat->CreateCBuffer(0, sizeof(PerObjectData), Primitives::DOMAIN_SHADER);
+	dynamic_cast<Primitives::Material*>(ObjProperties[1])->ds.BindAssociatedBuffer((void*)&Transformation, 0, pContext.Get());
 	//pContext->IASetVertexBuffers(0, 1, pVertexBuffer.GetAddressOf(), &strides, &offset);
 
 	(pDevice->CreateBuffer(&VertexBuffer, &sbr, &pVertexBuffer));
@@ -124,17 +128,19 @@ void Prefab::Draw() {
 	//pContext->DrawIndexed(vertices.size(), 0);
 }
 void Prefab::UpdateBuffers() {
-	Inheritence.AbsoluteTrans->position[0] = Trans->position[0] + (Inheritence.InheritedTrans)->position[0];
-	Inheritence.AbsoluteTrans->position[1] = Trans->position[1] + (Inheritence.InheritedTrans)->position[1];
-	Inheritence.AbsoluteTrans->position[2] = Trans->position[2] + (Inheritence.InheritedTrans)->position[2];
-	Inheritence.AbsoluteTrans->rotation[0] = Trans->rotation[0] + (Inheritence.InheritedTrans)->rotation[0];
-	Inheritence.AbsoluteTrans->rotation[1] = Trans->rotation[1] + (Inheritence.InheritedTrans)->rotation[1];
-	Inheritence.AbsoluteTrans->rotation[2] = Trans->rotation[2] + (Inheritence.InheritedTrans)->rotation[2];
-	Transformation.Rotation = ConvertMatrixToFloat4x4(XMMatrixRotationQuaternion(XMVectorSet(Trans->rotation[0], Trans->rotation[1], Trans->rotation[2], Trans->rotation[3])));
-	Transformation.Translation = ConvertMatrixToFloat4x4(XMMatrixTranslation(Inheritence.AbsoluteTrans->position[0], Inheritence.AbsoluteTrans->position[1], Inheritence.AbsoluteTrans->position[2]));
-	Transformation.Scale = ConvertMatrixToFloat4x4(XMMatrixScaling(Trans->Scale[0], Trans->Scale[1], Trans->Scale[2]));
+	if (Moving()) {
+		Inheritence.AbsoluteTrans->position[0] = Trans->position[0] + (Inheritence.InheritedTrans)->position[0];
+		Inheritence.AbsoluteTrans->position[1] = Trans->position[1] + (Inheritence.InheritedTrans)->position[1];
+		Inheritence.AbsoluteTrans->position[2] = Trans->position[2] + (Inheritence.InheritedTrans)->position[2];
+		Inheritence.AbsoluteTrans->rotation[0] = Trans->rotation[0] + (Inheritence.InheritedTrans)->rotation[0];
+		Inheritence.AbsoluteTrans->rotation[1] = Trans->rotation[1] + (Inheritence.InheritedTrans)->rotation[1];
+		Inheritence.AbsoluteTrans->rotation[2] = Trans->rotation[2] + (Inheritence.InheritedTrans)->rotation[2];
+		Transformation.Rotation = ConvertMatrixToFloat4x4(XMMatrixRotationQuaternion(XMVectorSet(Trans->rotation[0], Trans->rotation[1], Trans->rotation[2], Trans->rotation[3])));
+		Transformation.Translation = ConvertMatrixToFloat4x4(XMMatrixTranslation(Inheritence.AbsoluteTrans->position[0], Inheritence.AbsoluteTrans->position[1], Inheritence.AbsoluteTrans->position[2]));
+		Transformation.Scale = ConvertMatrixToFloat4x4(XMMatrixScaling(Trans->Scale[0], Trans->Scale[1], Trans->Scale[2]));
 
-	dynamic_cast<Primitives::Material*>(ObjProperties[1])->ds.BindAssociatedBuffer((void*)&Transformation, 0, pContext.Get());
+		dynamic_cast<Primitives::Material*>(ObjProperties[1])->ds.BindAssociatedBuffer((void*)&Transformation, 0, pContext.Get());
+	}
 }
 void Prefab::inPlayMode() {
 	Trans->Update();
@@ -217,6 +223,14 @@ std::vector<ObjectProperties*>* NullObject::GetProperties() {
 }
 NullObject::~NullObject() {
 	delete t;
+}
+bool Prefab::Moving() {
+	return (Inheritence.AbsoluteTrans->position[0]-(Trans->position[0] + (Inheritence.InheritedTrans)->position[0])!=0|
+		Inheritence.AbsoluteTrans->position[1]-(Trans->position[1] + (Inheritence.InheritedTrans)->position[1]) !=0|
+		Inheritence.AbsoluteTrans->position[2]-(Trans->position[2] + (Inheritence.InheritedTrans)->position[2] )!=0|
+		Inheritence.AbsoluteTrans->rotation[0]-(Trans->rotation[0] + (Inheritence.InheritedTrans)->rotation[0] )!=0|
+		Inheritence.AbsoluteTrans->rotation[1]-(Trans->rotation[1] + (Inheritence.InheritedTrans)->rotation[1] )!=0|
+		Inheritence.AbsoluteTrans->rotation[2]-(Trans->rotation[2] + (Inheritence.InheritedTrans)->rotation[2])!=0);
 }
 void NullObject::inPlayMode() {
 	Inheritence.AbsoluteTrans->position[0] = t->position[0] + (Inheritence.InheritedTrans)->position[0];

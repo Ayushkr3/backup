@@ -38,6 +38,8 @@ public:
 };
 class Prefab :public Objects
 {
+private:
+	bool Moving();
 public:
 	short id;
 	std::vector<Vertex> vertices; // = { {0.0f,0.0f, 255, 0, 0, 0 }, { 0.5f,-0.5f,0,255,0,0 }, { -0.5f,-0.5f,0,0,255,0 } };
