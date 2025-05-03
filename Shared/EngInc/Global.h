@@ -59,6 +59,7 @@ public:
 	~Objects();
 	short Id;
 	std::string ObjName;
+	std::string SerializationName;
 	void SetInheritence(Objects*& o);
 	void RemoveHeritence();
 	virtual std::vector<ObjectProperties*>* GetProperties() = 0;

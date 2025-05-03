@@ -196,7 +196,7 @@ short Scene::GetCurrentID() {
 	return globalID;
 }
 Objects* Scene::ParseObject(Serialization::ObjectBlocks OB) {
-	if (OB.ClassName == "Object") {
+	if (OB.ClassName == "Prefab") {
 		std::istringstream stream(OB.blockBuffer);
 		std::string line;
 		std::getline(stream, line);
@@ -230,6 +230,13 @@ Objects* Scene::ParseObject(Serialization::ObjectBlocks OB) {
 		dynamic_cast<Primitives::Material*>(newPrefab->ObjProperties[1])->CreateCBuffer(0, sizeof(CB::PerObjectData), Primitives::DOMAIN_SHADER);
 		Triangles.push_back(newPrefab);
 		return newPrefab;
+	}
+	if (OB.ClassName == "NObject") {
+		NullObject* no = new NullObject(Scene::GetCurrentID());
+		for (auto& it : OB.propBlocks) {
+			Serialization::DeSerializeObject(no, it);
+		}
+		AddObject(no, false);
 	}
 	return nullptr;
 }

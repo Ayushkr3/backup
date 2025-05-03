@@ -4,6 +4,7 @@ using namespace Serialization;
 void Serialization::SaveToFile(std::string buffer) {
 	std::ofstream out("D:/program/Eng/Op.bin");
 	if (out.is_open()) {
+		buffer.erase(0,1);
 		out << buffer;
 		out.close();
 	}

@@ -54,10 +54,11 @@ namespace Serialization {
 	std::string SerializeProperty(T& prop, std::string val) {
 		std::string s;
 		std::ostringstream bytes;
-		bytes << std::setw(5) << std::setfill('0') << (val.size() + prop.GetPropertyClassName().size() + 3);
-		s = s + "{" + prop.GetPropertyClassName() + ":" + bytes.str() + "}" + "\n";
+		std::string className = prop.GetPropertyClassName();
+		bytes << std::setw(5) << std::setfill('0') << (val.size() + className.size() + 3);
+		s = s + "{" + className + ":" + bytes.str() + "}" + "\n";
 		s = s + val;
-		s = s + "{/" + prop.GetPropertyClassName() + "}" + "\n";
+		s = s + "{/" + className + "}" + "\n";
 		return s;
 	}
 	template <typename T>
@@ -88,10 +89,11 @@ namespace Serialization {
 		bytes << std::setw(5) << std::setfill('0') << (buffer.size() + Obj.ObjName.size() + 3+Obj.Serialize().size());
 		std::ostringstream index;
 		index << std::setw(3) << std::setfill('0') <<Obj.Id;
-		s = s + "[" + Obj.ObjName +":"+index.str()+":" + bytes.str() + "]\n";
-		s = s + Obj.Serialize();
+		s = s + "\n"+"[" + Obj.SerializationName +":"+index.str()+":" + bytes.str() + "]\n";
+		if (Obj.Serialize() != "")
+			s = s + Obj.Serialize();
 		s = s + buffer;
-		s = s + "[/" + Obj.ObjName + "]" + "\n";
+		s = s + "[/" + Obj.SerializationName + "]";
 		return s;
 	}
 	std::vector<ObjectBlocks> ReadFromFile();

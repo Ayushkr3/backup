@@ -70,7 +70,7 @@ window::window():
 	);
 #endif // ImGUI_ENABLED
 	InputManager::Init();
-	//DebugConsole::InitDebugConsole();
+	DebugConsole::InitDebugConsole();
 	ObjectPropertiesFactory::Init();
 	UIwindow = std::make_unique<UIElements>(className, hwnd, hint, 0, 0, MulDiv(1600,96,144), MulDiv(900,96,144), 1);
 	ObjectPropertiesFactory::InitModule();

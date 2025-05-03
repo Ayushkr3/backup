@@ -4,6 +4,7 @@
 using namespace CB;
 using namespace DirectX;
 Prefab::Prefab(Mesh& mesh,short ObjectId):Objects(mesh),id(ObjectId) {
+	SerializationName = "Prefab";
 	HRESULT hr;
 	pDevice = mesh.pDevice;
 	pContext = mesh.pContext;
@@ -67,6 +68,7 @@ Prefab::Prefab(Microsoft::WRL::ComPtr<ID3D11Device> pDevice, Microsoft::WRL::Com
 	), Objects(globalID, "Object"), id(id), color{ rgba[0],rgba[1],rgba[2] }, n{ nor }, last_color{ rgba[0],rgba[1],rgba[2] }, rn{ nor }
 {
 	IPC::GetInstance();
+	SerializationName = "Prefab";
 	Objects* obj = dynamic_cast<Objects*>(this);
 	Trans = new TransformStruct(obj);
 	Primitives::Material* Mat = new Primitives::Material(obj);
@@ -194,6 +196,7 @@ std::vector<ObjectProperties*>* Mesh::GetProperties() {
 	return &ObjProperties;
 }
 Mesh::Mesh(Microsoft::WRL::ComPtr<ID3D11Device>& pDevice, Microsoft::WRL::ComPtr<ID3D11DeviceContext>& pContext,short id, std::vector<Vertex> vertice, std::vector<unsigned int> indi,PathToFile* ptf):Objects(id,"Object"),pDevice(pDevice),pContext(pContext) {
+	SerializationName = "Mesh";
 	Objects* obj = dynamic_cast<Objects*>(this);
 	Primitives::Material* Mat = new Primitives::Material(obj);
 	ObjProperties.push_back(Trans);
@@ -215,6 +218,7 @@ std::string Prefab::Serialize() {
 	return s;
 }
 NullObject::NullObject(short id):Objects(id,"Object"){
+	SerializationName = "NObject";
 	t = new TransformStruct(this);
 	objProp.push_back(t);
 }
@@ -225,12 +229,12 @@ NullObject::~NullObject() {
 	delete t;
 }
 bool Prefab::Moving() {
-	return (Inheritence.AbsoluteTrans->position[0]-(Trans->position[0] + (Inheritence.InheritedTrans)->position[0])!=0|
-		Inheritence.AbsoluteTrans->position[1]-(Trans->position[1] + (Inheritence.InheritedTrans)->position[1]) !=0|
-		Inheritence.AbsoluteTrans->position[2]-(Trans->position[2] + (Inheritence.InheritedTrans)->position[2] )!=0|
-		Inheritence.AbsoluteTrans->rotation[0]-(Trans->rotation[0] + (Inheritence.InheritedTrans)->rotation[0] )!=0|
-		Inheritence.AbsoluteTrans->rotation[1]-(Trans->rotation[1] + (Inheritence.InheritedTrans)->rotation[1] )!=0|
-		Inheritence.AbsoluteTrans->rotation[2]-(Trans->rotation[2] + (Inheritence.InheritedTrans)->rotation[2])!=0);
+	return ((Inheritence.AbsoluteTrans->position[0]-(Trans->position[0] + (Inheritence.InheritedTrans)->position[0])!=0)|
+		(Inheritence.AbsoluteTrans->position[1]-(Trans->position[1] + (Inheritence.InheritedTrans)->position[1]) !=0)|
+		(Inheritence.AbsoluteTrans->position[2]-(Trans->position[2] + (Inheritence.InheritedTrans)->position[2] )!=0)|
+		(Inheritence.AbsoluteTrans->rotation[0]-(Trans->rotation[0] + (Inheritence.InheritedTrans)->rotation[0] )!=0)|
+		(Inheritence.AbsoluteTrans->rotation[1]-(Trans->rotation[1] + (Inheritence.InheritedTrans)->rotation[1] )!=0)|
+		(Inheritence.AbsoluteTrans->rotation[2]-(Trans->rotation[2] + (Inheritence.InheritedTrans)->rotation[2])!=0));
 }
 void NullObject::inPlayMode() {
 	Inheritence.AbsoluteTrans->position[0] = t->position[0] + (Inheritence.InheritedTrans)->position[0];

@@ -8,6 +8,7 @@ Camera::CameraProp::CameraProp(Objects* obj) :ObjectProperties(obj) {
 }
 Camera::Camera(Microsoft::WRL::ComPtr<ID3D11Device> pDevice) : Objects(++Objects::count, "Camera")//should be changed
 {
+	SerializationName = "Camera";
 	PosNrot = new CameraProp(this);
 	CamProperties.push_back(PosNrot);
 	viewmatrix = XMMatrixLookAtLH(
