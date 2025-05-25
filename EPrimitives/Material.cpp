@@ -29,19 +29,19 @@ void Primitives::Material::InitalizeD3D11Factory(Microsoft::WRL::ComPtr<ID3D11De
 	pIContext = pContext.Get();
 	WIC::SetImFac();
 
-	D3DReadFileToBlob(L"D:\\program\\vs\\graphic\\x64\\Debug\\VertexShader.cso", &pDVSBlob);
+	D3DReadFileToBlob(L"G:\\shard\\x64\\Debug\\VertexShader.cso", &pDVSBlob);
 	pIDevice->CreateVertexShader(pDVSBlob->GetBufferPointer(), pDVSBlob->GetBufferSize(), nullptr, &pDVS);
 
-	D3DReadFileToBlob(L"D:\\program\\vs\\graphic\\x64\\Debug\\PixelShader.cso", &pDPSBlob);
+	D3DReadFileToBlob(L"G:\\shard\\x64\\Debug\\PixelShader.cso", &pDPSBlob);
 	pIDevice->CreatePixelShader(pDPSBlob->GetBufferPointer(), pDPSBlob->GetBufferSize(), nullptr, &pDPS);
 
-	D3DReadFileToBlob(L"D:\\program\\vs\\graphic\\x64\\Debug\\GeometryShader.cso", &pDGSBlob);
+	D3DReadFileToBlob(L"G:\\shard\\x64\\Debug\\GeometryShader.cso", &pDGSBlob);
 	pIDevice->CreateGeometryShader(pDGSBlob->GetBufferPointer(), pDGSBlob->GetBufferSize(), nullptr, &pDGS);
 
-	D3DReadFileToBlob(L"D:\\program\\vs\\graphic\\x64\\Debug\\HullShader.cso", &pDHSBlob);
+	D3DReadFileToBlob(L"G:\\shard\\x64\\Debug\\HullShader.cso", &pDHSBlob);
 	pIDevice->CreateHullShader(pDHSBlob->GetBufferPointer(), pDHSBlob->GetBufferSize(), nullptr, &pDHS);
 
-	D3DReadFileToBlob(L"D:\\program\\vs\\graphic\\x64\\Debug\\DomainShader.cso", &pDDSBlob);
+	D3DReadFileToBlob(L"G:\\shard\\x64\\Debug\\DomainShader.cso", &pDDSBlob);
 	pIDevice->CreateDomainShader(pDDSBlob->GetBufferPointer(), pDDSBlob->GetBufferSize(), nullptr, &pDDS);
 }
 void Primitives::Material::DeInitalizeD3D11Factory()

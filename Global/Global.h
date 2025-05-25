@@ -17,7 +17,7 @@
 #include <d3d11.h>
 #include <wrl.h>
 #pragma warning(disable : 4244)
-static std::string WorkingDirectory = "D:\\program\\Eng";
+static std::string WorkingDirectory = "G:\\Eng";
 struct ObjectProperties;
 struct TransformStruct;
 inline ImGuiContext* Globalctx = nullptr;
@@ -62,7 +62,7 @@ public:
 	std::string SerializationName;
 	void SetInheritence(Objects*& o);
 	void RemoveHeritence();
-	virtual std::vector<ObjectProperties*>* GetProperties() = 0;
+	virtual std::vector<ObjectProperties*>* GetProperties() = 0; //compulsory
 	virtual std::string Serialize() { return ""; };
 	virtual void inPlayMode() {};
 	virtual void InitializePlayMode() {};

@@ -3,7 +3,7 @@
 #include <d3dcompiler.h>
 #pragma comment(lib, "dxguid.lib")
 //////////////////////
-
+#include "EUI.h"
 /////////////////////
 #pragma comment(lib,"D3DCompiler.lib")
 #pragma comment(lib,"d3d11.lib")
@@ -120,6 +120,8 @@ Graphic::Graphic(HWND hwnd){
 	pContext->OMSetRenderTargets(1, pTarget.GetAddressOf(),pDs.Get());
 	pContext->RSSetState(WireFrame.Get());
 	IPC::SetScene((void*)pSc);
+	UI::InitalizeUI(pDevice,pContext);
+	UI::Resize(DESC.BufferDesc.Width, DESC.BufferDesc.Height,pContext);
 }
 Graphic::~Graphic(){
 	NVPhysx::Destroy();
@@ -180,6 +182,7 @@ void Graphic::Resize(short sizeX,short sizeY) {
 	vp.TopLeftX = 0;
 	vp.TopLeftY = 0;
 	pContext->RSSetViewports(1u, &vp);
+	UI::Resize(sizeX, sizeY,pContext);
 }
 void Graphic::EndFrame() {
 	if (Globals::isFullscreen) {
@@ -199,7 +202,6 @@ void Graphic::ClearBuffer(float rgba[4]) {
 }
 void Graphic::TestFrames() {
 	pContext->PSGetShader(&pLastShader,nullptr,0);
-	//pContext->RSSetState(WireFrame.Get());
 	pSc->Render();
 #ifdef WIREFRAME_ENABLED
 	pContext->PSSetShader(pWireFrameSolid.Get(), nullptr, 0);
@@ -209,6 +211,7 @@ void Graphic::TestFrames() {
 	if (*Globals::inPlayMode) {
 		pSc->PlayMode();
 	}
+	UI::RenderUI(pDevice,pContext);
 	pContext->PSSetShader(pLastShader.Get(), nullptr, 0);  //Remove this maybe
 }
 Scene* Graphic::GetCurrentScene() {

@@ -139,6 +139,12 @@
     <FxCompile Include="DSSkyBox.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
+    <FxCompile Include="UIVs.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="UIPs.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <Image Include="rick.jpg">

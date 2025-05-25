@@ -17,7 +17,7 @@
 #include <d3d11.h>
 #include <wrl.h>
 #pragma warning(disable : 4244)
-static std::string WorkingDirectory = "D:\\program\\Eng";
+static std::string WorkingDirectory = "G:\\Eng";
 struct ObjectProperties;
 struct TransformStruct;
 inline ImGuiContext* Globalctx = nullptr;

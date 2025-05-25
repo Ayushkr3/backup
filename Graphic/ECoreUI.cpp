@@ -52,7 +52,7 @@ UIElements::UIElements(std::string className, HWND Phwnd, HINSTANCE hint, short 
 		ImFontConfig config;
 		config.MergeMode = true;
 		config.GlyphMinAdvanceX = 13.0f;
-		io->Fonts->AddFontFromFileTTF("D:/program/vs/graphic/Graphic/font/fontawesome-webfont.ttf",13.0f,&config, icon_ranges);
+		io->Fonts->AddFontFromFileTTF("G:/shard/Graphic/font/fontawesome-webfont.ttf",13.0f,&config, icon_ranges);
 		io->ConfigFlags = ImGuiConfigFlags_NavEnableSetMousePos;
 		cHwnd = CreateWindowEx(
 			0,                          // Optional window styles.
@@ -518,7 +518,7 @@ void ControlMenu::Content() {
 		ImFontConfig config;
 		config.MergeMode = true;
 		config.GlyphMinAdvanceX = 13.0f;
-		io->Fonts->AddFontFromFileTTF("D:/program/vs/graphic/Graphic/font/fontawesome-webfont.ttf", 13.0f, &config, icon_ranges);
+		io->Fonts->AddFontFromFileTTF("G:/shard/Graphic/font/fontawesome-webfont.ttf", 13.0f, &config, icon_ranges);
 		io->ConfigFlags = ImGuiConfigFlags_NavEnableSetMousePos;
 		((IPC::SharedData*)IPC::ptrToMem)->ctx = ctx;
 		ImGui::SetCurrentContext(ctx);

@@ -2,7 +2,7 @@
 #include "Scene.h"
 #include "Shapes.h"
 #include "ObjParser.h"
-//#pragma comment(lib, "D:/program/vs/graphic/Shared/lib/ECore.lib")
+#include "EUI.h"
 short Scene::currentOBJID = 10;
 using namespace physx;
 std::vector<short> Scene::globalCurrentOBJID = {};
@@ -17,6 +17,10 @@ Scene::Scene(Microsoft::WRL::ComPtr<ID3D11Device> pDevice, Microsoft::WRL::ComPt
 	cam.CamProperties.push_back(&dc);
 	dc.SetCameraProp(cam.PosNrot);
 	//-------------------------------------//
+	UI::Button* testButton = new UI::Button(GetCurrentID());
+	AllObject.push_back(testButton);
+	UI::Button* testButton2 = new UI::Button(GetCurrentID());
+	AllObject.push_back(testButton2);
 	//-------------------------------------//
 	AllObject.push_back(&cam);
 }
