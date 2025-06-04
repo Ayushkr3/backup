@@ -33,6 +33,7 @@ Graphic::Graphic(HWND hwnd){
 	pDevice->CreateRenderTargetView(pBackBuffer, nullptr, pTarget.GetAddressOf());
 	pBackBuffer->Release();
 	NVPhysx::Init();
+	UI::InitalizeUI(pDevice, pContext);
 	pSc = new Scene(pDevice,pContext);
 
 	DXGI_SWAP_CHAIN_DESC DESC;
@@ -120,7 +121,6 @@ Graphic::Graphic(HWND hwnd){
 	pContext->OMSetRenderTargets(1, pTarget.GetAddressOf(),pDs.Get());
 	pContext->RSSetState(WireFrame.Get());
 	IPC::SetScene((void*)pSc);
-	UI::InitalizeUI(pDevice,pContext);
 	UI::Resize(DESC.BufferDesc.Width, DESC.BufferDesc.Height,pContext);
 }
 Graphic::~Graphic(){

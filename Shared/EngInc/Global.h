@@ -62,11 +62,12 @@ public:
 	std::string SerializationName;
 	void SetInheritence(Objects*& o);
 	void RemoveHeritence();
-	virtual std::vector<ObjectProperties*>* GetProperties() = 0;
+	virtual std::vector<ObjectProperties*>* GetProperties() = 0; //compulsory
 	virtual std::string Serialize() { return ""; };
 	virtual void inPlayMode() {};
 	virtual void InitializePlayMode() {};
 	virtual void DeInitializePlayMode() {};
+	virtual void Update() {}; //this for object which need to updated everyframe but not render anything 
 
 };
 struct ObjectProperties {

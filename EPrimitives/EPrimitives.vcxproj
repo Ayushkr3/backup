@@ -110,7 +110,8 @@ xcopy /y /d  "$(ProjectDir)Texture.h" "$(SolutionDir)Shared\EngInc"
 xcopy /y /d  "$(ProjectDir)PropertiesRequirment.h" "$(SolutionDir)Shared\EngInc"
 xcopy /y /d  "$(ProjectDir)WIC.h" "$(SolutionDir)Shared\EngInc"
 xcopy /y /d  "$(ProjectDir)Microsoft_wic.h" "$(SolutionDir)Shared\EngInc"
-xcopy /y /d  "$(ProjectDir)Shapes.h" "$(SolutionDir)Shared\EngInc"</Command>
+xcopy /y /d  "$(ProjectDir)Shapes.h" "$(SolutionDir)Shared\EngInc"
+xcopy /y /d  "$(ProjectDir)UIProperties.h" "$(SolutionDir)Shared\EngInc"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -178,6 +179,7 @@ xcopy /y /d  "$(ProjectDir)Shapes.h" "$(SolutionDir)Shared\EngInc"</Command>
     <ClInclude Include="PropertiesRequirment.h" />
     <ClInclude Include="Shapes.h" />
     <ClInclude Include="Texture.h" />
+    <ClInclude Include="UIProperties.h" />
     <ClInclude Include="WIC.h" />
   </ItemGroup>
   <ItemGroup>
@@ -194,6 +196,7 @@ xcopy /y /d  "$(ProjectDir)Shapes.h" "$(SolutionDir)Shared\EngInc"</Command>
     <ClCompile Include="Shaders.cpp" />
     <ClCompile Include="Shapes.cpp" />
     <ClCompile Include="Texture.cpp" />
+    <ClCompile Include="UIProperties.cpp" />
     <ClCompile Include="WIC.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -32,12 +32,13 @@ void Scene::Render() {
 	cam.calculateProjection(pContext, &(cam.GetViewMatrix()));
 	//TODO: Fix proper lighting
 	pSkyBox->Draw();
-	for (auto& Triangle : Triangles) {
-		Triangle->UpdateBuffers();
-		Triangle->Draw();
-#ifndef WIREFRAME_ENABLED
-		
-#endif // !WIREFRAME_ENABLED
+	for (auto& obj : AllObject) {
+		obj->Update();
+		if (dynamic_cast<Renderable*>(obj) != nullptr) {
+			Renderable* red = dynamic_cast<Renderable*>(obj);
+			red->UpdateBuffers();
+			red->Draw();
+		}
 	}
 }
 void Scene::RenderWireFrame() {

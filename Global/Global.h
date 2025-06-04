@@ -67,6 +67,7 @@ public:
 	virtual void inPlayMode() {};
 	virtual void InitializePlayMode() {};
 	virtual void DeInitializePlayMode() {};
+	virtual void Update() {}; //this for object which need to updated everyframe but not render anything 
 
 };
 struct ObjectProperties {

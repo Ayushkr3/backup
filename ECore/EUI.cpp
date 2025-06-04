@@ -12,21 +12,61 @@ Microsoft::WRL::ComPtr<ID3D11Buffer> BaseUI::VertexBuff;
 Microsoft::WRL::ComPtr<ID3D11Buffer> BaseUI::indexBuff;
 Microsoft::WRL::ComPtr<ID3D11DepthStencilState> BaseUI::pDSState;
 Microsoft::WRL::ComPtr<ID3D11Buffer> BaseUI::orthoBuffer;
+Microsoft::WRL::ComPtr<ID3D11Buffer> BaseUI::UIInstance;
+Microsoft::WRL::ComPtr<ID3D11Device> BaseUI::pDevice;
+Microsoft::WRL::ComPtr<ID3D11DeviceContext> BaseUI::pContext;
+std::unordered_map<int, UI::InstanceData*>BaseUI::AllInstanceData;
 DirectX::XMMATRIX BaseUI::ortho;
 short BaseUI::Count = 0;
 short BaseUI::sizeX;
 short BaseUI::sizeY;
+std::queue<short> BaseUI::availableIndexs;
+std::vector<UI::InstanceData> BaseUI::privateDat;
+
+BaseUI::BaseUI(Objects* obj):Container(obj) {
+
+}
+BaseUI::~BaseUI() {
+	availableIndexs.push(InterID);
+}
 void BaseUI::Action() {
 
 }
 std::vector<ObjectProperties*>* Button::GetProperties() {
 	return &properties;
 }
-
-Button::Button(short id):Objects(id,"Button") {
+short BaseUI::GetNewIndex() {
+	if (!availableIndexs.empty()) {
+		short id =  availableIndexs.front();
+		availableIndexs.pop();
+		return id;
+	}
 	BaseUI::Count++;
+	return BaseUI::Count-1;
+}
+void BaseUI::ResetInstanceBuffer(){
+	UIInstance.Reset();
+	D3D11_BUFFER_DESC InstanceBuff;
+	InstanceBuff.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+	InstanceBuff.Usage = D3D11_USAGE_DYNAMIC;
+	InstanceBuff.ByteWidth = (sizeof(UI::InstanceData) * BaseUI::Count);
+	InstanceBuff.CPUAccessFlags = D3D10_CPU_ACCESS_WRITE;
+	InstanceBuff.MiscFlags = 0;
+	D3D11_SUBRESOURCE_DATA sbr;
+	sbr.pSysMem = privateDat.data();
+	HRESULT hr = (pDevice)->CreateBuffer(&InstanceBuff,&sbr, &UIInstance); //All element buffer
+}
+
+Button::Button(short id):Objects(id,"Button"),BaseUI(this) {
+	properties.push_back(&Container);
+	BaseUI::AllInstanceData[Count] = &this->Container.InsDat;
+	BaseUI::privateDat.push_back(this->Container.InsDat);
+	InterID = GetNewIndex();
+	BaseUI::ResetInstanceBuffer();
 }
 void UI::InitalizeUI(Microsoft::WRL::ComPtr<ID3D11Device>& pDevice, Microsoft::WRL::ComPtr<ID3D11DeviceContext>& pContext) {
+	BaseUI::pDevice = pDevice;
+	BaseUI::pContext = pContext;
 	HRESULT hr;
 	D3D11_BUFFER_DESC IndexBufferDesc;
 	D3D11_BUFFER_DESC VertexBufferDesc;
@@ -49,6 +89,7 @@ void UI::InitalizeUI(Microsoft::WRL::ComPtr<ID3D11Device>& pDevice, Microsoft::W
 	index_subr.pSysMem = BaseUI::indices.data();
 	hr = (pDevice->CreateBuffer(&VertexBufferDesc, &sbr, &BaseUI::VertexBuff));
 	hr = (pDevice->CreateBuffer(&IndexBufferDesc, &index_subr, &BaseUI::indexBuff));
+
 	//------------------------------Shaders-------------------------------------------//
 	D3DReadFileToBlob(L"G:\\shard\\x64\\Debug\\UIVs.cso",&BaseUI::pVSBlob);
 	D3DReadFileToBlob(L"G:\\shard\\x64\\Debug\\UIPs.cso", &BaseUI::pPSBlob);
@@ -72,7 +113,8 @@ void UI::InitalizeUI(Microsoft::WRL::ComPtr<ID3D11Device>& pDevice, Microsoft::W
 	D3D11_INPUT_ELEMENT_DESC IL[] = {
 		{ "Position",0, DXGI_FORMAT_R32G32B32_FLOAT,0,0,D3D11_INPUT_PER_VERTEX_DATA,0 },
 		{ "Texcoord",0,DXGI_FORMAT_R32G32_FLOAT,0,12u,D3D11_INPUT_PER_VERTEX_DATA,0 },
-		//{ "XY",0,DXGI_FORMAT_R32G32_FLOAT,1,0u,D3D11_INPUT_PER_INSTANCE_DATA,0 },
+		{ "XY",0,DXGI_FORMAT_R32G32_FLOAT,1,0u,D3D11_INPUT_PER_INSTANCE_DATA,1 },//last is instance step rate
+		{ "SXY",0,DXGI_FORMAT_R32G32_FLOAT,1,8u,D3D11_INPUT_PER_INSTANCE_DATA,1 },
 		//{ "SV_InstanceID", 0, DXGI_FORMAT_R32_UINT, 0, 20u, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 	};
 	hr = pDevice->CreateInputLayout(IL, std::size(IL),BaseUI::pVSBlob->GetBufferPointer(),BaseUI::pVSBlob->GetBufferSize(),&BaseUI::pIL);
@@ -86,8 +128,8 @@ void UI::InitalizeUI(Microsoft::WRL::ComPtr<ID3D11Device>& pDevice, Microsoft::W
 }
 void UI::RenderUI(Microsoft::WRL::ComPtr<ID3D11Device>& pDevice, Microsoft::WRL::ComPtr<ID3D11DeviceContext>& pContext) {
 	if (BaseUI::Count > 0) {
-		UINT strides = sizeof(UIVertex);//+4 instanceid
-		UINT offset = 0u;
+		UINT strides[2] = { sizeof(UIVertex), sizeof(UI::InstanceData) };
+		UINT offsets[2] = { 0, 0 };
 		Microsoft::WRL::ComPtr<ID3D11InputLayout> pBIL;
 		Microsoft::WRL::ComPtr<ID3D11DepthStencilState> pOldState;
 		D3D11_PRIMITIVE_TOPOLOGY topo;
@@ -95,7 +137,8 @@ void UI::RenderUI(Microsoft::WRL::ComPtr<ID3D11Device>& pDevice, Microsoft::WRL:
 		pContext->OMSetDepthStencilState(BaseUI::pDSState.Get(),0);
 		pContext->IAGetInputLayout(&pBIL); //Get Last Layout
 		pContext->IAGetPrimitiveTopology(&topo); //Get Last topo
-		pContext->IASetVertexBuffers(0, 1, BaseUI::VertexBuff.GetAddressOf(), &strides, &offset);
+		ID3D11Buffer* buffers[2] = { BaseUI::VertexBuff.Get(), BaseUI::UIInstance.Get() };
+		pContext->IASetVertexBuffers(0, 2, buffers,strides,offsets);
 		pContext->VSSetShader(BaseUI::pVS.Get(), nullptr, 0);
 		pContext->VSSetConstantBuffers(0, 1, BaseUI::orthoBuffer.GetAddressOf());
 		pContext->PSSetShader(BaseUI::pPS.Get(), nullptr, 0);
@@ -120,4 +163,22 @@ void UI::Resize(short sizeX, short sizeY, Microsoft::WRL::ComPtr<ID3D11DeviceCon
 	HRESULT hr = pContext->Map(BaseUI::orthoBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped);
 	memcpy(mapped.pData, &BaseUI::ortho, sizeof(BaseUI::ortho));
 	pContext->Unmap(BaseUI::orthoBuffer.Get(), 0);
+}
+
+//Way to fragile
+//Kill me
+void BaseUI::UpdatePortion(short ID,void* DataToReplaceWith) {
+	D3D11_MAPPED_SUBRESOURCE mapped = {};
+	HRESULT hr = pContext->Map(BaseUI::UIInstance.Get(), 0, D3D11_MAP_WRITE_NO_OVERWRITE, 0, &mapped);
+	//Based on ID update the section inside the vector
+	UI::InstanceData* ptr = (UI::InstanceData*)mapped.pData;
+	ptr = ptr + ID;
+	memcpy(ptr, DataToReplaceWith, sizeof(UIContainer::InsDat));
+	pContext->Unmap(BaseUI::UIInstance.Get(), 0);
+}
+void Button::Update() {
+	//check for input blah blah
+	if (Container.isContainerMoving()) {
+		UpdatePortion(InterID,&Container.InsDat); //Inside All element Buffer just update this section
+	}
 }
